@@ -1401,7 +1401,7 @@ class Module extends AbstractModule
         }
 
         $fileData = $request->getFileData();
-        $hasFileError = !empty($fileData['file']['error']);
+        $hasFileError = !empty($fileData['file']['error'] ?? null);
 
         $storeOriginalName = $request->getValue('store_original_name');
         if ($storeOriginalName && !$hasFileError) {
@@ -1536,12 +1536,21 @@ class Module extends AbstractModule
     protected function storeAssetWithOriginalName(\Omeka\Entity\Asset $asset): void
     {
         $services = $this->getServiceLocator();
+        $logger = $services->get('Omeka\Logger');
+
+        // This feature only works with the local file store.
+        $store = $services->get('Omeka\File\Store');
+        if (!$store instanceof \Omeka\File\Store\Local) {
+            return;
+        }
+
         $config = $services->get('Config');
         $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
         $assetDir = $basePath . '/asset';
 
         $originalName = $asset->getName();
         if (!$originalName) {
+            $logger->warn('Asset #{asset_id}: cannot rename, asset has no name.', ['asset_id' => $asset->getId()]);
             return;
         }
 
@@ -1550,6 +1559,7 @@ class Module extends AbstractModule
         // Remove characters that are problematic on filesystems.
         $originalName = preg_replace('/[^\w.\-]/', '_', $originalName);
         if (!strlen($originalName) || $originalName === '.' || $originalName === '..') {
+            $logger->warn('Asset #{asset_id}: cannot rename, sanitized name is empty.', ['asset_id' => $asset->getId()]);
             return;
         }
 
@@ -1558,6 +1568,10 @@ class Module extends AbstractModule
             . ($extension ? '.' . $extension : '');
         $currentPath = $assetDir . '/' . $currentFilename;
         if (!file_exists($currentPath)) {
+            $logger->warn(new PsrMessage(
+                'Asset #{asset_id}: cannot rename, file "{filename}" not found in asset directory.', // @translate
+                ['asset_id' => $asset->getId(), 'filename' => $currentFilename]
+            ));
             return;
         }
 
@@ -1565,6 +1579,12 @@ class Module extends AbstractModule
         $nameInfo = pathinfo($originalName);
         $baseName = $nameInfo['filename'];
         $nameExt = isset($nameInfo['extension']) ? $nameInfo['extension'] : $extension;
+
+        // If the original name has no filename part (e.g. ".jpg"), use the
+        // current storage id.
+        if (!strlen($baseName)) {
+            return;
+        }
 
         // Limit to 190 characters for database storage_id column.
         $maxLength = 190;
@@ -1592,11 +1612,11 @@ class Module extends AbstractModule
             return;
         }
 
-        if (!rename($currentPath, $newPath)) {
-            $logger = $services->get('Omeka\Logger');
+        if (!@rename($currentPath, $newPath)) {
+            $error = error_get_last();
             $logger->err(new PsrMessage(
-                'Unable to rename asset file from "{old}" to "{new}".', // @translate
-                ['old' => $currentFilename, 'new' => $newFilename]
+                'Unable to rename asset file from "{old}" to "{new}": {error}. Check that the web server has write permission on the directory "{dir}".', // @translate
+                ['old' => $currentFilename, 'new' => $newFilename, 'error' => $error['message'] ?? 'unknown error', 'dir' => $assetDir]
             ));
             return;
         }

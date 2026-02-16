@@ -19,6 +19,21 @@ use Omeka\Stdlib\ErrorStore;
 class AssetAdapterDelegator extends AssetAdapter
 {
     /**
+     * Ensure event listeners attached to the original adapter class still fire.
+     *
+     * Without this, the EventManager identifiers would only include this
+     * delegator class and AbstractAdapter, missing AssetAdapter. Any shared
+     * event listeners attached to AssetAdapter::class (like api.update.post)
+     * would never match.
+     *
+     * @var string[]
+     */
+    protected $eventIdentifier = [
+        'Omeka\Api\Adapter\AssetAdapter',
+        'Omeka\Api\Adapter\AbstractEntityAdapter',
+    ];
+
+    /**
      * Return the original AssetAdapter class as the ACL resource ID.
      *
      * The ACL system uses getResourceId() to check permissions. Since only
