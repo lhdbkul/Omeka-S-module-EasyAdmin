@@ -588,13 +588,46 @@ class Addons extends AbstractPlugin
      */
     protected function downloadFile($source, $destination): bool
     {
+        // Only allow http/https to prevent local file reads via file://, php://, etc.
+        $scheme = parse_url($source, PHP_URL_SCHEME);
+        if (!in_array($scheme, ['http', 'https'])) {
+            return false;
+        }
+
+        // Limit download size to 200 MB to prevent disk exhaustion.
+        $maxSize = 200 * 1024 * 1024;
+
         $handle = @fopen($source, 'rb');
         if (empty($handle)) {
             return false;
         }
-        $result = (bool) file_put_contents($destination, $handle);
+
+        $destHandle = @fopen($destination, 'wb');
+        if (!$destHandle) {
+            @fclose($handle);
+            return false;
+        }
+
+        $written = 0;
+        while (!feof($handle)) {
+            $chunk = @fread($handle, 8192);
+            if ($chunk === false) {
+                break;
+            }
+            $written += strlen($chunk);
+            if ($written > $maxSize) {
+                @fclose($handle);
+                @fclose($destHandle);
+                @unlink($destination);
+                return false;
+            }
+            fwrite($destHandle, $chunk);
+        }
+
         @fclose($handle);
-        return $result;
+        @fclose($destHandle);
+
+        return $written > 0;
     }
 
     /**
