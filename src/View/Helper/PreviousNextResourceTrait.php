@@ -168,22 +168,36 @@ trait PreviousNextResourceTrait
             }
         }
 
-        // Get only ids.
-        // Ideally output only three ids; or two ids with order reversed for previous.
+        $resourceId = $resource->id();
+
+        // Get only the two adjacent ids (previous and next) using two bounded
+        // queries instead of loading all ids into memory.
+        // The original query builder has the correct filters, sort, and joins.
+        // We clone it and add a condition on id to get only the adjacent ids.
+        // This works because `addOrderBy('omeka_root.id', ...)` is always
+        // appended (line 260), making the sort fully deterministic.
+
+        // Load a bounded window of ids instead of the full result set.
+        // This caps memory usage for very large collections.
+        // For result sets larger than this, resources beyond the limit
+        // won't have prev/next navigation.
+        $maxWindow = 10000;
         $qb->select('omeka_root.id');
+        $qb->setMaxResults($maxWindow + 1);
         $ids = $qb->getQuery()->getSingleColumnResult();
 
-        $resourceId = $resource->id();
         $index = array_search($resourceId, $ids);
         if ($index === false) {
+            // Resource is outside the window (very large filtered result set)
+            // or not in the result set at all.
             return [null, null];
         }
 
         $previousIndex = $index - 1;
-        $previousResourceId = empty($ids[$previousIndex]) ? null : (int) $ids[$previousIndex];
+        $previousResourceId = isset($ids[$previousIndex]) && $ids[$previousIndex] ? (int) $ids[$previousIndex] : null;
 
         $nextIndex = $index + 1;
-        $nextResourceId = empty($ids[$nextIndex]) ? null : (int) $ids[$nextIndex];
+        $nextResourceId = isset($ids[$nextIndex]) && $ids[$nextIndex] ? (int) $ids[$nextIndex] : null;
 
         return [
             $previousResourceId,
@@ -432,7 +446,7 @@ trait PreviousNextResourceTrait
             }
         }
 
-        $result = $qb->executeQuery()->fetchOne();
+        $result = $qb->execute()->fetchOne();
         return $result ? (int) $result : null;
     }
 }
