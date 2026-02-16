@@ -22,10 +22,13 @@
         "issues": "https://gitlab.com/Daniel-KM/Omeka-S-module-EasyAdmin/-/issues",
         "forum": "https://forum.omeka.org/"
     },
+    "_require (not set until Omeka S merges PR #2412)": {
+        "omeka/omeka-s": "^4.0",
+        "daniel-km/omeka-s-module-common": "*"
+    },
     "require": {
         "flowjs/flow-php-server": "^1.2",
-        "flowjs/flow.js": "^2.14",
-        "oomphinc/composer-installers-extender": "^2.0"
+        "sempia/external-assets": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -37,38 +40,20 @@
             "EasyAdminTest\\": "tests/EasyAdminTest/"
         }
     },
-    "repositories": [
-        {
-            "type": "package",
-            "package": {
-                "type": "omeka-addon-asset",
-                "name": "flowjs/flow.js",
-                "version": "2.14.1",
-                "dist": {
-                    "type": "file",
-                    "url": "https://github.com/Daniel-KM/Omeka-S-module-EasyAdmin/releases/download/3.4.18/flow.min.js"
-                }
-            }
-        }
-    ],
     "config": {
         "platform": {
             "php": "7.4"
         },
         "allow-plugins": {
             "composer/installers": true,
-            "oomphinc/composer-installers-extender": true
+            "sempia/external-assets": true
         }
     },
     "extra": {
-        "installer-types": [
-            "omeka-addon-asset"
-        ],
-        "installer-paths": {
-            "asset/vendor/{$name}/": [
-                "type:omeka-addon-asset"
-            ]
+        "external-assets": {
+            "asset/vendor/flow.js/flow.min.js": "https://github.com/Daniel-KM/Omeka-S-module-EasyAdmin/releases/download/3.4.18/flow.min.js"
         },
-        "installer-name" : "EasyAdmin"
+        "installer-name": "EasyAdmin",
+        "configurable": true
     }
 }
