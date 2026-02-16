@@ -200,13 +200,18 @@ class DatabaseBackup extends AbstractJob
             );
         }
 
+        // Use --defaults-extra-file to avoid exposing password in process list.
+        $defaultsFile = $this->createMysqlDefaultsFile();
+        if (!$defaultsFile) {
+            return false;
+        }
+
         // Build mysqldump command.
         $cmd = sprintf(
-            '%s --host=%s --user=%s --password=%s',
+            '%s --defaults-extra-file=%s --host=%s',
             escapeshellcmd($mysqldump),
-            escapeshellarg($this->dbConfig['host']),
-            escapeshellarg($this->dbConfig['user']),
-            escapeshellarg($this->dbConfig['password'])
+            escapeshellarg($defaultsFile),
+            escapeshellarg($this->dbConfig['host'])
         );
 
         $cmd .= ' --single-transaction --quick --lock-tables=false';
@@ -249,6 +254,8 @@ class DatabaseBackup extends AbstractJob
         // Execute command.
         $result = $this->cli->execute($cmd);
 
+        @unlink($defaultsFile);
+
         return $result !== false && file_exists($filepath) && filesize($filepath) > 0;
     }
 
@@ -273,13 +280,18 @@ class DatabaseBackup extends AbstractJob
         $allTables = $this->getTables();
         $regularTables = array_diff($allTables, $skipTables);
 
+        // Use --defaults-extra-file to avoid exposing password in process list.
+        $defaultsFile = $this->createMysqlDefaultsFile();
+        if (!$defaultsFile) {
+            return false;
+        }
+
         // Base command options.
         $baseCmd = sprintf(
-            '%s --host=%s --user=%s --password=%s',
+            '%s --defaults-extra-file=%s --host=%s',
             escapeshellcmd($mysqldump),
-            escapeshellarg($this->dbConfig['host']),
-            escapeshellarg($this->dbConfig['user']),
-            escapeshellarg($this->dbConfig['password'])
+            escapeshellarg($defaultsFile),
+            escapeshellarg($this->dbConfig['host'])
         );
         $baseCmd .= ' --single-transaction --quick --lock-tables=false';
         $baseCmd .= ' --set-charset --default-character-set=utf8mb4';
@@ -300,44 +312,48 @@ class DatabaseBackup extends AbstractJob
         }
         $cmd .= ' > ' . escapeshellarg($tempFile);
 
-        $result = $this->cli->execute($cmd);
-        if ($result === false) {
-            @unlink($tempFile);
-            return false;
-        }
-
-        // Append structure-only for skip tables.
-        if ($includeStructure && $skipTables) {
-            $cmd = $baseCmd . ' --no-data --skip-triggers';
-            $cmd .= ' ' . escapeshellarg($this->dbConfig['dbname']);
-            foreach ($skipTables as $table) {
-                $cmd .= ' ' . escapeshellarg($table);
-            }
-            $cmd .= ' >> ' . escapeshellarg($tempFile);
-
+        try {
             $result = $this->cli->execute($cmd);
             if ($result === false) {
                 @unlink($tempFile);
                 return false;
             }
-        }
 
-        // Compress if needed using shell pipe.
-        if ($compress) {
-            $gzip = $this->cli->getCommandPath('gzip');
-            if ($gzip) {
-                $cmd = escapeshellcmd($gzip) . ' -c ' . escapeshellarg($tempFile)
-                    . ' > ' . escapeshellarg($filepath);
+            // Append structure-only for skip tables.
+            if ($includeStructure && $skipTables) {
+                $cmd = $baseCmd . ' --no-data --skip-triggers';
+                $cmd .= ' ' . escapeshellarg($this->dbConfig['dbname']);
+                foreach ($skipTables as $table) {
+                    $cmd .= ' ' . escapeshellarg($table);
+                }
+                $cmd .= ' >> ' . escapeshellarg($tempFile);
+
                 $result = $this->cli->execute($cmd);
-                @unlink($tempFile);
-                return $result !== false && file_exists($filepath) && filesize($filepath) > 0;
+                if ($result === false) {
+                    @unlink($tempFile);
+                    return false;
+                }
             }
-            // No gzip: just rename.
-            $filepath = str_replace('.sql.gz', '.sql', $filepath);
-        }
 
-        rename($tempFile, $filepath);
-        return file_exists($filepath) && filesize($filepath) > 0;
+            // Compress if needed using shell pipe.
+            if ($compress) {
+                $gzip = $this->cli->getCommandPath('gzip');
+                if ($gzip) {
+                    $cmd = escapeshellcmd($gzip) . ' -c ' . escapeshellarg($tempFile)
+                        . ' > ' . escapeshellarg($filepath);
+                    $result = $this->cli->execute($cmd);
+                    @unlink($tempFile);
+                    return $result !== false && file_exists($filepath) && filesize($filepath) > 0;
+                }
+                // No gzip: just rename.
+                $filepath = str_replace('.sql.gz', '.sql', $filepath);
+            }
+
+            rename($tempFile, $filepath);
+            return file_exists($filepath) && filesize($filepath) > 0;
+        } finally {
+            @unlink($defaultsFile);
+        }
     }
 
     /**
@@ -719,6 +735,35 @@ class DatabaseBackup extends AbstractJob
         }
 
         return $result;
+    }
+
+    /**
+     * Create a temporary MySQL defaults file to pass credentials securely.
+     *
+     * Using --defaults-extra-file avoids exposing the password in the process
+     * list (visible via ps aux or /proc).
+     */
+    protected function createMysqlDefaultsFile(): ?string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'omk_mysql_');
+        if (!$path) {
+            $this->logger->err(
+                'Unable to create temporary file for database credentials.' // @translate
+            );
+            return null;
+        }
+
+        $content = sprintf(
+            "[client]\nuser=%s\npassword=%s\n",
+            addcslashes($this->dbConfig['user'], "\\\"'\n"),
+            addcslashes($this->dbConfig['password'], "\\\"'\n")
+        );
+
+        // Restrict permissions before writing credentials.
+        chmod($path, 0600);
+        file_put_contents($path, $content);
+
+        return $path;
     }
 
     /**
