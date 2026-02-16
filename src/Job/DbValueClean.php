@@ -166,11 +166,21 @@ class DbValueClean extends AbstractCheck
             }
         }
 
-        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
+        $bind = [];
+        $types = [];
+        if ($resourceIds) {
+            $sqlWhere = 'WHERE `v`.`resource_id` IN (:resource_ids)';
+            $sqlAnd = 'AND `resource_id` IN (:resource_ids)';
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+        } else {
+            $sqlWhere = '';
+            $sqlAnd = '';
+        }
 
         // Sql "trim" is for space " " only, not end of line, new line or tab.
-        // So use regexp_replace, but it's available only with mysql ≥ 8.0.4 and
-        // mariadb ≥ 10.0.5 and Omeka requires only 5.5.3.
+        // So use regexp_replace, but it's available only with mysql >= 8.0.4 and
+        // mariadb >= 10.0.5 and Omeka requires only 5.5.3.
         $db = $this->databaseVersion();
 
         // The entity manager can not be used directly, because it does not
@@ -179,31 +189,27 @@ class DbValueClean extends AbstractCheck
             || ($db['db'] === 'mysql' && version_compare($db['version'], '8.0.4', '>='))
         ) {
             // The pattern is a full unicode one.
-            $query = <<<'SQL'
+            $query = <<<SQL
                 UPDATE `value` AS `v`
                 SET
-                    `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-                    `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), ""),
-                    `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[\\s\\h\\v[:blank:][:space:]]+|[\\s\\h\\v[:blank:][:space:]]+$", ""), "")
+                    `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[\\\\s\\\\h\\\\v[:blank:][:space:]]+|[\\\\s\\\\h\\\\v[:blank:][:space:]]+$", ""), ""),
+                    `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[\\\\s\\\\h\\\\v[:blank:][:space:]]+|[\\\\s\\\\h\\\\v[:blank:][:space:]]+$", ""), ""),
+                    `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[\\\\s\\\\h\\\\v[:blank:][:space:]]+|[\\\\s\\\\h\\\\v[:blank:][:space:]]+$", ""), "")
+                $sqlWhere
                 SQL;
         } else {
             // The pattern uses a simple trim.
-            $query = <<<'SQL'
+            $query = <<<SQL
                 UPDATE `value` AS `v`
                 SET
                     `v`.`value` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`value`))))), ""),
                     `v`.`lang` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`lang`))))), ""),
                     `v`.`uri` = NULLIF(TRIM(TRIM("\t" FROM TRIM("\n" FROM TRIM("\r" FROM TRIM("\n" FROM `v`.`uri`))))), "")
+                $sqlWhere
                 SQL;
         }
 
-        if ($idsString) {
-            $query .= "\n" . <<<SQL
-                WHERE `v`.`resource_id` IN ($idsString)
-                SQL;
-        }
-
-        $count = $this->connection->executeStatement($query);
+        $count = $this->connection->executeStatement($query, $bind, $types);
         $this->logger->info(
             'Trimmed {count} values.', // @translate
             ['count' => $count]
@@ -211,20 +217,16 @@ class DbValueClean extends AbstractCheck
         $trimmed = $count;
 
         // Remove empty values, even if there is a language.
-        $query = <<<'SQL'
+        $query = <<<SQL
             DELETE FROM `value`
             WHERE `value_resource_id` IS NULL
                 AND `value` IS NULL
                 AND `uri` IS NULL
                 AND `value_annotation_id` IS NULL
+                $sqlAnd
             SQL;
-        if ($idsString) {
-            $query .= "\n" . <<<SQL
-                    AND `resource_id` IN ($idsString)
-                SQL;
-        }
 
-        $count = $this->connection->executeStatement($query);
+        $count = $this->connection->executeStatement($query, $bind, $types);
         $this->logger->info(
             'Removed {count} empty string values after trimming.', // @translate
             ['count' => $count]
@@ -249,22 +251,26 @@ class DbValueClean extends AbstractCheck
             }
         }
 
+        $bind = [];
+        $types = [];
+        if ($resourceIds) {
+            $sqlWhere = 'WHERE `v`.`resource_id` IN (:resource_ids)';
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+        } else {
+            $sqlWhere = '';
+        }
+
         // The entity manager may be used directly, but it is simpler with sql.
-        $sql = <<<'SQL'
+        $sql = <<<SQL
             UPDATE `value` AS `v`
             SET
                 `v`.`value` = IF(`v`.`value` IS NULL OR `v`.`value` = "", NULL, `v`.`value`),
                 `v`.`uri` = IF(`v`.`uri` IS NULL OR `v`.`uri` = "", NULL, `v`.`uri`)
+            $sqlWhere
             SQL;
 
-        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
-        if ($idsString) {
-            $sql .= "\n" . <<<SQL
-                WHERE `v`.`resource_id` IN ($idsString)
-                SQL;
-        }
-
-        $count = $this->connection->executeStatement($sql);
+        $count = $this->connection->executeStatement($sql, $bind, $types);
         $this->logger->info(
             'Updated empty values and uris of {count} values.', // @translate
             ['count' => $count]
@@ -289,23 +295,27 @@ class DbValueClean extends AbstractCheck
             }
         }
 
+        $bind = [];
+        $types = [];
+        if ($resourceIds) {
+            $sqlAnd = 'AND `v`.`resource_id` IN (:resource_ids)';
+            $bind['resource_ids'] = $resourceIds;
+            $types['resource_ids'] = \Doctrine\DBAL\Connection::PARAM_INT_ARRAY;
+        } else {
+            $sqlAnd = '';
+        }
+
         // Use a direct query: during a post action, data are already flushed.
         // The entity manager may be used directly, but it is simpler with sql.
 
-        $sql = <<<'SQL'
+        $sql = <<<SQL
             UPDATE `value` AS `v`
             SET `v`.`lang` = NULL
             WHERE `v`.`lang` = ''
+                $sqlAnd
             SQL;
 
-        $idsString = $resourceIds === null ? '' : implode(',', $resourceIds);
-        if ($idsString) {
-            $sql .= "\n" . <<<SQL
-                AND `v`.`resource_id` IN ($idsString)
-                SQL;
-        }
-
-        $count = $this->connection->executeStatement($sql);
+        $count = $this->connection->executeStatement($sql, $bind, $types);
         $this->logger->info(
             'Updated empty language of {count} values.', // @translate
             ['count' => $count]

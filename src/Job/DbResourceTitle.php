@@ -330,6 +330,16 @@ class DbResourceTitle extends AbstractCheck
         $translator = $this->getServiceLocator()->get('MvcTranslator');
         $yes = $translator->translate('Yes'); // @translate
 
+        // SQL to batch-fetch title values, avoiding N+1 from entity lazy-load.
+        $sqlValues = <<<'SQL'
+            SELECT v.resource_id,
+                   COALESCE(v.value, v.uri) AS computed_title
+            FROM value v
+            WHERE v.resource_id IN (:ids)
+              AND v.property_id = :prop
+            ORDER BY v.resource_id, v.id
+            SQL;
+
         $offset = 0;
         $totalProcessed = 0;
         $totalSucceed = 0;
@@ -355,29 +365,56 @@ class DbResourceTitle extends AbstractCheck
                 }
             }
 
+            // Group resources by title property to batch value queries.
+            $resourcesByTitleProp = [];
+            $resourceIndex = [];
             foreach ($resources as $resource) {
+                $resourceId = $resource->getId();
                 $template = $resource->getResourceTemplate();
-                $titleTermId = $template && isset($this->templateTitleTerms[$template->getId()])
-                    ? (int) $this->templateTitleTerms[$template->getId()]
+                $templateId = $template ? $template->getId() : null;
+                $titleTermId = $templateId && isset($this->templateTitleTerms[$templateId])
+                    ? (int) $this->templateTitleTerms[$templateId]
                     : 1;
+                $resourcesByTitleProp[$titleTermId][] = $resourceId;
+                $resourceIndex[$resourceId] = [
+                    'entity' => $resource,
+                    'title_prop_id' => $titleTermId,
+                    'template_id' => $templateId,
+                ];
+            }
 
-                $existingTitle = $resource->getTitle();
-                $realTitle = $this->getValueFromResource($resource, $titleTermId);
-
-                // Try fallback properties if title is empty and AdvancedResourceTemplate is active.
-                if (($realTitle === null || $realTitle === '')
-                    && $this->hasAdvancedResourceTemplate
-                    && $template
-                    && isset($this->templateFallbackTerms[$template->getId()])
-                ) {
-                    foreach ($this->templateFallbackTerms[$template->getId()] as $fallbackPropId) {
-                        $fallbackTitle = $this->getValueFromResource($resource, $fallbackPropId);
-                        if ($fallbackTitle !== null && $fallbackTitle !== '') {
-                            $realTitle = $fallbackTitle;
-                            break;
-                        }
+            // Batch-fetch computed titles via DBAL (one query per title property).
+            $computedTitles = [];
+            foreach ($resourcesByTitleProp as $titlePropId => $resourceIds) {
+                $result = $this->connection->executeQuery(
+                    $sqlValues,
+                    ['ids' => $resourceIds, 'prop' => $titlePropId],
+                    ['ids' => \Doctrine\DBAL\Connection::PARAM_INT_ARRAY, 'prop' => \PDO::PARAM_INT]
+                )->fetchAllAssociative();
+                foreach ($result as $valueRow) {
+                    $resId = (int) $valueRow['resource_id'];
+                    if (!isset($computedTitles[$resId])) {
+                        $computedTitles[$resId] = $valueRow['computed_title'];
                     }
                 }
+            }
+
+            // Handle fallback properties from AdvancedResourceTemplate.
+            if ($this->hasAdvancedResourceTemplate) {
+                // Build resourceData array matching applyFallbackTitles signature.
+                $resourceData = [];
+                foreach ($resourceIndex as $resourceId => $info) {
+                    $resourceData[$resourceId] = [
+                        'template_id' => $info['template_id'],
+                    ];
+                }
+                $this->applyFallbackTitles($resourceData, $computedTitles, $sqlValues);
+            }
+
+            foreach ($resourceIndex as $resourceId => $info) {
+                $resource = $info['entity'];
+                $existingTitle = $resource->getTitle();
+                $realTitle = $computedTitles[$resourceId] ?? null;
 
                 if ($existingTitle === '' || $existingTitle === null) {
                     $existingTitle = null;
@@ -421,13 +458,10 @@ class DbResourceTitle extends AbstractCheck
                     $this->writeRow($row);
                 }
 
-                // Avoid memory issue.
-                unset($resource);
-
                 ++$totalProcessed;
             }
 
-            unset($resources);
+            unset($resources, $resourceIndex, $resourcesByTitleProp, $computedTitles);
             $this->entityManager->flush();
             $this->entityManager->clear();
 

@@ -471,10 +471,11 @@ class DatabaseBackup extends AbstractJob
      */
     protected function exportTableStructure(string $table, callable $write): void
     {
-        $write("--\n-- Table structure for `$table`\n--\n\n");
-        $write("DROP TABLE IF EXISTS `$table`;\n");
+        $qi = $this->quoteIdentifier($table);
+        $write("--\n-- Table structure for $qi\n--\n\n");
+        $write("DROP TABLE IF EXISTS $qi;\n");
 
-        $result = $this->connection->executeQuery("SHOW CREATE TABLE `$table`");
+        $result = $this->connection->executeQuery("SHOW CREATE TABLE $qi");
         $row = $result->fetchAssociative();
         if ($row) {
             $createSql = $row['Create Table'] ?? '';
@@ -492,20 +493,22 @@ class DatabaseBackup extends AbstractJob
      */
     protected function exportTableData(string $table, callable $write): void
     {
+        $qi = $this->quoteIdentifier($table);
+
         // Get native PDO connection for unbuffered query.
         // Use getWrappedConnection() for Doctrine DBAL 2.x compatibility.
         $pdo = $this->connection->getWrappedConnection();
 
         // Check if table has data (quick check).
-        $countStmt = $pdo->query("SELECT 1 FROM `$table` LIMIT 1");
+        $countStmt = $pdo->query("SELECT 1 FROM $qi LIMIT 1");
         if (!$countStmt->fetch()) {
             return;
         }
 
-        $write("--\n-- Data for `$table`\n--\n\n");
+        $write("--\n-- Data for $qi\n--\n\n");
 
         // Get columns.
-        $columnsStmt = $pdo->query("SHOW COLUMNS FROM `$table`");
+        $columnsStmt = $pdo->query("SHOW COLUMNS FROM $qi");
         $columns = [];
         while ($col = $columnsStmt->fetch(\PDO::FETCH_ASSOC)) {
             $columns[] = $col['Field'];
@@ -513,13 +516,13 @@ class DatabaseBackup extends AbstractJob
         $columnList = '`' . implode('`, `', $columns) . '`';
 
         // Disable keys for faster import.
-        $write("/*!40000 ALTER TABLE `$table` DISABLE KEYS */;\n");
+        $write("/*!40000 ALTER TABLE $qi DISABLE KEYS */;\n");
 
         // Use unbuffered query to stream results.
         $pdo->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
 
         try {
-            $stmt = $pdo->query("SELECT * FROM `$table`");
+            $stmt = $pdo->query("SELECT * FROM $qi");
 
             $rowCount = 0;
             $values = [];
@@ -544,7 +547,7 @@ class DatabaseBackup extends AbstractJob
 
                 // Write batch.
                 if (count($values) >= $maxRowsPerInsert) {
-                    $write("INSERT INTO `$table` ($columnList) VALUES\n");
+                    $write("INSERT INTO $qi ($columnList) VALUES\n");
                     $write(implode(",\n", $values) . ";\n");
                     $values = [];
                 }
@@ -552,7 +555,7 @@ class DatabaseBackup extends AbstractJob
 
             // Write remaining rows.
             if ($values) {
-                $write("INSERT INTO `$table` ($columnList) VALUES\n");
+                $write("INSERT INTO $qi ($columnList) VALUES\n");
                 $write(implode(",\n", $values) . ";\n");
             }
 
@@ -563,7 +566,7 @@ class DatabaseBackup extends AbstractJob
         }
 
         // Re-enable keys.
-        $write("/*!40000 ALTER TABLE `$table` ENABLE KEYS */;\n");
+        $write("/*!40000 ALTER TABLE $qi ENABLE KEYS */;\n");
 
         // Log after unbuffered query is done.
         if ($rowCount > 0) {
@@ -581,10 +584,11 @@ class DatabaseBackup extends AbstractJob
      */
     protected function exportViewStructure(string $view, callable $write): void
     {
-        $write("--\n-- View structure for `$view`\n--\n\n");
-        $write("DROP VIEW IF EXISTS `$view`;\n");
+        $qi = $this->quoteIdentifier($view);
+        $write("--\n-- View structure for $qi\n--\n\n");
+        $write("DROP VIEW IF EXISTS $qi;\n");
 
-        $result = $this->connection->executeQuery("SHOW CREATE VIEW `$view`");
+        $result = $this->connection->executeQuery("SHOW CREATE VIEW $qi");
         $row = $result->fetchAssociative();
         if ($row) {
             $createSql = $row['Create View'] ?? '';
@@ -633,11 +637,13 @@ class DatabaseBackup extends AbstractJob
             return;
         }
 
-        $write("--\n-- Triggers for `$table`\n--\n\n");
+        $qi = $this->quoteIdentifier($table);
+        $write("--\n-- Triggers for $qi\n--\n\n");
         $write("DELIMITER ;;\n");
 
         foreach ($triggers as $trigger) {
-            $write("CREATE TRIGGER `{$trigger['Trigger']}` {$trigger['Timing']} {$trigger['Event']} ON `$table` FOR EACH ROW\n");
+            $triggerName = $this->quoteIdentifier($trigger['Trigger']);
+            $write("CREATE TRIGGER $triggerName {$trigger['Timing']} {$trigger['Event']} ON $qi FOR EACH ROW\n");
             $write("{$trigger['Statement']};;\n");
         }
 
@@ -668,8 +674,9 @@ class DatabaseBackup extends AbstractJob
         foreach ($routines as $routine) {
             $name = $routine['ROUTINE_NAME'];
             $type = $routine['ROUTINE_TYPE'];
+            $qiName = $this->quoteIdentifier($name);
 
-            $createResult = $this->connection->executeQuery("SHOW CREATE $type `$name`");
+            $createResult = $this->connection->executeQuery("SHOW CREATE $type $qiName");
             $createRow = $createResult->fetchAssociative();
 
             if ($createRow) {
@@ -677,12 +684,22 @@ class DatabaseBackup extends AbstractJob
                 $createSql = $createRow[$key] ?? '';
                 // Normalize DEFINER for portability.
                 $createSql = $this->normalizeDefiner($createSql);
-                $write("DROP $type IF EXISTS `$name`;;\n");
+                $write("DROP $type IF EXISTS $qiName;;\n");
                 $write($createSql . ";;\n\n");
             }
         }
 
         $write("DELIMITER ;\n\n");
+    }
+
+    /**
+     * Quote a SQL identifier (table/column name) with backticks.
+     *
+     * Escapes any backtick inside the identifier by doubling it.
+     */
+    protected function quoteIdentifier(string $identifier): string
+    {
+        return '`' . str_replace('`', '``', $identifier) . '`';
     }
 
     /**

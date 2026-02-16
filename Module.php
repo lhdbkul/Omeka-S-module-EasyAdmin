@@ -247,12 +247,9 @@ class Module extends AbstractModule
         $moduleManager = $services->get('Omeka\ModuleManager');
         foreach ($modules as $moduleName) {
             $module = $moduleManager->getModule($moduleName);
-            $sql = 'DELETE FROM `module` WHERE `id` = "' . $moduleName . '";';
-            $connection->executeStatement($sql);
-            $sql = 'DELETE FROM `setting` WHERE `id` LIKE "' . strtolower($moduleName) . '\\_%";';
-            $connection->executeStatement($sql);
-            $sql = 'DELETE FROM `site_setting` WHERE `id` LIKE "' . strtolower($moduleName) . '\\_%";';
-            $connection->executeStatement($sql);
+            $connection->executeStatement('DELETE FROM `module` WHERE `id` = ?', [$moduleName]);
+            $connection->executeStatement('DELETE FROM `setting` WHERE `id` LIKE ?', [strtolower($moduleName) . '\_%']);
+            $connection->executeStatement('DELETE FROM `site_setting` WHERE `id` LIKE ?', [strtolower($moduleName) . '\_%']);
             if ($module) {
                 $message = new PsrMessage(
                     'The module "{module}" was upgraded by module "{module_2}" and uninstalled.', // @translate
