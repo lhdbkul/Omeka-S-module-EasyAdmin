@@ -6,6 +6,8 @@
  * @var string|null $dirPath
  * @var array $dirPaths
  * @var bool $isProtected
+ * @var bool $isUserData
+ * @var bool $canWriteInDir
  * @var array|null $uploadData
  * @var array $files
  * @var int $totalFiles
@@ -30,7 +32,7 @@ $this->headLink()
 $this->headScript()
     ->appendFile($assetUrl('js/file-manager.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
 
-// Add upload scripts only for non-protected directories.
+// Add upload scripts only for writable directories.
 if ($uploadData):
     $this->headLink()->appendStylesheet($assetUrl('css/bulk-upload.css', 'EasyAdmin'));
     $this->headScript()
@@ -41,7 +43,7 @@ endif;
 $this->htmlElement('body')->appendAttribute('class', 'easy-admin files browse file-manager');
 
 $displayDir = (bool) $this->params()->fromQuery('display_dir');
-$canDelete = $formDelete && $isAdmin && !$isProtected;
+$canDelete = $formDelete && $canWriteInDir;
 
 // Helper to format file size.
 $formatSize = function ($bytes) {
@@ -63,9 +65,9 @@ $formatSize = function ($bytes) {
     <form id="dir-select-form" method="get">
         <label for="dir_path"><?= $translate('Directory:') ?></label>
         <select id="dir_path" name="dir_path" class="chosen-select">
-            <?php foreach ($dirPaths as $path): ?>
+            <?php foreach ($dirPaths as $path => $label): ?>
             <option value="<?= $escapeAttr($path) ?>"<?= $path === $dirPath ? ' selected' : '' ?>>
-                <?= $escape(str_replace(OMEKA_PATH, '', $path)) ?>
+                <?= $escape($label) ?>
             </option>
             <?php endforeach; ?>
         </select>
@@ -81,15 +83,26 @@ $formatSize = function ($bytes) {
 
 <?php // Protected directory notice ?>
 <?php if ($isProtected): ?>
-<div class="block">
-    <p class="info-notice">
-        <strong><?= $translate('Read-only directory') ?></strong>:
-        <?= $translate('This directory is managed by Omeka. Files cannot be uploaded or deleted here.') ?>
-    </p>
-</div>
+<ul class="messages">
+    <li class="warning"><?= sprintf($translate('%1$s: %2$s'), $translate('Read-only directory'), $translate('This directory is managed by Omeka. Files cannot be uploaded or deleted here.')) ?></li>
+</ul>
 <?php endif; ?>
 
-<?php // Upload section (only for non-protected directories) ?>
+<?php // Read-only notice for other admin userdata directory ?>
+<?php if ($isUserData && !$canWriteInDir): ?>
+<ul class="messages">
+    <li class="warning"><?= sprintf($translate('%1$s: %2$s'), $translate('Read-only directory'), $translate('This is another user directory. You can browse and download files but not modify them.')) ?></li>
+</ul>
+<?php endif; ?>
+
+<?php // Filesystem path display for userdata directories ?>
+<?php if ($isUserData && $dirPath): ?>
+<ul class="messages">
+    <li class="notice"><?= sprintf($translate('Filesystem path: %s'), '<code>' . $escape($dirPath) . '</code>') ?></li>
+</ul>
+<?php endif; ?>
+
+<?php // Upload section (only for writable directories) ?>
 <?php if ($uploadData): ?>
 <div id="bulk-upload" class="block media-field-wrapper">
     <div class="media-bulk-upload" data-main-index="__index__" <?= $htmlAttr($uploadData) ?>>
@@ -138,7 +151,7 @@ $formatSize = function ($bytes) {
 <form method="post" id="file-list-form" class="block disable-unsaved-warning">
     <input type="hidden" name="dir_path" value="<?= $escapeAttr($dirPath) ?>">
 
-    <?php // Batch actions (only for non-protected directories) ?>
+    <?php // Batch actions (only for writable directories) ?>
     <?php if ($canDelete): ?>
     <div class="batch-actions">
         <button type="button" class="button batch-delete-btn" disabled>
@@ -178,10 +191,15 @@ $formatSize = function ($bytes) {
                     <span class="file-name"><?= $escape($file['name']) ?></span>
                     <?php endif; ?>
                     <ul class="actions">
-                        <?php if (!$file['isDir'] && $localUrl): ?>
+                        <?php if (!$file['isDir']): ?>
+                        <?php if ($isUserData): ?>
+                        <li><a href="<?= $escapeAttr($url('admin/easy-admin/file-manager', ['action' => 'download'], ['query' => ['dir_path' => $dirPath, 'filename' => $file['name']]])) ?>"
+                           class="o-icon-download" title="<?= $translate('Download') ?>"></a></li>
+                        <?php elseif ($localUrl): ?>
                         <li><a href="<?= $escapeAttr(rtrim($localUrl, '/') . '/' . rawurlencode($file['name'])) ?>"
                            download="<?= $escapeAttr($file['name']) ?>"
                            class="o-icon-download" title="<?= $translate('Download') ?>"></a></li>
+                        <?php endif; ?>
                         <?php endif; ?>
                         <?php if ($canDelete && !$file['isDir'] && $file['isWritable']): ?>
                         <li><a href="#" class="o-icon-delete sidebar-content delete-one"

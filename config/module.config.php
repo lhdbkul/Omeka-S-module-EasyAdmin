@@ -305,6 +305,7 @@ return [
             // Easy admin.
             'easyadmin_local_path' => OMEKA_PATH . '/files/import',
             'easyadmin_local_paths' => [],
+            'easyadmin_user_directories' => false,
             'easyadmin_disable_csrf' => false,
             'easyadmin_allow_empty_files' => false,
             'easyadmin_addon_notify_version_inactive' => true,

@@ -111,6 +111,7 @@ class Module extends AbstractModule
                     'browse',
                     'delete',
                     'delete-confirm',
+                    'download',
                 ]
             )
         ;

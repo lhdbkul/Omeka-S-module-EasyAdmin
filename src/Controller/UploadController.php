@@ -8,6 +8,7 @@ use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\JsonModel;
 use Omeka\File\TempFileFactory;
 use Omeka\File\Validator;
+use Omeka\Permissions\Acl;
 use Omeka\Stdlib\ErrorStore;
 
 class UploadController extends AbstractActionController
@@ -28,6 +29,11 @@ class UploadController extends AbstractActionController
     protected $validator;
 
     /**
+     * @var \Omeka\Permissions\Acl
+     */
+    protected $acl;
+
+    /**
      * @var bool
      */
     protected $allowAnyPath;
@@ -45,12 +51,14 @@ class UploadController extends AbstractActionController
     public function __construct(
         TempFileFactory $tempFileFactory,
         Validator $validator,
+        Acl $acl,
         bool $allowAnyPath,
         string $basePath,
         string $tempDir
     ) {
         $this->tempFileFactory = $tempFileFactory;
         $this->validator = $validator;
+        $this->acl = $acl;
         $this->allowAnyPath = $allowAnyPath;
         $this->basePath = $basePath;
         $this->tempDir = $tempDir;
@@ -216,10 +224,25 @@ class UploadController extends AbstractActionController
         $isBulkUploadForm = !empty($headers['X-Is-Bulk-Upload-Form']);
         $result = null;
         if ($isBulkUploadForm) {
+            // Use the directory path from the header if provided (fixes
+            // the bug where uploads always went to the default directory).
+            $headerDirPath = $headers['X-Upload-Dir-Path'] ?? null;
             $errorMessage = null;
-            $dirPath = $this->getAndCheckDirPath(null, $errorMessage);
+            $dirPath = $this->getAndCheckDirPath($headerDirPath, $errorMessage);
             if (!$dirPath) {
                 return $this->jsonError($this->translate($errorMessage), Response::STATUS_CODE_500);
+            }
+
+            // For userdata directories, verify write permission.
+            // Only the owner can upload to their own directory.
+            if ($this->isUserDataDirectory($dirPath)) {
+                $dirUserId = $this->getUserIdFromPath($dirPath);
+                if (!$user || $dirUserId !== $user->getId()) {
+                    return $this->jsonError(
+                        $this->translate('You can only upload to your own directory.'), // @translate
+                        Response::STATUS_CODE_403
+                    );
+                }
             }
             $newDestination = rtrim($dirPath, '/') . '/' . $filename;
             $fileExists = file_exists($newDestination);

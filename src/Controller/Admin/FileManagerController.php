@@ -62,6 +62,10 @@ class FileManagerController extends AbstractActionController
         $user = $this->identity();
         $settings = $this->settings();
 
+        $isAdmin = $user ? $this->acl->isAdminRole($user->getRole()) : false;
+        $canCreateItems = $this->acl->userIsAllowed('Omeka\Api\Adapter\ItemAdapter', 'create');
+        $userId = $user ? $user->getId() : null;
+
         $errorMessage = null;
         $currentPath = $this->params()->fromQuery('dir_path');
         $dirPath = $this->getAndCheckDirPath($currentPath, $errorMessage);
@@ -69,14 +73,49 @@ class FileManagerController extends AbstractActionController
         // Check if directory is protected (read-only).
         $isProtected = $dirPath ? $this->isProtectedDirectory($dirPath) : false;
 
+        // Check if directory is a userdata directory.
+        $isUserData = $dirPath ? $this->isUserDataDirectory($dirPath) : false;
+
+        // Userdata directories require the ability to create items.
+        // Non-admin users can only access their own directory.
+        if ($isUserData) {
+            if (!$canCreateItems) {
+                $this->messenger()->addError('Access denied.'); // @translate
+                return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+            }
+            if (!$isAdmin) {
+                $dirUserId = $this->getUserIdFromPath($dirPath);
+                if ($dirUserId !== $userId) {
+                    $this->messenger()->addError('Access denied.'); // @translate
+                    return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+                }
+            }
+        }
+
+        // Determine write access: own userdata dir or regular non-protected dir.
+        $canWriteInDir = false;
+        if ($dirPath && !$isProtected) {
+            if ($isUserData) {
+                $dirUserId = $this->getUserIdFromPath($dirPath);
+                $canWriteInDir = $dirUserId === $userId;
+            } else {
+                $canWriteInDir = true;
+            }
+        }
+
         // Pagination parameters.
         $page = (int) $this->params()->fromQuery('page', 1);
         $perPage = self::PER_PAGE;
 
-        // Upload configuration (only for non-protected directories).
+        // Upload configuration (only for writable directories).
         $uploadData = null;
-        if ($dirPath && !$isProtected) {
+        if ($dirPath && $canWriteInDir) {
             $uploadData = $this->prepareUploadData($settings);
+        }
+
+        // Ensure .htaccess if userdata directories are enabled.
+        if ($settings->get('easyadmin_user_directories') && $canCreateItems) {
+            $this->ensureUserDataHtaccess();
         }
 
         // File listing with pagination.
@@ -100,8 +139,8 @@ class FileManagerController extends AbstractActionController
             $totalFiles = $result['total'];
             $totalPages = (int) ceil($totalFiles / $perPage);
 
-            // Delete form (only for non-protected directories).
-            if (!$isProtected) {
+            // Delete form (only for writable, non-protected directories).
+            if ($canWriteInDir) {
                 $formDelete = $this->getForm(ConfirmForm::class);
                 $formDelete
                     ->setAttribute('action', $this->url()->fromRoute(null, ['action' => 'batch-delete'], true))
@@ -113,7 +152,7 @@ class FileManagerController extends AbstractActionController
         }
 
         // Directory list for dropdown.
-        $dirPaths = $this->getAvailableDirectories($settings, $dirPath);
+        $dirPaths = $this->getAvailableDirectories($settings, $dirPath, $isAdmin, $canCreateItems, $userId);
 
         return new ViewModel([
             'basePath' => $this->basePath,
@@ -121,6 +160,8 @@ class FileManagerController extends AbstractActionController
             'dirPath' => $dirPath,
             'dirPaths' => $dirPaths,
             'isProtected' => $isProtected,
+            'isUserData' => $isUserData,
+            'canWriteInDir' => $canWriteInDir,
             'uploadData' => $uploadData,
             'files' => $files,
             'totalFiles' => $totalFiles,
@@ -128,8 +169,76 @@ class FileManagerController extends AbstractActionController
             'perPage' => $perPage,
             'totalPages' => $totalPages,
             'formDelete' => $formDelete,
-            'isAdmin' => $user ? $this->acl->isAdminRole($user->getRole()) : false,
+            'isAdmin' => $isAdmin,
         ]);
+    }
+
+    /**
+     * Download a file from a userdata directory.
+     *
+     * Userdata directories are protected by .htaccess, so direct http access
+     * is denied. This action streams the file after verifying authentication.
+     * Admins can download from any user directory; other users can only
+     * download from their own directory.
+     */
+    public function downloadAction()
+    {
+        $user = $this->identity();
+        if (!$user || !$this->acl->userIsAllowed('Omeka\Api\Adapter\ItemAdapter', 'create')) {
+            $this->messenger()->addError('Access denied.'); // @translate
+            return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+        }
+
+        $dirPath = $this->params()->fromQuery('dir_path');
+        $filename = $this->params()->fromQuery('filename');
+
+        if (!$dirPath || !$filename) {
+            $this->messenger()->addError('Invalid request.'); // @translate
+            return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+        }
+
+        // Only allow download from userdata directories via this action.
+        if (!$this->isUserDataDirectory($dirPath)) {
+            $this->messenger()->addError('Invalid request.'); // @translate
+            return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+        }
+
+        // Non-admin users can only download from their own directory.
+        if (!$this->acl->isAdminRole($user->getRole())) {
+            $dirUserId = $this->getUserIdFromPath($dirPath);
+            if ($dirUserId !== $user->getId()) {
+                $this->messenger()->addError('Access denied.'); // @translate
+                return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+            }
+        }
+
+        // Security: use basename to prevent directory traversal.
+        $safeFilename = basename($filename);
+        $filepath = rtrim($dirPath, '/') . '/' . $safeFilename;
+
+        // Verify the file is actually in a userdata directory (paranoid check).
+        $realUserDataBase = realpath($this->getUserDataBasePath());
+        $realFilepath = realpath($filepath);
+        if ($realUserDataBase === false || $realFilepath === false
+            || strpos($realFilepath, $realUserDataBase . DIRECTORY_SEPARATOR) !== 0
+        ) {
+            $this->messenger()->addError('Invalid file path.'); // @translate
+            return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+        }
+
+        // Use SendFile plugin for streaming.
+        $response = $this->sendFile($filepath, [
+            'filename' => $safeFilename,
+            'disposition_mode' => 'attachment',
+            'cache' => false,
+        ]);
+
+        if (!$response) {
+            $this->messenger()->addError('File not found.'); // @translate
+            return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
+        }
+
+        return $response;
     }
 
     /**
@@ -239,8 +348,10 @@ class FileManagerController extends AbstractActionController
 
     /**
      * Get available directories for the dropdown.
+     *
+     * @return array Associative array of path => label for the dropdown.
      */
-    protected function getAvailableDirectories($settings, ?string $currentPath): array
+    protected function getAvailableDirectories($settings, ?string $currentPath, bool $isAdmin = false, bool $canCreateItems = false, ?int $userId = null): array
     {
         $paths = $settings->get('easyadmin_local_paths', []);
         if (!is_array($paths)) {
@@ -253,8 +364,8 @@ class FileManagerController extends AbstractActionController
             array_unshift($paths, $defaultPath);
         }
 
-        // Add current path if valid.
-        if ($currentPath) {
+        // Add current path if valid (but not userdata — handled below).
+        if ($currentPath && !$this->isUserDataDirectory($currentPath)) {
             $paths[] = $currentPath;
         }
 
@@ -270,7 +381,74 @@ class FileManagerController extends AbstractActionController
         $paths = array_unique(array_filter($paths));
         sort($paths);
 
-        return array_combine($paths, $paths);
+        // Build the result as path => label.
+        $result = [];
+        foreach ($paths as $path) {
+            $result[$path] = str_replace(OMEKA_PATH, '', $path);
+        }
+
+        // Add userdata directories for users who can create items.
+        // Admins see all user directories; other users see only their own.
+        if ($canCreateItems && $settings->get('easyadmin_user_directories')) {
+            $this->ensureUserDataHtaccess();
+
+            $userDataBase = $this->getUserDataBasePath();
+
+            // Ensure the current user's directory exists.
+            if ($userId) {
+                $ownDirPath = $this->getUserDirPath($userId);
+                $this->checkDestinationDir($ownDirPath);
+            }
+
+            if ($isAdmin) {
+                // Admins see all userdata subdirectories.
+                $userIds = [];
+                if (is_dir($userDataBase)) {
+                    $entries = @scandir($userDataBase);
+                    if ($entries) {
+                        foreach ($entries as $entry) {
+                            if ($entry === '.' || $entry === '..' || !ctype_digit($entry)) {
+                                continue;
+                            }
+                            $entryPath = $userDataBase . '/' . $entry;
+                            if (is_dir($entryPath)) {
+                                $userIds[] = (int) $entry;
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Non-admin users see only their own directory.
+                $userIds = $userId ? [$userId] : [];
+            }
+
+            // Resolve user names via API.
+            $userNames = [];
+            if ($userIds) {
+                try {
+                    $api = $this->api();
+                    $users = $api->search('users', ['id' => $userIds])->getContent();
+                    foreach ($users as $userRepr) {
+                        $userNames[$userRepr->id()] = $userRepr->name();
+                    }
+                } catch (\Exception $e) {
+                    // Silently continue without names.
+                }
+            }
+
+            // Add userdata directories to the dropdown.
+            foreach ($userIds as $uid) {
+                $path = $userDataBase . '/' . $uid;
+                $name = $userNames[$uid]
+                    ?? sprintf($this->translate('(deleted user #%d)'), $uid); // @translate
+                $label = $uid === $userId
+                    ? sprintf('/files/userdata/%d — %s (%s)', $uid, $name, $this->translate('your directory')) // @translate
+                    : sprintf('/files/userdata/%d — %s', $uid, $name);
+                $result[$path] = $label;
+            }
+        }
+
+        return $result;
     }
 
     public function deleteConfirmAction()
@@ -420,6 +598,18 @@ class FileManagerController extends AbstractActionController
                 $this->messenger()->addError('This directory is managed by Omeka and is read-only.'); // @translate
             }
             return false;
+        }
+
+        // Userdata directories: only the owner can delete files.
+        if ($this->isUserDataDirectory($dirPath)) {
+            $user = $this->identity();
+            $dirUserId = $this->getUserIdFromPath($dirPath);
+            if (!$user || $dirUserId !== $user->getId()) {
+                if ($showMessages) {
+                    $this->messenger()->addError('You can only delete files in your own directory.'); // @translate
+                }
+                return false;
+            }
         }
 
         // Validate filename.

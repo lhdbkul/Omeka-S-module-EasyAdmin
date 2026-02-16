@@ -57,9 +57,20 @@
                 target: uploadUrl,
                 chunkSize: 1000000,
                 permanentErrors: [403, 404, 412, 415, 500, 501],
-                headers: {
-                    'X-Csrf': csrf,
-                    'X-Is-Bulk-Upload-Form': isBulkUploadForm ? '1' : '0',
+                headers: function () {
+                    var h = {
+                        'X-Csrf': csrf,
+                        'X-Is-Bulk-Upload-Form': isBulkUploadForm ? '1' : '0',
+                    };
+                    // Send the selected directory path so uploads go to the
+                    // correct folder (fixes uploads always going to default).
+                    if (isBulkUploadForm) {
+                        var dirSelect = document.getElementById('dir_path');
+                        if (dirSelect) {
+                            h['X-Upload-Dir-Path'] = dirSelect.value;
+                        }
+                    }
+                    return h;
                 },
                 // Like default one, but prepend the main index to allow uploading same files multiple times in bulk-uploads.
                 generateUniqueIdentifier: (file) => {

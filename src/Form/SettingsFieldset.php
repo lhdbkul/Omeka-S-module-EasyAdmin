@@ -176,6 +176,18 @@ class SettingsFieldset extends Fieldset
                 ],
             ])
             ->add([
+                'name' => 'easyadmin_user_directories',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'element_group' => 'easy_admin',
+                    'label' => 'Enable per-user directories', // @translate
+                    'info' => 'Each user who can create items gets a private directory for uploads and imports. Administrators can browse all user directories. Files are accessible for import via their filesystem path.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'easyadmin_user_directories',
+                ],
+            ])
+            ->add([
                 'name' => 'easyadmin_disable_csrf',
                 'type' => Element\Checkbox::class,
                 'options' => [

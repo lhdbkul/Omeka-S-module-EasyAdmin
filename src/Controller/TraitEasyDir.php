@@ -55,6 +55,79 @@ trait TraitEasyDir
         return false;
     }
 
+    /**
+     * Get the base path for user data directories.
+     */
+    protected function getUserDataBasePath(): string
+    {
+        return rtrim($this->basePath, '/') . '/userdata';
+    }
+
+    /**
+     * Get the directory path for a specific user.
+     */
+    protected function getUserDirPath(int $userId): string
+    {
+        return $this->getUserDataBasePath() . '/' . $userId;
+    }
+
+    /**
+     * Check if a path is within the userdata directory.
+     */
+    protected function isUserDataDirectory(string $dirPath): bool
+    {
+        $dirPath = rtrim($dirPath, '/') . '/';
+        $userDataBase = $this->getUserDataBasePath() . '/';
+        return mb_strpos($dirPath, $userDataBase) === 0;
+    }
+
+    /**
+     * Extract user id from a userdata directory path.
+     *
+     * @return int|null The user id, or null if the path is not a valid userdata path.
+     */
+    protected function getUserIdFromPath(string $dirPath): ?int
+    {
+        $dirPath = rtrim($dirPath, '/');
+        $userDataBase = $this->getUserDataBasePath();
+        if (mb_strpos($dirPath, $userDataBase . '/') !== 0) {
+            return null;
+        }
+        $relative = mb_substr($dirPath, mb_strlen($userDataBase) + 1);
+        // The user id is the first (or only) path segment.
+        $parts = explode('/', $relative, 2);
+        $userId = $parts[0];
+        return ctype_digit($userId) ? (int) $userId : null;
+    }
+
+    /**
+     * Ensure the .htaccess file exists in the userdata base directory.
+     *
+     * Denies direct HTTP access to user directories. PHP filesystem access
+     * is not affected, so sideload imports still work.
+     */
+    protected function ensureUserDataHtaccess(): void
+    {
+        $userDataBase = $this->getUserDataBasePath();
+        if (!is_dir($userDataBase)) {
+            @mkdir($userDataBase, 0775, true);
+        }
+        $htaccessPath = $userDataBase . '/.htaccess';
+        if (!file_exists($htaccessPath)) {
+            $content = <<<'HTACCESS'
+                # Deny direct access to user directories.
+                <IfModule mod_authz_core.c>
+                    Require all denied
+                </IfModule>
+                <IfModule !mod_authz_core.c>
+                    Order deny,allow
+                    Deny from all
+                </IfModule>
+                HTACCESS;
+            @file_put_contents($htaccessPath, $content);
+        }
+    }
+
     protected function checkFile(?string $filepath, ?string &$errorMessage = null): bool
     {
         $dirPath = pathinfo($filepath, PATHINFO_DIRNAME);
