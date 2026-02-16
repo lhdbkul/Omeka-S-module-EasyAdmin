@@ -528,7 +528,7 @@ class Addons extends AbstractPlugin
             $moduleFile = $destination . DIRECTORY_SEPARATOR . $addon['dir'] . DIRECTORY_SEPARATOR . 'Module.php';
             if (file_exists($moduleFile) && filesize($moduleFile)) {
                 $modulePhp = file_get_contents($moduleFile);
-                if (strpos($modulePhp, 'use Generic\AbstractModule;')) {
+                if (strpos($modulePhp, 'use Generic\AbstractModule;') !== false) {
                     /** @var \Omeka\Api\Representation\ModuleRepresentation $module */
                     $module = $this->getModule('Generic');
                     if (empty($module)

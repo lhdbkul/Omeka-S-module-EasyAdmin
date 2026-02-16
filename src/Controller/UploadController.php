@@ -246,6 +246,7 @@ class UploadController extends AbstractActionController
             }
             $newDestination = rtrim($dirPath, '/') . '/' . $filename;
             $fileExists = file_exists($newDestination);
+            $isFileDifferent = false;
             if ($fileExists) {
                 if (!is_writeable($newDestination)) {
                     return $this->jsonError(

@@ -54,7 +54,7 @@ $this->headScript()
         <dt><?= $translate('Last execution') ?></dt>
         <dd>
             <?php if ($lastRun): ?>
-                <?= $escapeHtml($i18n->dateFormat($lastRun, 'long', 'medium')) ?>
+                <?= $escapeHtml($i18n->dateFormat((new DateTime())->setTimestamp($lastRun), 'long', 'medium')) ?>
             <?php else: ?>
                 <em><?= $translate('Never') ?></em>
             <?php endif; ?>

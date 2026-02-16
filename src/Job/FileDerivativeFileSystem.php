@@ -31,7 +31,7 @@ class FileDerivativeFileSystem extends AbstractCheck
         }
 
         // Ensure php CLI exists.
-        $phpPath = $this->cli->getCommandPath('php') ?: 'php';
+        $phpPath = $this->cli->getCommandPath('php');
         if (!$phpPath) {
             $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
             $this->logger->err(

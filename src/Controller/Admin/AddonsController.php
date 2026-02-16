@@ -99,6 +99,13 @@ class AddonsController extends AbstractActionController
             $url = $data[$type] ?? null;
             if ($url) {
                 $addon = $addons->dataFromUrl($url, $type);
+                if (!$addon) {
+                    $messenger->addError(new PsrMessage(
+                        'The addon at "{url}" is not available.', // @translate
+                        ['url' => $url]
+                    ));
+                    return $this->redirect()->toRoute(null, ['action' => 'index'], true);
+                }
                 if ($addons->dirExists($addon)) {
                     // Hack to get a clean message.
                     $type = strtr($type, ['omeka' => '']);

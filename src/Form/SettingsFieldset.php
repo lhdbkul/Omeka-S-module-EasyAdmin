@@ -36,7 +36,7 @@ class SettingsFieldset extends Fieldset
 
             ->add([
                 'name' => 'easyadmin_no_reply_email',
-                'type' => Element\Text::class,
+                'type' => CommonElement\OptionalEmail::class,
                 'options' => [
                     'element_group' => 'general',
                     'label' => 'No reply email for automatic messages and notifications', // @translate

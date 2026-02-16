@@ -95,8 +95,8 @@ if (version_compare($oldVersion, '3.3.6', '<')) {
     $message = new PsrMessage(
         'This option can be enabled/disabled in {link}main settings{link_end}.', // @translate
         [
-            'iink' => sprintf('<a href="%s">', $url('admin/default', ['controller' => 'setting'], ['fragment' => 'easy-admin'])),
-            'iink_end' => '</a>',
+            'link' => sprintf('<a href="%s">', $url('admin/default', ['controller' => 'setting'], ['fragment' => 'easy-admin'])),
+            'link_end' => '</a>',
         ]
     );
     $message->setEscapeHtml(false);
