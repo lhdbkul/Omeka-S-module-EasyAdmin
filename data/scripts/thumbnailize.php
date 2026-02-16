@@ -39,26 +39,36 @@ $PARALLEL = 1;
 $PROGRESS = true;
 $PDF_DPI = 150;
 $CROP_MODE = 'centre';
+$START_FROM = 0;
+$SKIP_LARGE = false;
+$SKIP_MEDIUM = false;
+$SKIP_SQUARE = false;
+$ERRORS = 0;
 
 /***************************************************
  * PARSE CLI OPTIONS
  ***************************************************/
 $options = getopt('', [
     'all', 'missing', 'parallel:', 'dry-run', 'log-file:', 'no-progress',
-    'pdf-dpi:', 'crop-mode:', 'main-dir:', 'help',
+    'pdf-dpi:', 'crop-mode:', 'main-dir:', 'start-from:', 'skip-large',
+    'skip-medium', 'skip-square', 'help',
 ]);
 
 if (isset($options['help'])) {
     echo "Usage: php thumbnailize.php [OPTIONS]\n";
-    echo "--all                Process all files\n";
-    echo "--missing            Process only missing\n";
-    echo "--parallel N         Number of parallel workers\n";
-    echo "--dry-run            No conversions, just print actions\n";
-    echo "--log-file FILE      Set log file (default thumbnalize.log)\n";
+    echo "--all                Process all files (overwrite existing)\n";
+    echo "--missing            Process only missing thumbnails (default)\n";
+    echo "--parallel N         Run N parallel workers\n";
+    echo "--dry-run            Show actions but do not run converters\n";
+    echo "--log-file FILE      Set log file (default: thumbnailize.log)\n";
     echo "--no-progress        Disable progress bar\n";
-    echo "--pdf-dpi N          DPI used for PDF rendering\n";
-    echo "--crop-mode MODE     centre|entropy|attention|face|document\n";
-    echo "--main-dir DIR       Override base directory\n";
+    echo "--pdf-dpi N          Set dpi for pdf rendering\n";
+    echo "--crop-mode MODE     Smart crop mode: centre (default), face, entropy, attention, document\n";
+    echo "--main-dir DIR       Main directory (default: files/)\n";
+    echo "--start-from N       Skip first N files in the list (resume from file N+1)\n";
+    echo "--skip-large         Do not generate large thumbnails\n";
+    echo "--skip-medium        Do not generate medium thumbnails\n";
+    echo "--skip-square        Do not generate square thumbnails\n";
     exit(0);
 }
 
@@ -92,6 +102,18 @@ if (isset($options['main-dir'])) {
     $LARGE_DIR = "$MAIN_DIR/large";
     $MEDIUM_DIR = "$MAIN_DIR/medium";
     $SQUARE_DIR = "$MAIN_DIR/square";
+}
+if (isset($options['start-from'])) {
+    $START_FROM = max(0, (int) $options['start-from']);
+}
+if (isset($options['skip-large'])) {
+    $SKIP_LARGE = true;
+}
+if (isset($options['skip-medium'])) {
+    $SKIP_MEDIUM = true;
+}
+if (isset($options['skip-square'])) {
+    $SKIP_SQUARE = true;
 }
 
 /***************************************************
@@ -128,6 +150,14 @@ if ($PARALLEL > 1) {
 touch($LOG_FILE);
 
 $files = glob("$ORIGINAL_DIR/*.{jpg,jpeg,png,webp,tif,tiff,pdf,JPG,JPEG,PNG,WEBP,TIF,TIFF,PDF}", GLOB_BRACE);
+sort($files);
+$totalAll = count($files);
+
+// Apply --start-from: skip the first N files.
+if ($START_FROM > 0) {
+    $files = array_slice($files, $START_FROM);
+}
+
 $total = count($files);
 
 /***************************************************
@@ -138,18 +168,26 @@ function logMsg(string $msg, string $file): void
     file_put_contents($file, $msg . "\n", FILE_APPEND);
 }
 
-function progressBar(int $count, int $total): void
+function progressBar(int $count, int $total, int $errors = 0): void
 {
     $width = 40;
     $percent = intval($count * 100 / max(1, $total));
     $filled = intval($width * $count / max(1, $total));
     $empty = $width - $filled;
 
-    printf("\r[%s%s] %d%% (%d/%d)",
-        str_repeat('#', $filled),
-        str_repeat('-', $empty),
-        $percent, $count, $total
-    );
+    if ($errors > 0) {
+        printf("\r[%s%s] %d%% (%d/%d, %d errors)",
+            str_repeat('#', $filled),
+            str_repeat('-', $empty),
+            $percent, $count, $total, $errors
+        );
+    } else {
+        printf("\r[%s%s] %d%% (%d/%d)",
+            str_repeat('#', $filled),
+            str_repeat('-', $empty),
+            $percent, $count, $total
+        );
+    }
 }
 
 /***************************************************
@@ -174,29 +212,32 @@ function detectType(string $file, bool $useVips): string
 /***************************************************
  * RUN EXECS WITH FALLBACK
  ***************************************************/
-function runVipsOrConvert(string $vipsCmd, string $convertCmd, bool $useVips): void
+function runVipsOrConvert(string $vipsCmd, string $convertCmd, bool $useVips): bool
 {
     if ($useVips) {
         $o = $ret = null;
         exec($vipsCmd, $o, $ret);
         if ($ret === 0) {
-            return;
+            return true;
         }
     }
-    exec($convertCmd);
+    $o = $ret = null;
+    exec($convertCmd, $o, $ret);
+    return $ret === 0;
 }
 
 /***************************************************
  * PROCESS ONE FILE
  ***************************************************/
-function processFile(string $img, array $cfg): void
+function processFile(string $img, array $cfg): bool
 {
     $base = basename($img);
     $filetype = detectType($img, $cfg['use_vips']);
+    $hasError = false;
 
     if ($filetype === 'unknown') {
-        logMsg("[skip] Unknown: $base", $cfg['log_file']);
-        return;
+        logMsg("[skip]   Unknown: $base", $cfg['log_file']);
+        return false;
     }
 
     $filename = pathinfo($base, PATHINFO_FILENAME) . '.jpg';
@@ -204,12 +245,21 @@ function processFile(string $img, array $cfg): void
     $medium_out = "{$cfg['medium_dir']}/$filename";
     $squareOut = "{$cfg['square_dir']}/$filename";
 
-    if ($cfg['mode'] === 'missing'
-        && file_exists($large_out)
-        && file_exists($medium_out)
-        && file_exists($squareOut)) {
-        logMsg("[skip] $base", $cfg['log_file']);
-        return;
+    if ($cfg['mode'] === 'missing') {
+        $allExist = true;
+        if (!$cfg['skip_large'] && !file_exists($large_out)) {
+            $allExist = false;
+        }
+        if (!$cfg['skip_medium'] && !file_exists($medium_out)) {
+            $allExist = false;
+        }
+        if (!$cfg['skip_square'] && !file_exists($squareOut)) {
+            $allExist = false;
+        }
+        if ($allExist) {
+            logMsg("[skip]   $base", $cfg['log_file']);
+            return false;
+        }
     }
 
     logMsg("[process] $base ($filetype)", $cfg['log_file']);
@@ -238,7 +288,19 @@ function processFile(string $img, array $cfg): void
                 escapeshellarg($tempPDF)
             );
 
-            runVipsOrConvert($vipsPDF, $convertPDF, $cfg['use_vips']);
+            $o = $ret = null;
+            if ($cfg['use_vips']) {
+                exec($vipsPDF, $o, $ret);
+            }
+            if (!$cfg['use_vips'] || $ret !== 0) {
+                $o = $ret = null;
+                exec($convertPDF, $o, $ret);
+                if ($ret !== 0) {
+                    logMsg("[error]  $base: PDF conversion failed", $cfg['log_file']);
+                    @unlink($tempPDF);
+                    return true;
+                }
+            }
         }
 
         $thumbSrc = $tempPDF;
@@ -249,74 +311,94 @@ function processFile(string $img, array $cfg): void
         /********************
          * LARGE
          ********************/
-        $thumbSize = $cfg['large_size'];
+        if (!$cfg['skip_large']) {
+            $thumbSize = $cfg['large_size'];
 
-        runVipsOrConvert(
-            'vips thumbnail '
-                . escapeshellarg($thumbSrc)
-                . ' ' . escapeshellarg($large_out)
-                . " $thumbSize --size=down",
+            $ok = runVipsOrConvert(
+                'vips thumbnail '
+                    . escapeshellarg($thumbSrc)
+                    . ' ' . escapeshellarg($large_out)
+                    . " $thumbSize --size=down",
 
-            'convert '
-                . escapeshellarg($thumbSrc)
-                . " -resize {$thumbSize}x{$thumbSize}> "
-                . escapeshellarg($large_out),
+                'convert '
+                    . escapeshellarg($thumbSrc)
+                    . " -resize {$thumbSize}x{$thumbSize}> "
+                    . escapeshellarg($large_out),
 
-            $cfg['use_vips']
-        );
+                $cfg['use_vips']
+            );
+            if (!$ok) {
+                logMsg("[error]  $base: large thumbnail failed", $cfg['log_file']);
+                $hasError = true;
+            }
+        }
 
         /********************
          * MEDIUM
          ********************/
-        $thumbSize = $cfg['medium_size'];
+        if (!$cfg['skip_medium']) {
+            $thumbSize = $cfg['medium_size'];
 
-        runVipsOrConvert(
-            'vips thumbnail '
-                . escapeshellarg($thumbSrc)
-                . ' ' . escapeshellarg($medium_out)
-                . " $thumbSize --size=down",
+            $ok = runVipsOrConvert(
+                'vips thumbnail '
+                    . escapeshellarg($thumbSrc)
+                    . ' ' . escapeshellarg($medium_out)
+                    . " $thumbSize --size=down",
 
-            'convert '
-                . escapeshellarg($thumbSrc)
-                . " -resize {$thumbSize}x{$thumbSize}> "
-                . escapeshellarg($medium_out),
+                'convert '
+                    . escapeshellarg($thumbSrc)
+                    . " -resize {$thumbSize}x{$thumbSize}> "
+                    . escapeshellarg($medium_out),
 
-            $cfg['use_vips']
-        );
+                $cfg['use_vips']
+            );
+            if (!$ok) {
+                logMsg("[error]  $base: medium thumbnail failed", $cfg['log_file']);
+                $hasError = true;
+            }
+        }
 
         /********************
          * SQUARE
          ********************/
-        $thumbSize = $cfg['square_size'];
+        if (!$cfg['skip_square']) {
+            $thumbSize = $cfg['square_size'];
 
-        // --- VIPS ---
-        $vipsCmd =
-        'vips thumbnail '
-            . escapeshellarg($thumbSrc)
-            . ' '
-            . escapeshellarg($squareOut)
-            . ' ' . $thumbSize
-            . ' --height ' . $thumbSize
-            . ' --size both'
-            . " --crop {$cfg['crop_mode']}";
+            // --- VIPS ---
+            $vipsCmd =
+            'vips thumbnail '
+                . escapeshellarg($thumbSrc)
+                . ' '
+                . escapeshellarg($squareOut)
+                . ' ' . $thumbSize
+                . ' --height ' . $thumbSize
+                . ' --size both'
+                . ' --crop ' . escapeshellarg($cfg['crop_mode']);
 
-        // --- Convert fallback ---
-        // Convert has no entropy/attention modes like VIPS,
-        // but it can be emulated using -gravity center.
-        $convertCmd =
-        'convert '
-            . escapeshellarg($thumbSrc)
-            . " -resize {$thumbSize}x{$thumbSize}^"
-            . ' -gravity center'
-            . " -extent {$thumbSize}x{$thumbSize} "
-            . escapeshellarg($squareOut);
+            // --- Convert fallback ---
+            // Convert has no entropy/attention modes like VIPS,
+            // but it can be emulated using -gravity center.
+            $convertCmd =
+            'convert '
+                . escapeshellarg($thumbSrc)
+                . " -resize {$thumbSize}x{$thumbSize}^"
+                . ' -gravity center'
+                . " -extent {$thumbSize}x{$thumbSize} "
+                . escapeshellarg($squareOut);
 
-        runVipsOrConvert($vipsCmd, $convertCmd, $cfg['use_vips']);
+            $ok = runVipsOrConvert($vipsCmd, $convertCmd, $cfg['use_vips']);
+            if (!$ok) {
+                logMsg("[error]  $base: square thumbnail failed", $cfg['log_file']);
+                $hasError = true;
+            }
+        }
     }
 
     if ($tempPDF && !$cfg['dryrun']) {
         @unlink($tempPDF);
     }
+
+    return $hasError;
 }
 
 /***************************************************
@@ -335,12 +417,32 @@ $config = [
     'pdf_dpi' => $PDF_DPI,
     'crop_mode' => $CROP_MODE,
     'use_vips' => $USE_VIPS,
+    'skip_large' => $SKIP_LARGE,
+    'skip_medium' => $SKIP_MEDIUM,
+    'skip_square' => $SKIP_SQUARE,
 ];
 
 /***************************************************
  * RUN
  ***************************************************/
-echo "Mode: $MODE\nParallel: $PARALLEL\nUsing VIPS: " . ($USE_VIPS ? 'yes' : 'no') . "\nFound $total files\nStarting...\n";
+echo "Mode: $MODE\n";
+echo "Parallel jobs: $PARALLEL\n";
+echo "Dry-run: " . ($DRYRUN ? 'true' : 'false') . "\n";
+echo "Progress bar: " . ($PROGRESS ? 'true' : 'false') . "\n";
+echo "PDF DPI: $PDF_DPI\n";
+echo "Crop mode: $CROP_MODE\n";
+echo "Log-file: $LOG_FILE\n";
+echo "Main directory: $MAIN_DIR\n";
+echo "Using VIPS: " . ($USE_VIPS ? 'true' : 'false') . "\n";
+echo "Skip large: " . ($SKIP_LARGE ? 'true' : 'false') . "\n";
+echo "Skip medium: " . ($SKIP_MEDIUM ? 'true' : 'false') . "\n";
+echo "Skip square: " . ($SKIP_SQUARE ? 'true' : 'false') . "\n";
+echo "Total files found: $totalAll\n";
+if ($START_FROM > 0) {
+    echo "Starting from file: $START_FROM\n";
+}
+echo "Files to process: $total\n";
+echo "\nStarting…\nLogging to $LOG_FILE\n\n";
 
 if ($PARALLEL > 1) {
     /**************
@@ -359,8 +461,11 @@ if ($PARALLEL > 1) {
                 if ($done > 0) {
                     unset($pool[$key]);
                     $finished++;
+                    if (pcntl_wexitstatus($status) !== 0) {
+                        $ERRORS++;
+                    }
                     if ($PROGRESS) {
-                        progressBar($finished, $total);
+                        progressBar($finished, $total, $ERRORS);
                     }
                 }
             }
@@ -372,8 +477,8 @@ if ($PARALLEL > 1) {
             die("Failed to fork.\n");
         }
         if ($pid === 0) {
-            processFile($img, $config);
-            exit(0);
+            $err = processFile($img, $config);
+            exit($err ? 1 : 0);
         }
         $pool[] = $pid;
     }
@@ -384,8 +489,11 @@ if ($PARALLEL > 1) {
             if ($done > 0) {
                 unset($pool[$key]);
                 $finished++;
+                if (pcntl_wexitstatus($status) !== 0) {
+                    $ERRORS++;
+                }
                 if ($PROGRESS) {
-                    progressBar($finished, $total);
+                    progressBar($finished, $total, $ERRORS);
                 }
             }
         }
@@ -399,12 +507,18 @@ if ($PARALLEL > 1) {
 
     $count = 0;
     foreach ($files as $img) {
-        processFile($img, $config);
+        $err = processFile($img, $config);
+        if ($err) {
+            $ERRORS++;
+        }
         $count++;
         if ($PROGRESS) {
-            progressBar($count, $total);
+            progressBar($count, $total, $ERRORS);
         }
     }
 }
 
-echo "\nDONE.\n";
+echo "\nDONE. Processed: $total files. Errors: $ERRORS.\n";
+if ($ERRORS > 0) {
+    echo "Check $LOG_FILE for [error] entries.\n";
+}
