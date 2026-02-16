@@ -594,21 +594,32 @@ class Module extends AbstractModule
      */
     public function handleCron(Event $event): void
     {
+        // Quick static check to avoid reading settings on every page load.
+        // After the first check within the hour, all subsequent requests
+        // skip the settings read entirely.
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+
         $services = $this->getServiceLocator();
 
         // Independent mode: execute cron tasks without the Cron module.
         $settings = $services->get('Omeka\Settings');
-        $enabledTasks = $this->getEnabledCronTasks($settings);
-        if (!count($enabledTasks)) {
-            return;
-        }
 
-        // Check frequency (at most once per hour).
+        // Check frequency first (cheapest check) before loading tasks.
         $lastCron = (int) $settings->get('easyadmin_cron_last');
         $time = time();
         if ($lastCron + 3600 > $time) {
             return;
         }
+
+        $enabledTasks = $this->getEnabledCronTasks($settings);
+        if (!count($enabledTasks)) {
+            return;
+        }
+
         $settings->set('easyadmin_cron_last', $time);
 
         // Dispatch the CronTasks job.
