@@ -256,6 +256,10 @@ if (empty($basePath)) {
 }
 
 $serverUrlParts = parse_url($serverUrl);
+if (!is_array($serverUrlParts) || !isset($serverUrlParts['scheme'], $serverUrlParts['host'])) {
+    $logger->err('Invalid server URL given; use --server-url <scheme://host>'); // @translate
+    exit;
+}
 $scheme = $serverUrlParts['scheme'];
 $host = $serverUrlParts['host'];
 if (isset($serverUrlParts['port'])) {
