@@ -91,25 +91,28 @@ class FileMissing extends AbstractCheckFile
         ];
         $this->matchingMode = $this->getArg('matching') ?: null;
 
-        // Require matching mode for all files_missing processes.
-        if (empty($this->matchingMode)) {
-            $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
-            $this->logger->err(
-                'Matching mode is required for process "{process}".', // @translate
-                ['process' => $process]
-            );
-            $this->finalizeOutput();
-            return;
-        }
+        // Matching mode is only required for fix processes, not for checks.
+        $isFix = in_array($process, ['files_missing_fix', 'files_missing_fix_db']);
+        if ($isFix) {
+            if (empty($this->matchingMode)) {
+                $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
+                $this->logger->err(
+                    'Matching mode is required for process "{process}".', // @translate
+                    ['process' => $process]
+                );
+                $this->finalizeOutput();
+                return;
+            }
 
-        if (!in_array($this->matchingMode, $matchingModes)) {
-            $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
-            $this->logger->err(
-                'Matching mode "{mode}" is not supported.', // @translate
-                ['mode' => $this->matchingMode]
-            );
-            $this->finalizeOutput();
-            return;
+            if (!in_array($this->matchingMode, $matchingModes)) {
+                $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
+                $this->logger->err(
+                    'Matching mode "{mode}" is not supported.', // @translate
+                    ['mode' => $this->matchingMode]
+                );
+                $this->finalizeOutput();
+                return;
+            }
         }
 
         // Report type: 'full' lists all files, 'partial' lists only missing.
