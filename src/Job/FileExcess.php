@@ -2,6 +2,8 @@
 
 namespace EasyAdmin\Job;
 
+use Doctrine\DBAL\Connection;
+
 class FileExcess extends AbstractCheckFile
 {
     protected $columns = [
@@ -109,8 +111,117 @@ class FileExcess extends AbstractCheckFile
             ['type' => $type]
         );
 
+        $connection = $this->entityManager->getConnection();
+
+        // Process files in batches to reduce database round-trips.
+        // Instead of one query per file (N+1), batch 500 files into one
+        // IN() query, reducing queries by ~500x.
+        $batchSize = 500;
+        $batch = [];
+
         foreach ($filesIterator as $filename) {
-            if (($totalProcessed % 100 === 0) && $totalProcessed) {
+            $batch[] = $filename;
+            if (count($batch) < $batchSize) {
+                continue;
+            }
+            $result = $this->processExcessBatch(
+                $batch, $type, $isOriginal, $path, $move, $movePath ?? '', $connection,
+                $yes, $no, $totalProcessed, $totalSuccess, $totalExcess
+            );
+            $batch = [];
+            if ($result === false) {
+                return false;
+            }
+        }
+
+        // Process remaining files.
+        if ($batch) {
+            $result = $this->processExcessBatch(
+                $batch, $type, $isOriginal, $path, $move, $movePath ?? '', $connection,
+                $yes, $no, $totalProcessed, $totalSuccess, $totalExcess
+            );
+            if ($result === false) {
+                return false;
+            }
+        }
+
+        if ($move) {
+            $this->logger->notice(
+                'End check of {total} files for type {type}: {total_excess} files in excess moved.', // @translate
+                ['total' => $totalProcessed, 'type' => $type, 'total_excess' => $totalExcess]
+            );
+        } else {
+            $this->logger->notice(
+                'End check of {total} files for type {type}: {total_excess} files in excess.', // @translate
+                ['total' => $totalProcessed, 'type' => $type, 'total_excess' => $totalExcess]
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Process a batch of files, checking existence in database with one query.
+     *
+     * @return bool|null False to stop processing, null otherwise.
+     */
+    protected function processExcessBatch(
+        array $filenames,
+        string $type,
+        bool $isOriginal,
+        string $path,
+        bool $move,
+        string $movePath,
+        \Doctrine\DBAL\Connection $connection,
+        string $yes,
+        string $no,
+        int &$totalProcessed,
+        int &$totalSuccess,
+        int &$totalExcess
+    ) {
+        // Build lookup: storageId => [filename, extension].
+        $storageMap = [];
+        foreach ($filenames as $filename) {
+            if ($isOriginal) {
+                $ext = pathinfo($filename, PATHINFO_EXTENSION);
+                $storageId = strlen($ext)
+                    ? substr($filename, 0, strrpos($filename, '.'))
+                    : $filename;
+            } else {
+                $ext = null;
+                $storageId = substr($filename, 0, strrpos($filename, '.'));
+            }
+            $storageMap[$filename] = ['storageId' => $storageId, 'extension' => $ext];
+        }
+
+        $storageIds = array_unique(array_column($storageMap, 'storageId'));
+
+        // Single batched query instead of N individual queries.
+        if ($isOriginal) {
+            $sql = 'SELECT `id`, `item_id`, `storage_id`, `extension` FROM `media`'
+                . ' WHERE `storage_id` IN (:ids) AND `has_original` = 1';
+        } else {
+            $sql = 'SELECT `id`, `item_id`, `storage_id` FROM `media`'
+                . ' WHERE `storage_id` IN (:ids) AND `has_thumbnails` = 1';
+        }
+        $stmt = $connection->executeQuery($sql, ['ids' => $storageIds], ['ids' => Connection::PARAM_STR_ARRAY]);
+        $dbRows = $stmt->fetchAllAssociative();
+
+        // Build lookup: "storageId|extension" => media row (for originals)
+        // or "storageId" => media row (for derivatives).
+        $mediaLookup = [];
+        foreach ($dbRows as $dbRow) {
+            if ($isOriginal) {
+                $key = $dbRow['storage_id'] . '|' . ($dbRow['extension'] ?? '');
+            } else {
+                $key = $dbRow['storage_id'];
+            }
+            $mediaLookup[$key] = $dbRow;
+        }
+
+        // Process each file in the batch.
+        foreach ($filenames as $filename) {
+            if (($totalProcessed % 500 === 0) && $totalProcessed) {
                 $this->logger->info(
                     '{processed} files processed.', // @translate
                     ['processed' => $totalProcessed]
@@ -124,24 +235,11 @@ class FileExcess extends AbstractCheckFile
             }
             ++$totalProcessed;
 
+            $info = $storageMap[$filename];
             if ($isOriginal) {
-                $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                $storageId = strlen($extension)
-                    ? substr($filename, 0, strrpos($filename, '.'))
-                    : $filename;
-                $media = $this->mediaRepository->findOneBy([
-                    'storageId' => $storageId,
-                    'extension' => $extension,
-                    'hasOriginal' => 1,
-                ]);
+                $key = $info['storageId'] . '|' . ($info['extension'] ?? '');
             } else {
-                // The extension of the original file is unknown, but it doesn't
-                // matter, since each filepath is unique.
-                $storageId = substr($filename, 0, strrpos($filename, '.'));
-                $media = $this->mediaRepository->findOneBy([
-                    'storageId' => $storageId,
-                    'hasThumbnails' => 1,
-                ]);
+                $key = $info['storageId'];
             }
 
             $row = [
@@ -154,12 +252,11 @@ class FileExcess extends AbstractCheckFile
                 'fixed' => '',
             ];
 
-            if ($media) {
+            if (isset($mediaLookup[$key])) {
                 $row['exists'] = $yes;
-                $row['item'] = $media->getItem()->getId();
-                $row['media'] = $media->getId();
+                $row['item'] = $mediaLookup[$key]['item_id'];
+                $row['media'] = $mediaLookup[$key]['id'];
                 ++$totalSuccess;
-                $this->entityManager->clear();
                 $this->writeRow($row);
                 continue;
             }
@@ -167,8 +264,6 @@ class FileExcess extends AbstractCheckFile
             $row['exists'] = $no;
 
             if ($move) {
-                // Creation of a folder is required for module ArchiveRepertory
-                // or some other ones.
                 $dirname = dirname($movePath . '/' . $filename);
                 if ($dirname !== $movePath) {
                     if (!$this->createDir($dirname)) {
@@ -205,23 +300,9 @@ class FileExcess extends AbstractCheckFile
             }
 
             $this->writeRow($row);
-
             ++$totalExcess;
-            $this->entityManager->clear();
         }
 
-        if ($move) {
-            $this->logger->notice(
-                'End check of {total} files for type {type}: {total_excess} files in excess moved.', // @translate
-                ['total' => $totalProcessed, 'type' => $type, 'total_excess' => $totalExcess]
-            );
-        } else {
-            $this->logger->notice(
-                'End check of {total} files for type {type}: {total_excess} files in excess.', // @translate
-                ['total' => $totalProcessed, 'type' => $type, 'total_excess' => $totalExcess]
-            );
-        }
-
-        return true;
+        return null;
     }
 }

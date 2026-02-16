@@ -145,17 +145,15 @@ class FileDerivative extends AbstractCheck
         $failed = $translator->translate('Failed'); // @translate
 
         $offset = 0;
-        $key = 0;
         $totalProcessed = 0;
         $totalSucceed = 0;
         $totalExisting = 0;
         $totalFailed = 0;
-        $count = 0;
-        while (++$count <= $totalToProcess) {
+        while (true) {
             $criteria
                 ->setFirstResult($offset);
             $medias = $this->mediaRepository->matching($criteria);
-            if (!$medias->count() || $offset >= $medias->count()) {
+            if (!$medias->count()) {
                 break;
             }
 
@@ -216,7 +214,6 @@ class FileDerivative extends AbstractCheck
                             'Media #{media_id} ({index}/{total}): derivative file "{filename}" is not writeable (type "{type}").', // @translate
                             ['media_id' => $media->getId(), 'index' => $offset + $key + 1, 'total' => $totalToProcess, 'filename' => $filename, 'type' => $type]
                         );
-                        $offset += self::SQL_LIMIT;
                         $row['exists'] = $notWriteable;
                         $this->writeRow($row);
                         continue 2;

@@ -743,6 +743,8 @@ class FileMissing extends AbstractCheckFile
                         $row['exists'] = $no;
                         // Remove item if it has only one media, otherwise
                         // remove just the media.
+                        // Flush per entity: batching is unsafe because
+                        // $item->getMedia()->count() must reflect prior removals.
                         if ($item->getMedia()->count() === 1) {
                             $this->entityManager->remove($item);
                             $this->entityManager->flush();
@@ -754,6 +756,9 @@ class FileMissing extends AbstractCheckFile
                         }
                         ++$totalFixed;
                         ++$totalFailed;
+                        $this->writeRow($row);
+                        // Entity is removed: skip remaining derivative types.
+                        break;
                     }
                     $this->writeRow($row);
                 }

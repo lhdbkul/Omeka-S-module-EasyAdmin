@@ -17,23 +17,25 @@ class DbSession extends AbstractCheck
         $processFix = $process === 'db_session_clean';
         $processRecreate = $process === 'db_session_recreate';
 
-        $minimumSeconds = (string) $this->getArg('seconds');
-        if ($processFix && !is_numeric($minimumSeconds)) {
-            $this->logger->warn(
-                'A minimum number of seconds is needed to clean sessions.' // @translate
-            );
-            return;
-        }
-
-        $seconds = (int) $minimumSeconds;
-
+        // The form sends "days", the quick mode sends "seconds" directly.
         $quick = !empty($this->getArg('quick'));
         if ($quick) {
+            $seconds = (int) $this->getArg('seconds');
             $this->deleteLastSession($seconds);
             return;
         }
 
-        $this->checkDbSession($processFix, (int) $minimumSeconds, $processRecreate);
+        $days = (string) $this->getArg('days');
+        if ($processFix && !is_numeric($days)) {
+            $this->logger->warn(
+                'A minimum number of days is needed to clean sessions.' // @translate
+            );
+            return;
+        }
+
+        $seconds = (int) $days * 86400;
+
+        $this->checkDbSession($processFix, $seconds, $processRecreate);
 
         $this->logger->notice(
             'Process "{process}" completed.', // @translate
@@ -117,9 +119,8 @@ class DbSession extends AbstractCheck
             $sql = "DELETE FROM `$this->table` WHERE modified < :timestamp;";
             $stmt = $this->connection->prepare($sql);
             $stmt->bindValue(':timestamp', $timestamp);
-            $stmt->executeStatement();
-            $count = $stmt->rowCount();
-            $size = $this->connection->executeQuery($sqlSize)->fetchOne();
+            $count = $stmt->executeStatement();
+            $size = $this->connection->executeQuery($sqlSize, [$dbname, $this->table])->fetchOne();
             $this->logger->notice(
                 '{count} records older than {seconds} seconds were removed. The table "{table}" has a size of {size} MB.', // @translate
                 ['count' => $count, 'seconds' => $seconds, 'size' => $size, 'table' => $this->table]

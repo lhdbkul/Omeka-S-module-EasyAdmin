@@ -18,12 +18,12 @@ trait TraitEasyDir
         'square',
     ];
 
-    protected function getAndCheckDirPath(?string $dirPath, ?string &$errorMessage = null): ?string
+    protected function getAndCheckDirPath(?string $dirPath, ?string &$errorMessage = null, bool $forWriting = false): ?string
     {
         $dirPath = mb_strlen((string) $dirPath)
             ? $dirPath
             : $this->settings()->get('easyadmin_local_path');
-        $check = $this->checkDirPath($dirPath, $errorMessage);
+        $check = $this->checkDirPath($dirPath, $errorMessage, $forWriting);
         return $check
             ? $dirPath
             : null;

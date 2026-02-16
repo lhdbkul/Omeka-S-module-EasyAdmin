@@ -338,7 +338,9 @@ abstract class AbstractCheckFile extends AbstractCheck
                 ++$totalProcessed;
             }
 
-            $this->entityManager->flush();
+            if ($fix) {
+                $this->entityManager->flush();
+            }
             $this->entityManager->clear();
             unset($medias);
 

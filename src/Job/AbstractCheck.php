@@ -211,6 +211,10 @@ abstract class AbstractCheck extends AbstractJob
         static $columnKeys;
         static $total = 0;
 
+        if (!$this->handle) {
+            return $this;
+        }
+
         ++$total;
         if ($total === 1048577) {
             $this->logger->err(

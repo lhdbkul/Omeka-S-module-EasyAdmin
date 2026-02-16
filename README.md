@@ -344,6 +344,7 @@ TODO
 - [ ] Add a deduplicator for assets (and replace assets used as resource thumbnails and in pages).
 - [x] Dump database: see adminer.
 - [x] Find a way to increase duration of csrf when there are very a large number of files to upload, instead of skipping csrf.
+- [ ] Add a module setting for the csrf lifetime for bulk uploads (see note below).
 
 
 Warning

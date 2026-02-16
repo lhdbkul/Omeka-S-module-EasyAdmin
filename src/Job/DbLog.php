@@ -41,7 +41,7 @@ class DbLog extends AbstractCheck
 
         $days = (string) $this->getArg('days');
         $severity = (string) $this->getArg('severity');
-        if ($processFix && !(is_numeric($days) || !is_numeric($severity))) {
+        if ($processFix && (!is_numeric($days) || !is_numeric($severity))) {
             $this->logger->warn(
                 'A minimum number of days and a maximal severity is needed to clean logs.' // @translate
             );
@@ -51,12 +51,16 @@ class DbLog extends AbstractCheck
         $days = (int) $days;
         $severity = (int) $severity;
         if (!isset($this->severities[$severity])) {
-            $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
-            $this->logger->err(
-                'The severity "{severity}" is not managed.', // @translate
-                ['severity' => $severity]
-            );
-            return;
+            if ($processFix) {
+                $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
+                $this->logger->err(
+                    'The severity "{severity}" is not managed.', // @translate
+                    ['severity' => $severity]
+                );
+                return;
+            }
+            // For check, fallback to 0 (no severity filter).
+            $severity = 0;
         }
 
         $length = (int) $this->getArg('length');

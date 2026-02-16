@@ -25,15 +25,18 @@ class DbCustomVocabMissingItemSets extends AbstractCheck
         $process = $this->getArg('process');
         $processFix = $process === 'db_customvocab_missing_itemsets_clean';
 
-        $remove = $this->getArg('mode') === 'remove';
-        if ($remove) {
-            $this->logger->info(
-                'The custom vocab with missing item sets will be removed.' // @translate
-            );
-        } else {
-            $this->logger->info(
-                'The custom vocab with missing item sets will be updated as simple empty list.' // @translate
-            );
+        $remove = false;
+        if ($processFix) {
+            $remove = $this->getArg('mode') === 'remove';
+            if ($remove) {
+                $this->logger->info(
+                    'The custom vocab with missing item sets will be removed.' // @translate
+                );
+            } else {
+                $this->logger->info(
+                    'The custom vocab with missing item sets will be updated as simple empty list.' // @translate
+                );
+            }
         }
 
         $this->checkCustomVocabMissingItemSets($processFix, $remove);
