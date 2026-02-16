@@ -9,6 +9,7 @@ Easy Admin (module for Omeka S)
 admin interface:
 
 - bulk upload multiple files in item form, bypassing any server post limits
+- per-user private directories for uploads and imports
 - buttons to public view and previous/next resources in admin resource show page
 - install modules and themes
 - install [curated selection of modules]
@@ -181,6 +182,28 @@ the file local.config.php for key "easyadmin_local_path_any".
 **Warning**: there are security implications with this option, so check access
 rights or use it only temporarily.
 
+### Per-user directories
+
+An option in settings allows to enable private directories for each user who can
+create items (author, reviewer, editor, and administrators). When enabled:
+
+- Each user gets a personal directory at `/files/userdata/{userId}/`.
+- The directory is created automatically on first access.
+- Administrators can browse and download files in all user directories, but
+  cannot upload or delete files in another user's directory.
+- Non-admin users (editors, reviewers, authors) can only see and use their own
+  directory.
+- Researchers do not have access to user directories (they cannot create items).
+- The `/files/userdata/` directory is protected by `.htaccess` to deny direct
+  HTTP access. The `.htaccess` is created automatically and recreated if deleted.
+- Files can still be imported via their filesystem path (sideload), since PHP
+  reads the disk directly and is not affected by the `.htaccess`. The filesystem
+  path is displayed in the file manager interface.
+- Download in the file manager works via a dedicated controller action that
+  streams the file after verifying authentication.
+- When the setting is disabled, existing directories remain on disk but no longer
+  appear in the dropdown.
+
 ### Buttons in resource page
 
 The option can be enabled in main settings.
@@ -344,7 +367,7 @@ TODO
 - [ ] Add a deduplicator for assets (and replace assets used as resource thumbnails and in pages).
 - [x] Dump database: see adminer.
 - [x] Find a way to increase duration of csrf when there are very a large number of files to upload, instead of skipping csrf.
-- [ ] Add a module setting for the csrf lifetime for bulk uploads (see note below).
+- [ ] Add a module setting for the csrf lifetime for bulk uploads and for main resource edit page.
 
 
 Warning
