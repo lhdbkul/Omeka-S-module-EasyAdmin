@@ -259,6 +259,14 @@ return [
             ],
         ],
     ],
+    'assets' => [
+        // Override internals assets. Only for Omeka assets: modules can use another filename.
+        'internals' => [
+            'vendor/chosen-js/chosen.css' => 'EasyAdmin',
+            'vendor/chosen-js/chosen.jquery.js' => 'EasyAdmin',
+            'js/chosen-options.js' => 'EasyAdmin',
+        ],
+    ],
     'translator' => [
         'translation_file_patterns' => [
             [

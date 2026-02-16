@@ -181,6 +181,23 @@
         border-radius: 4px;
     }
 
+    /* Chosen v2: button.search-choice-close compatibility with Omeka's style.css.
+     * Omeka's style.css targets "abbr" but the fork uses <button> for accessibility. */
+    .chosen-container-single .chosen-single button.search-choice-close {
+        top: 12px;
+    }
+
+    /* Chosen sortable: drag-and-drop reordering for multiselect */
+    .chosen-container-multi .chosen-choices .search-choice {
+        cursor: grab;
+    }
+    .chosen-container-multi .chosen-choices .search-choice:active {
+        cursor: grabbing;
+    }
+    .chosen-sortable-ghost {
+        opacity: 0.4;
+    }
+
     /* Sidebar improvements */
     .sidebar .error {
         color: #c62828;

@@ -51,7 +51,9 @@
     },
     "extra": {
         "external-assets": {
-            "asset/vendor/flow.js/flow.min.js": "https://github.com/Daniel-KM/Omeka-S-module-EasyAdmin/releases/download/3.4.18/flow.min.js"
+            "asset/vendor/flow.js/flow.min.js": "https://github.com/Daniel-KM/Omeka-S-module-EasyAdmin/releases/download/3.4.18/flow.min.js",
+            "asset/vendor/chosen-js/chosen.jquery.js": "https://raw.githubusercontent.com/Daniel-KM/chosen-jquery/master/docs/chosen.jquery.js",
+            "asset/vendor/chosen-js/chosen.css": "https://raw.githubusercontent.com/Daniel-KM/chosen-jquery/master/docs/chosen.css"
         },
         "installer-name": "EasyAdmin",
         "configurable": true

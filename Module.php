@@ -443,6 +443,13 @@ class Module extends AbstractModule
             [$this, 'handleMainSettings']
         );
 
+        // Load sortable js on the settings page.
+        $sharedEventManager->attach(
+            'Omeka\Controller\Admin\Setting',
+            'view.browse.before',
+            [$this, 'addHeadersSettings']
+        );
+
         // Check last version of modules.
         $sharedEventManager->attach(
             'Omeka\Controller\Admin\Module',
@@ -1074,6 +1081,43 @@ class Module extends AbstractModule
         $view->headScript()
             ->appendFile($assetUrl('vendor/flow.js/flow.min.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer'])
             ->appendFile($assetUrl('js/bulk-upload.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+    }
+
+    public function addHeadersSettings(Event $event): void
+    {
+        $view = $event->getTarget();
+        $assetUrl = $view->plugin('assetUrl');
+        $view->headLink()
+            ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
+        $view->headScript()
+            ->appendFile($assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'))
+            ->appendFile($assetUrl('js/chosen-sortable.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+    }
+
+    public function handleMainSettings(Event $event): void
+    {
+        $fieldset = $this->handleAnySettings($event, 'settings');
+        if (!$fieldset) {
+            return;
+        }
+
+        // Add data attributes for sortable chosen-selects.
+        $services = $this->getServiceLocator();
+        $settings = $services->get('Omeka\Settings');
+        $sortableElements = [
+            'easyadmin_quick_template',
+            'easyadmin_quick_class',
+        ];
+        foreach ($sortableElements as $name) {
+            if ($fieldset->has($name)) {
+                $element = $fieldset->get($name);
+                $element->setAttribute('data-sortable', '1');
+                $savedValues = $settings->get($name, []);
+                if ($savedValues) {
+                    $element->setAttribute('data-values-order', json_encode($savedValues, JSON_UNESCAPED_UNICODE));
+                }
+            }
+        }
     }
 
     public function handleResourceForm(Event $event): void
