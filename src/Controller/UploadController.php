@@ -77,15 +77,6 @@ class UploadController extends AbstractActionController
             );
         }
 
-        // In previous version, there was a session warning appended to json
-        // that was fixed via js:
-        // Warning: session_write_close(): Failed to write session data using user defined save handler.
-        // The following code closes session earlier to prevent warning.
-        // The session is no longer needed after authentication check.
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
-
         /** @var \Laminas\Http\Request $request */
         $request = $this->getRequest();
         $headers = $request->getHeaders()->toArray();
@@ -100,6 +91,8 @@ class UploadController extends AbstractActionController
         }
 
         // Check csrf for security.
+        // This must be done before closing the session, since csrf
+        // validation requires access to the session token list.
         if (!$this->settings()->get('easyadmin_disable_csrf')) {
             $form = $this->getForm(\Omeka\Form\ResourceForm::class);
             $form->setData(['csrf' => $headers['X-Csrf'] ?? null]);
@@ -109,6 +102,18 @@ class UploadController extends AbstractActionController
                     Response::STATUS_CODE_403
                 );
             }
+        }
+
+        // In previous version, there was a session warning appended to json
+        // that was fixed via js:
+        // Warning: session_write_close(): Failed to write session data using user defined save handler.
+        // So, close the session after all security checks (authentication,
+        // host, csrf) to avoid session locking during long chunk uploads.
+        // The warning is suppressed because the csrf form initialization writes
+        // a new token to the session, which may trigger a save handler warning
+        // that would corrupt the json response (so use @).
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            @session_write_close();
         }
 
         // Processing the chunk.
