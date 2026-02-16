@@ -728,15 +728,27 @@ class Module extends AbstractModule
             // The module AdvancedResourceTemplate allows to suggest multiple
             // classes by template.
             if ($this->isModuleActive('AdvancedResourceTemplate')) {
-                /** @var \AdvancedResourceTemplate\Api\Representation\ResourceTemplateRepresentation[] $templates */
-                $templates = $api->search('resource_templates', [])->getContent();
-                foreach ($templates as $template) {
-                    $useForResources = $template->dataValue('use_for_resources');
-                    if (!$useForResources || in_array($resourceType, $useForResources)) {
-                        $suggestedClasses = $template->dataValue('suggested_resource_class_ids') ?: [];
-                        if ($ids = array_intersect($suggestedClasses, $classIds)) {
-                            $templateClassLabels[$template->id()] = ['label' => $template->label(), 'resource_class_id' => reset($ids)];
-                        }
+                // Use DBAL to avoid loading all templates with full hydration.
+                $connection = $services->get('Omeka\Connection');
+                $sql = <<<'SQL'
+                    SELECT rt.id, rt.label, rtd.data
+                    FROM resource_template AS rt
+                    INNER JOIN resource_template_data AS rtd ON rtd.resource_template_id = rt.id
+                    ORDER BY rt.label ASC
+                    SQL;
+                $rows = $connection->executeQuery($sql)->fetchAllAssociative();
+                foreach ($rows as $row) {
+                    $data = json_decode($row['data'], true);
+                    if (!$data) {
+                        continue;
+                    }
+                    $useForResources = $data['use_for_resources'] ?? null;
+                    if ($useForResources && !in_array($resourceType, $useForResources)) {
+                        continue;
+                    }
+                    $suggestedClasses = $data['suggested_resource_class_ids'] ?? [];
+                    if ($ids = array_intersect($suggestedClasses, $classIds)) {
+                        $templateClassLabels[(int) $row['id']] = ['label' => $row['label'], 'resource_class_id' => reset($ids)];
                     }
                 }
             } else {
