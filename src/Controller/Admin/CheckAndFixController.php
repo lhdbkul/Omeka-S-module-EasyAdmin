@@ -420,6 +420,26 @@ class CheckAndFixController extends AbstractActionController
                 'Failed to send test email: {error}', // @translate
                 ['error' => $e->getMessage()]
             ));
+
+            // Diagnose ssl/tls mismatch from the error message.
+            $errorMsg = $e->getMessage();
+            $mailConfig = $services->get('Config')['mail'] ?? [];
+            $transportOptions = $mailConfig['transport']['options'] ?? [];
+            $ssl = $transportOptions['connection_config']['ssl'] ?? null;
+            $port = $transportOptions['port'] ?? null;
+            if ($ssl && (
+                stripos($errorMsg, 'ssl') !== false
+                || stripos($errorMsg, 'tls') !== false
+                || stripos($errorMsg, 'crypto') !== false
+                || stripos($errorMsg, 'connect') !== false
+            )) {
+                $alternative = $ssl === 'tls' ? 'ssl' : 'tls';
+                $altPort = $ssl === 'tls' ? 465 : 587;
+                $messenger->addNotice(new PsrMessage(
+                    'Hint: Your current security setting is "ssl" => "{current}" (port {port}). A common fix is to try "ssl" => "{alternative}" with port {alt_port}.', // @translate
+                    ['current' => $ssl, 'port' => $port ?: '?', 'alternative' => $alternative, 'alt_port' => $altPort]
+                ));
+            }
         }
     }
 }

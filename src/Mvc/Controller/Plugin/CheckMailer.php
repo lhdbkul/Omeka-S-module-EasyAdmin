@@ -27,6 +27,24 @@ class CheckMailer extends AbstractPlugin
      */
     protected $settings;
 
+    /**
+     * DNS query cache keyed by "domain|type".
+     * @var array
+     */
+    protected $dnsCache = [];
+
+    /**
+     * Total time spent on DNS queries (seconds).
+     * @var float
+     */
+    protected $dnsTotalTime = 0.0;
+
+    /**
+     * Maximum total time allowed for DNS queries (seconds).
+     * @var float
+     */
+    protected $dnsTimeBudget = 15.0;
+
     public function __construct(
         array $config,
         Messenger $messenger,
@@ -137,6 +155,25 @@ class CheckMailer extends AbstractPlugin
                     'Authentication: No' // @translate
                 );
             }
+
+            // Detect port/ssl mismatch (common misconfiguration).
+            $port = $transportOptions['port'] ?? null;
+            $ssl = $connectionConfig['ssl'] ?? null;
+            if ($port && $ssl) {
+                if ((int) $port === 465 && $ssl === 'tls') {
+                    $configSummary[] = new PsrMessage(
+                        'Warning: Port 465 requires implicit SSL. Try "ssl" => "ssl" instead of "ssl" => "tls". STARTTLS ("tls") is for port 587.' // @translate
+                    );
+                } elseif ((int) $port === 587 && $ssl === 'ssl') {
+                    $configSummary[] = new PsrMessage(
+                        'Warning: Port 587 requires STARTTLS. Try "ssl" => "tls" instead of "ssl" => "ssl". Implicit SSL ("ssl") is for port 465.' // @translate
+                    );
+                } elseif ((int) $port === 25 && $ssl === 'ssl') {
+                    $configSummary[] = new PsrMessage(
+                        'Warning: Port 25 does not support implicit SSL. Try "ssl" => "tls" for STARTTLS or remove the "ssl" option.' // @translate
+                    );
+                }
+            }
         }
 
         return $configSummary;
@@ -220,7 +257,7 @@ class CheckMailer extends AbstractPlugin
 
         // 3. Try A record of domain.
         if ($domain) {
-            $aRecords = @dns_get_record($domain, DNS_A);
+            $aRecords = $this->dnsQuery($domain, DNS_A);
             if ($aRecords && !empty($aRecords[0]['ip'])) {
                 return $aRecords[0]['ip'];
             }
@@ -276,14 +313,14 @@ class CheckMailer extends AbstractPlugin
         $adminEmail = 'admin@' . $domain;
 
         // Check MX record.
-        $mxRecords = @dns_get_record($domain, DNS_MX);
+        $mxRecords = $this->dnsQuery($domain, DNS_MX);
         if (!$mxRecords) {
             // Try parent domain for subdomains.
             $parts = explode('.', $domain);
             if (count($parts) > 2) {
                 array_shift($parts);
                 $parentDomain = implode('.', $parts);
-                $mxRecords = @dns_get_record($parentDomain, DNS_MX);
+                $mxRecords = $this->dnsQuery($parentDomain, DNS_MX);
             }
         }
         if ($mxRecords) {
@@ -639,14 +676,14 @@ class CheckMailer extends AbstractPlugin
         ];
 
         // Get NS records for the domain.
-        $nsRecords = @dns_get_record($domain, DNS_NS);
+        $nsRecords = $this->dnsQuery($domain, DNS_NS);
         if (!$nsRecords) {
             // Try parent domain.
             $parts = explode('.', $domain);
             if (count($parts) > 2) {
                 array_shift($parts);
                 $parentDomain = implode('.', $parts);
-                $nsRecords = @dns_get_record($parentDomain, DNS_NS);
+                $nsRecords = $this->dnsQuery($parentDomain, DNS_NS);
             }
         }
 
@@ -957,6 +994,32 @@ class CheckMailer extends AbstractPlugin
                     'ssl' => $sslInfo,
                 ]
             ));
+
+            // Warn about port/ssl mismatch between detected and configured.
+            $mailConfig = $this->config['mail'] ?? [];
+            $transportConfig = $mailConfig['transport'] ?? [];
+            $configuredPort = $transportConfig['options']['port'] ?? null;
+            $configuredSsl = $transportConfig['options']['connection_config']['ssl'] ?? null;
+            if ($configuredPort && $configuredSsl) {
+                $detectedPort = (int) $smtp['port'];
+                $configuredPort = (int) $configuredPort;
+                // Recommend the right ssl value for the configured port.
+                if ($configuredPort === 465 && $configuredSsl === 'tls') {
+                    $this->messenger->addWarning(new PsrMessage(
+                        'SMTP: Port 465 requires implicit SSL ("ssl" => "ssl"). Your configuration uses "ssl" => "tls" (STARTTLS), which is for port 587. Change to "ssl" => "ssl" or switch to port 587.' // @translate
+                    ));
+                    $actionsNeeded[] = new PsrMessage(
+                        'SMTP: Change "ssl" => "tls" to "ssl" => "ssl" in config/local.config.php (port 465 = implicit SSL, port 587 = STARTTLS).' // @translate
+                    );
+                } elseif ($configuredPort === 587 && $configuredSsl === 'ssl') {
+                    $this->messenger->addWarning(new PsrMessage(
+                        'SMTP: Port 587 requires STARTTLS ("ssl" => "tls"). Your configuration uses "ssl" => "ssl" (implicit SSL), which is for port 465. Change to "ssl" => "tls" or switch to port 465.' // @translate
+                    ));
+                    $actionsNeeded[] = new PsrMessage(
+                        'SMTP: Change "ssl" => "ssl" to "ssl" => "tls" in config/local.config.php (port 587 = STARTTLS, port 465 = implicit SSL).' // @translate
+                    );
+                }
+            }
         } else {
             $this->messenger->addWarning(new PsrMessage(
                 'SMTP: UNREACHABLE — Cannot connect to {host}', // @translate
@@ -1105,22 +1168,46 @@ CONFIG;
     }
 
     /**
+     * Cached DNS query with time budget.
+     *
+     * Returns cached results for repeated queries and skips queries when the
+     * total DNS time budget is exhausted (slow resolver).
+     *
+     * @return array|false DNS records or false if budget exhausted / error.
+     */
+    protected function dnsQuery(string $domain, int $type)
+    {
+        $key = $domain . '|' . $type;
+        if (array_key_exists($key, $this->dnsCache)) {
+            return $this->dnsCache[$key];
+        }
+
+        if ($this->dnsTotalTime >= $this->dnsTimeBudget) {
+            return $this->dnsCache[$key] = false;
+        }
+
+        $start = microtime(true);
+        $result = @dns_get_record($domain, $type);
+        $elapsed = microtime(true) - $start;
+        $this->dnsTotalTime += $elapsed;
+
+        $this->dnsCache[$key] = $result ?: [];
+        return $this->dnsCache[$key];
+    }
+
+    /**
      * Get TXT records from DNS for a domain.
      */
     protected function getDnsTxtRecords(string $domain): array
     {
         $records = [];
-        try {
-            $dnsRecords = @dns_get_record($domain, DNS_TXT);
-            if ($dnsRecords) {
-                foreach ($dnsRecords as $record) {
-                    if (!empty($record['txt'])) {
-                        $records[] = $record['txt'];
-                    }
+        $dnsRecords = $this->dnsQuery($domain, DNS_TXT);
+        if ($dnsRecords) {
+            foreach ($dnsRecords as $record) {
+                if (!empty($record['txt'])) {
+                    $records[] = $record['txt'];
                 }
             }
-        } catch (\Exception $e) {
-            // Silently fail - DNS lookup may not be available.
         }
         return $records;
     }
@@ -1133,14 +1220,14 @@ CONFIG;
     protected function detectMailHost(string $domain): string
     {
         // Get MX records.
-        $mxRecords = @dns_get_record($domain, DNS_MX);
+        $mxRecords = $this->dnsQuery($domain, DNS_MX);
         if (!$mxRecords) {
             // Try parent domain for subdomains.
             $parts = explode('.', $domain);
             if (count($parts) > 2) {
                 array_shift($parts);
                 $parentDomain = implode('.', $parts);
-                $mxRecords = @dns_get_record($parentDomain, DNS_MX);
+                $mxRecords = $this->dnsQuery($parentDomain, DNS_MX);
             }
         }
 
