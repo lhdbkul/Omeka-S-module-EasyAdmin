@@ -4,6 +4,7 @@
  * @var array $backups
  * @var string $backupDir
  * @var \Omeka\Form\ConfirmForm $formDelete
+ * @var \Laminas\Form\Form $formBackup
  */
 
 $plugins = $this->getHelperPluginManager();
@@ -43,6 +44,7 @@ $formatSize = function ($bytes) {
     <p><?= $translate('Create a backup of the database (sql dump).') ?></p>
 
     <form method="post" action="<?= $escapeAttr($url(null, ['action' => 'backup-database'], true)) ?>">
+        <?= $this->formElement($formBackup->get('form_csrf')) ?>
         <fieldset>
             <legend><?= $translate('Content') ?></legend>
             <div class="field">
@@ -136,6 +138,7 @@ $formatSize = function ($bytes) {
     <p><?= $translate('Create a backup of Omeka files (modules, themes, configuration). The /files directory is not included due to its potential size.') ?></p>
 
     <form method="post" action="<?= $escapeAttr($url(null, ['action' => 'backup-files'], true)) ?>">
+        <?= $this->formElement($formBackup->get('form_csrf')) ?>
         <fieldset>
             <legend><?= $translate('Include in backup') ?></legend>
 

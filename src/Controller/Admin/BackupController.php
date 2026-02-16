@@ -4,6 +4,7 @@ namespace EasyAdmin\Controller\Admin;
 
 use EasyAdmin\Job\Backup as BackupJob;
 use EasyAdmin\Job\DatabaseBackup;
+use Laminas\Form\Form;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 use Omeka\Form\ConfirmForm;
@@ -31,16 +32,26 @@ class BackupController extends AbstractActionController
             ->setAttribute('id', 'confirm-delete')
             ->setButtonLabel('Confirm delete'); // @translate
 
+        $formBackup = $this->getForm(Form::class);
+
         return new ViewModel([
             'backups' => $backups,
             'backupDir' => $backupDir,
             'formDelete' => $formDelete,
+            'formBackup' => $formBackup,
         ]);
     }
 
     public function backupDatabaseAction()
     {
         if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(null, ['action' => 'index'], true);
+        }
+
+        $form = $this->getForm(Form::class);
+        $form->setData($this->getRequest()->getPost());
+        if (!$form->isValid()) {
+            $this->messenger()->addFormErrors($form);
             return $this->redirect()->toRoute(null, ['action' => 'index'], true);
         }
 
@@ -87,6 +98,13 @@ class BackupController extends AbstractActionController
     public function backupFilesAction()
     {
         if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(null, ['action' => 'index'], true);
+        }
+
+        $form = $this->getForm(Form::class);
+        $form->setData($this->getRequest()->getPost());
+        if (!$form->isValid()) {
+            $this->messenger()->addFormErrors($form);
             return $this->redirect()->toRoute(null, ['action' => 'index'], true);
         }
 
