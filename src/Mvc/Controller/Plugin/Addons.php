@@ -644,6 +644,17 @@ class Addons extends AbstractPlugin
             $zip = new ZipArchive;
             $result = $zip->open($source);
             if ($result === true) {
+                // Validate entries to prevent zip-slip (path traversal).
+                $realDestination = realpath($destination) ?: $destination;
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $entryName = $zip->getNameIndex($i);
+                    if ($entryName === false
+                        || strpos($entryName, '..') !== false
+                    ) {
+                        $zip->close();
+                        return false;
+                    }
+                }
                 $result = $zip->extractTo($destination);
                 $zip->close();
             } else {
@@ -879,9 +890,14 @@ class Addons extends AbstractPlugin
         if (!file_exists($dirPath)) {
             return true;
         }
-        if (strpos($dirPath, '/..') !== false || substr($dirPath, 0, 1) !== '/') {
+        $real = realpath($dirPath);
+        if ($real === false
+            || $real === '/'
+            || strpos($real, '/..') !== false
+        ) {
             return false;
         }
+        $dirPath = $real;
         $files = array_diff(scandir($dirPath) ?: [], ['.', '..']);
         foreach ($files as $file) {
             $path = $dirPath . '/' . $file;

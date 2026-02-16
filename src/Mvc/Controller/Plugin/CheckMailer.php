@@ -1325,14 +1325,14 @@ CONFIG;
             $privateKeyPath = tempnam(sys_get_temp_dir(), 'dkim_priv_');
             $publicKeyPath = tempnam(sys_get_temp_dir(), 'dkim_pub_');
 
-            exec("openssl genrsa -out $privateKeyPath 1024 2>&1", $output, $returnVar);
+            exec('openssl genrsa -out ' . escapeshellarg($privateKeyPath) . ' 1024 2>&1', $output, $returnVar);
             if ($returnVar !== 0) {
                 @unlink($privateKeyPath);
                 @unlink($publicKeyPath);
                 return null;
             }
 
-            exec("openssl rsa -in $privateKeyPath -pubout -out $publicKeyPath 2>&1", $output, $returnVar);
+            exec('openssl rsa -in ' . escapeshellarg($privateKeyPath) . ' -pubout -out ' . escapeshellarg($publicKeyPath) . ' 2>&1', $output, $returnVar);
             if ($returnVar !== 0) {
                 @unlink($privateKeyPath);
                 @unlink($publicKeyPath);
