@@ -1117,52 +1117,75 @@ class Addons extends AbstractPlugin
             ['type' => $type]
         ));
 
-        // Local zip file path.
-        $zipFile = $destination . DIRECTORY_SEPARATOR . basename($addon['zip']);
-        if (file_exists($zipFile)) {
-            $result = @unlink($zipFile);
-            if (!$result) {
-                $this->messenger->addError(new PsrMessage(
-                    'A zipfile exists with the same name in the {type} directory and cannot be removed.', // @translate
-                    ['type' => $type]
-                ));
-                return false;
-            }
-        }
-
-        if (file_exists($destination . DIRECTORY_SEPARATOR . $addon['dir'])) {
+        $addonDir = $destination . '/' . $addon['dir'];
+        if (file_exists($addonDir)) {
             $this->messenger->addError(new PsrMessage(
-                'The {type} directory "{name}" already exists.', // @translate
+                'The {type} "{name}" already exists. Use update instead.', // @translate
                 ['type' => $type, 'name' => $addon['dir']]
             ));
             return false;
         }
 
-        // Get the zip file from server.
+        // Download into a temp directory to avoid polluting the
+        // modules/themes dir during extraction.
+        $tempDir = sys_get_temp_dir() . '/easyadmin_install_'
+            . $addon['dir'] . '_' . time();
+        @mkdir($tempDir, 0775, true);
+
+        $zipFile = $tempDir . '/' . basename($addon['zip']);
         $result = $this->downloadFile($addon['zip'], $zipFile);
         if (!$result) {
             $this->messenger->addError(new PsrMessage(
-                'Unable to fetch the {type} "{name}".', // @translate
+                'Unable to fetch the {type} "{name}". Check the server internet access and that "allow_url_fopen" is enabled.', // @translate
                 ['type' => $type, 'name' => $addon['name']]
             ));
+            $this->rmDir($tempDir);
             return false;
         }
 
-        // Unzip downloaded file.
-        $result = $this->unzipFile($zipFile, $destination);
-
-        unlink($zipFile);
-
+        $result = $this->unzipFile($zipFile, $tempDir);
+        @unlink($zipFile);
         if (!$result) {
             $this->messenger->addError(new PsrMessage(
                 'An error occurred during the unzipping of the {type} "{name}".', // @translate
                 ['type' => $type, 'name' => $addon['name']]
             ));
+            $this->rmDir($tempDir);
             return false;
         }
 
-        // Move the addon to its destination.
-        $result = $this->moveAddon($addon);
+        // Find the extracted directory and move it to the final
+        // destination with the correct name.
+        $extractedPath = null;
+        foreach (array_diff(scandir($tempDir) ?: [], ['.', '..']) as $entry) {
+            if (is_dir($tempDir . '/' . $entry)) {
+                $extractedPath = $tempDir . '/' . $entry;
+                break;
+            }
+        }
+        if (!$extractedPath) {
+            $this->messenger->addError(new PsrMessage(
+                'The archive for "{name}" does not contain a directory.', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
+
+        // Move to final location (cross-device safe).
+        $result = @rename($extractedPath, $addonDir);
+        if (!$result) {
+            $result = $this->copyDir($extractedPath, $addonDir);
+        }
+        $this->rmDir($tempDir);
+
+        if (!$result || !file_exists($addonDir)) {
+            $this->messenger->addError(new PsrMessage(
+                'Failed to install the {type} "{name}".', // @translate
+                ['type' => $type, 'name' => $addon['name']]
+            ));
+            return false;
+        }
 
         // Check the special case of dependency Generic to avoid a fatal error.
         // This is used only for modules downloaded from omeka.org, since the
