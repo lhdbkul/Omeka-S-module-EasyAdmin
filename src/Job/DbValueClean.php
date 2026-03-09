@@ -355,46 +355,53 @@ class DbValueClean extends AbstractCheck
             $sqlWhere2 = '';
         }
 
-        // Use MIN(id) to get one ID per group of duplicates.
+        // Use MIN(id) to get one id per group of duplicates.
         // This is standard SQL that works with ONLY_FULL_GROUP_BY enabled,
         // avoiding the need to modify sql_mode which could affect other queries.
-        // For deduplication, keeping the value with the lowest ID is reasonable.
+        // For deduplication, keeping the value with the lowest id is reasonable.
 
         // Drop temporary table if it exists from a previous failed run.
         $this->connection->executeStatement('DROP TABLE IF EXISTS `value_temporary`');
 
-        // Create temporary table with one ID per unique value combination.
-        // Include value_annotation_id so values with different annotations are not duplicates.
-        $sqlCreate = <<<SQL
-            CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
-            AS
-                SELECT MIN(`id`) AS `id`
-                FROM `value`
-                $sqlWhere1
-                GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`, `value_annotation_id`
-            SQL;
-        $this->connection->executeStatement($sqlCreate, $bind, $types);
+        // Create temporary table with one id per unique value combination.
+        // Include value_annotation_id so values with different annotations are
+        // not duplicates.
+        try {
+            $sqlCreate = <<<SQL
+                CREATE TEMPORARY TABLE `value_temporary` (`id` INT, PRIMARY KEY (`id`))
+                AS
+                    SELECT MIN(`id`) AS `id`
+                    FROM `value`
+                    $sqlWhere1
+                    GROUP BY `resource_id`, `property_id`, `value_resource_id`, `type`, `lang`, `value`, `uri`, `is_public`, `value_annotation_id`
+                SQL;
+            $this->connection->executeStatement($sqlCreate, $bind, $types);
 
-        // Delete duplicates (values not in the temporary table).
-        $sqlDelete = <<<SQL
-            DELETE `v`
-            FROM `value` AS `v`
-            LEFT JOIN `value_temporary` AS `value_temporary`
-                ON `value_temporary`.`id` = `v`.`id`
-            WHERE `value_temporary`.`id` IS NULL
-                $sqlWhere2
-            SQL;
-        $count = $this->connection->executeStatement($sqlDelete, $bind, $types);
+            // Delete duplicates (values not in the temporary table).
+            $sqlDelete = <<<SQL
+                DELETE `v`
+                FROM `value` AS `v`
+                LEFT JOIN `value_temporary` AS `value_temporary`
+                    ON `value_temporary`.`id` = `v`.`id`
+                WHERE `value_temporary`.`id` IS NULL
+                    $sqlWhere2
+                SQL;
+            $count = $this->connection->executeStatement($sqlDelete, $bind, $types);
+        } catch (\Exception $e) {
+            $this->logger->err(
+                'Error during deduplication: {error}', // @translate
+                ['error' => $e->getMessage()]
+            );
+            $count = 0;
+        }
 
         // Clean up temporary table.
         $this->connection->executeStatement('DROP TABLE IF EXISTS `value_temporary`');
 
-        if ($count) {
-            $this->logger->info(
-                'Deduplicated {count} values.', // @translate
-                ['count' => $count]
-            );
-        }
+        $this->logger->info(
+            'Deduplicated {count} values.', // @translate
+            ['count' => $count]
+        );
 
         return (int) $count;
     }
@@ -411,11 +418,8 @@ class DbValueClean extends AbstractCheck
             'version' => '',
         ];
 
-        /** @var \Doctrine\DBAL\Connection $connection */
-        $connection = $this->entityManager->getConnection();
-
         $sql = 'SHOW VARIABLES LIKE "version";';
-        $version = $connection->executeQuery($sql)->fetchAllKeyValue();
+        $version = $this->connection->executeQuery($sql)->fetchAllKeyValue();
         $version = reset($version);
 
         $isMySql = stripos($version, 'mysql') !== false;
@@ -433,7 +437,7 @@ class DbValueClean extends AbstractCheck
         }
 
         $sql = 'SHOW VARIABLES LIKE "innodb_version";';
-        $version = $connection->executeQuery($sql)->fetchAllKeyValue();
+        $version = $this->connection->executeQuery($sql)->fetchAllKeyValue();
         $version = reset($version);
         $isInnoDb = !empty($version);
         if ($isInnoDb) {

@@ -156,11 +156,18 @@ if (empty($taskName)) {
 // script may be called before the service manager is fully initialized.
 // This approach works reliably for execution of jobs via cli.
 $omekaModulesPath = OMEKA_PATH . '/modules';
+$composerModulesPath = OMEKA_PATH . '/composer-addons/modules';
 $modulePaths = array_values(array_filter(array_diff(scandir($omekaModulesPath), ['.', '..']), fn ($file) => is_dir($omekaModulesPath . '/' . $file)));
+if (is_dir($composerModulesPath)) {
+    $composerModulePaths = array_values(array_filter(array_diff(scandir($composerModulesPath), ['.', '..']), fn ($file) => is_dir($composerModulesPath . '/' . $file)));
+    // Local modules/ take priority; only add composer-addons not already present.
+    $modulePaths = array_unique(array_merge($modulePaths, array_diff($composerModulePaths, $modulePaths)));
+}
 // Short task name.
 if (strpos($taskName, '\\') === false) {
     foreach ($modulePaths as $modulePath) {
-        $filepath = $omekaModulesPath . '/' . $modulePath . '/src/Job/' . $taskName . '.php';
+        $baseModulesPath = is_dir($omekaModulesPath . '/' . $modulePath) ? $omekaModulesPath : $composerModulesPath;
+        $filepath = $baseModulesPath . '/' . $modulePath . '/src/Job/' . $taskName . '.php';
         if (file_exists($filepath) && filesize($filepath) && is_readable($filepath)) {
             include_once $filepath;
             $taskClass = $modulePath . '\\Job\\' . $taskName;
@@ -175,7 +182,8 @@ if (strpos($taskName, '\\') === false) {
 else {
     $modulePath = strtok($taskName, '\\');
     $baseTaskName = substr(strrchr($taskName, '\\'), 1);
-    $filepath = $omekaModulesPath . '/' . $modulePath . '/src/Job/' . $baseTaskName . '.php';
+    $baseModulesPath = is_dir($omekaModulesPath . '/' . $modulePath) ? $omekaModulesPath : $composerModulesPath;
+    $filepath = $baseModulesPath . '/' . $modulePath . '/src/Job/' . $baseTaskName . '.php';
     if (file_exists($filepath) && filesize($filepath) && is_readable($filepath)) {
         include_once $filepath;
         $taskClass = $taskName;
