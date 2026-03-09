@@ -51,6 +51,8 @@ $formElement = $plugins->get('formElement');
 
 </div>
 
+<p class="warning"><?= $escape($translate('WARNING: It is recommended to do a backup before any upgrade.')) ?></p>
+
 <?php
 $form->add([
     'name' => 'auto_upgrade',

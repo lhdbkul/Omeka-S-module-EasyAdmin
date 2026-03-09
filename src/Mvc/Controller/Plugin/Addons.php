@@ -602,11 +602,22 @@ class Addons extends AbstractPlugin
             }
         }
 
+        // Backup before removal.
+        $backupPath = $this->backupAddonAsZip(
+            $addonDir, $addon
+        );
+        if (!$backupPath) {
+            $this->messenger->addError(new PsrMessage(
+                'Unable to backup "{name}" before removal.', // @translate
+                ['name' => $addon['name']]
+            ));
+            return false;
+        }
+
         $result = $this->rmDir($addonDir);
         if (!$result) {
             $this->messenger->addError(new PsrMessage(
-                'Unable to remove the directory of'
-                    . ' "{name}".', // @translate
+                'Unable to remove the directory of "{name}".', // @translate
                 ['name' => $addon['name']]
             ));
             return false;
@@ -622,9 +633,11 @@ class Addons extends AbstractPlugin
         }
 
         $this->messenger->addSuccess(new PsrMessage(
-            'The addon "{name}" was successfully'
-                . ' removed.', // @translate
-            ['name' => $addon['name']]
+            'The addon "{name}" was removed. A backup is stored in "{backup}".', // @translate
+            [
+                'name' => $addon['name'],
+                'backup' => 'files/backup/' . basename($backupPath),
+            ]
         ));
 
         return true;
