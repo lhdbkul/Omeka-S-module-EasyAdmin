@@ -16,8 +16,20 @@ $formElement = $plugins->get('formElement');
 
 <div class="sidebar-scroller">
 
-<p><?= $escape(sprintf($translate('Current version: %s'), $addon['installed_version'] ?? '?')) ?></p>
-<p><?= $escape(sprintf($translate('New version: %s'), $addon['version'] ?? '?')) ?></p>
+<?php
+$installedVersion = $addon['installed_version'] ?? '';
+$catalogueVersion = $addon['version'] ?? '';
+$isUpToDate = $installedVersion && $catalogueVersion
+    && version_compare($installedVersion, $catalogueVersion, '>=');
+?>
+<p><?= $escape(sprintf($translate('Current version: %s'), $installedVersion ?: '?')) ?></p>
+<p><?= $escape(sprintf($translate('New version: %s'), $catalogueVersion ?: '?')) ?></p>
+
+<?php if ($isUpToDate): ?>
+<div class="messages notice">
+    <p><?= $escape($translate('The installed version is already up to date or newer than the catalogue version. The catalogue may not be updated yet.')) ?></p>
+</div>
+<?php endif ?>
 
 <?php if ($integrity['status'] === 'modified'): ?>
 <div class="messages warning">
