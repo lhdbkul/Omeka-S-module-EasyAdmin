@@ -3,6 +3,7 @@
 namespace EasyAdmin\Controller\Admin;
 
 use Common\Stdlib\PsrMessage;
+use EasyAdmin\Form\ModuleStateForm;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 
@@ -18,7 +19,7 @@ class ThemeController extends AbstractActionController
         $this->basePath = $basePath;
     }
 
-    public function browseAction()
+    public function indexAction()
     {
         /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
         $addons = $this->easyAdminAddons();
@@ -49,9 +50,15 @@ class ThemeController extends AbstractActionController
                         'name' => $ini['name'] ?? $dir,
                         'version' => $ini['version'] ?? '',
                         'description' => $ini['description'] ?? '',
+                        'author' => $ini['author'] ?? '',
+                        'theme_link' => $ini['theme_link'] ?? '',
+                        'omeka_version_constraint' => $ini['omeka_version_constraint'] ?? '',
                     ];
                 }
             }
+            uasort($localThemes, function ($a, $b) {
+                return strcasecmp($a['name'], $b['name']);
+            });
         }
 
         $state = $this->params()->fromQuery('state');
@@ -61,10 +68,27 @@ class ThemeController extends AbstractActionController
             return $this->handlePost($addons);
         }
 
+        $manageForm = $this->getForm(
+            \EasyAdmin\Form\AddonManageForm::class
+        );
+
+        $stateForm = function (string $action, string $themeId) {
+            $form = $this->getForm(ModuleStateForm::class);
+            $form->setAttribute('action', $this->url()->fromRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'theme', 'action' => $action],
+                ['query' => ['id' => $themeId]]
+            ));
+            $form->get('id')->setValue($themeId);
+            return $form;
+        };
+
         $view = new ViewModel([
             'catalogueThemes' => $allThemes,
             'localThemes' => $localThemes,
             'filterState' => $state,
+            'manageForm' => $manageForm,
+            'stateForm' => $stateForm,
         ]);
         $view->setTemplate('easy-admin/admin/theme/browse');
         return $view;
@@ -170,6 +194,38 @@ class ThemeController extends AbstractActionController
         );
     }
 
+    public function showDetailsAction()
+    {
+        $id = $this->params()->fromQuery('id');
+
+        /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
+        $addons = $this->easyAdminAddons();
+        $addon = $addons->dataFromNamespace($id, 'theme')
+            ?: $addons->dataFromNamespace($id);
+
+        $themesDir = OMEKA_PATH . '/themes';
+        $iniFile = $themesDir . '/' . $id . '/config/theme.ini';
+        $ini = file_exists($iniFile)
+            ? (parse_ini_file($iniFile) ?: [])
+            : [];
+
+        $integrity = $addon
+            ? $addons->checkIntegrity($addon)
+            : null;
+
+        $view = new ViewModel([
+            'themeId' => $id,
+            'ini' => $ini,
+            'addon' => $addon,
+            'integrity' => $integrity,
+        ]);
+        $view->setTerminal(true);
+        $view->setTemplate(
+            'easy-admin/admin/theme/show-details'
+        );
+        return $view;
+    }
+
     public function removeConfirmAction()
     {
         $id = $this->params()->fromQuery('id');
@@ -183,10 +239,18 @@ class ThemeController extends AbstractActionController
             ? $addons->checkIntegrity($addon)
             : ['status' => 'unknown'];
 
+        $form = $this->getForm(ModuleStateForm::class);
+        $form->setAttribute('action', $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'theme', 'action' => 'remove']
+        ));
+        $form->get('id')->setValue($id);
+
         $view = new ViewModel([
             'addon' => $addon,
             'addonDir' => $id,
             'integrity' => $integrity,
+            'form' => $form,
         ]);
         $view->setTerminal(true);
         $view->setTemplate(

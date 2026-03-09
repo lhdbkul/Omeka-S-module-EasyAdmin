@@ -5,10 +5,10 @@
  */
 
 $plugins = $this->getHelperPluginManager();
-$escape = $plugins->get('escapeHtml');
 $url = $plugins->get('url');
-$translate = $plugins->get('translate');
+$escape = $plugins->get('escapeHtml');
 $assetUrl = $plugins->get('assetUrl');
+$translate = $plugins->get('translate');
 
 $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));

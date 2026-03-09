@@ -238,6 +238,20 @@
         margin-left: auto;
     }
 
+    /* Addon browse: theme thumbnail */
+    .theme-thumb {
+        display: block;
+        max-width: 120px;
+        height: auto;
+        margin: 4px 0;
+    }
+    .sidebar .theme-thumb {
+        max-width: 100%;
+    }
+    .theme-thumbnail {
+        margin-bottom: 1em;
+    }
+
     /* Sidebar improvements */
     .sidebar .error {
         color: #c62828;

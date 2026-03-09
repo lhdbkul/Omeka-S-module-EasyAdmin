@@ -4,30 +4,35 @@
  * @var array|null $addon
  * @var string $addonDir
  * @var array $integrity
+ * @var \EasyAdmin\Form\ModuleStateForm $form
  */
 
 $plugins = $this->getHelperPluginManager();
 $escape = $plugins->get('escapeHtml');
-$url = $plugins->get('url');
 $translate = $plugins->get('translate');
+$formElement = $plugins->get('formElement');
 
 $name = $addon['name'] ?? $addonDir;
 ?>
 
-<h3><?= $escape(sprintf($translate('Remove theme "%s"'), $name)) ?></h3>
-
-<div class="messages error">
-    <p><?= $escape($translate('This action will delete all theme files. This cannot be undone.')) ?></p>
+<div id="sidebar-confirm">
+    <h3><?= $escape(sprintf($translate('Remove theme "%s"'), $name)) ?></h3>
+    <p><?= $escape(sprintf(
+        $translate('Are you sure you would like to remove the theme %s?'),
+        $name
+    )) ?></p>
+    <p class="error"><?= sprintf(
+        $translate('%1$s: this action will delete all theme files. This cannot be undone.'),
+        sprintf('<strong>%s</strong>', $escape($translate('Warning')))
+    ) ?></p>
+    <?php if ($integrity['status'] === 'modified'): ?>
+    <p class="error"><?= $escape($translate('This theme has been modified locally.')) ?></p>
+    <?php endif ?>
+    <?php
+    $form->prepare();
+    echo $this->form()->openTag($form);
+    echo $formElement($form->get('id'));
+    ?>
+    <input type="submit" value="<?= $escape($translate('Confirm removal')) ?>">
+    <?= $this->form()->closeTag($form) ?>
 </div>
-
-<?php if ($integrity['status'] === 'modified'): ?>
-<div class="messages warning">
-    <p><?= $escape($translate('This theme has been modified locally.')) ?></p>
-</div>
-<?php endif ?>
-
-<form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'remove']) ?>">
-    <?= $this->csrf('theme_remove') ?>
-    <input type="hidden" name="id" value="<?= $escape($addonDir) ?>">
-    <button type="submit" class="button o-icon-delete"><?= $escape($translate('Confirm removal')) ?></button>
-</form>
