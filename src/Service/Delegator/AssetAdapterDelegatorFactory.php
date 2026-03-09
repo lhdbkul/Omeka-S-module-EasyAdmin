@@ -10,9 +10,12 @@ class AssetAdapterDelegatorFactory implements DelegatorFactoryInterface
 {
     public function __invoke(ContainerInterface $container, $name, callable $callback, ?array $options = null)
     {
-        // The callback returns the original AssetAdapter.
-        // We return our delegator which extends AssetAdapter.
-        // The delegator will be injected with services via setServiceLocator().
+        // Call $callback() so the original adapter is fully built, then
+        // return the delegator which extends AssetAdapter. The service
+        // manager injects setServiceLocator() on the returned instance
+        // automatically (AbstractEntityAdapter implements
+        // ServiceLocatorAwareInterface).
+        $callback();
         return new AssetAdapterDelegator();
     }
 }

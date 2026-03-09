@@ -719,7 +719,10 @@ class Module extends AbstractModule
         $acl = $services->get('Omeka\Acl');
         $user = $services->get('Omeka\AuthenticationService')->getIdentity();
         $adapter = $services->get('Omeka\ApiAdapterManager')->get($resourceType);
-        if (!$user || !$acl->userIsAllowed(get_class($adapter), 'create')) {
+        $aclResource = $adapter instanceof \Laminas\Permissions\Acl\Resource\ResourceInterface
+            ? $adapter->getResourceId()
+            : get_class($adapter);
+        if (!$user || !$acl->userIsAllowed($aclResource, 'create')) {
             return;
         }
 
