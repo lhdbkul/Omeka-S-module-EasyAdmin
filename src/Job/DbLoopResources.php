@@ -45,6 +45,9 @@ class DbLoopResources extends AbstractJob
         $services = $this->getServiceLocator();
         $this->api = $services->get('Omeka\ApiManager');
         $this->logger = $services->get('Omeka\Logger');
+        $referenceIdProcessor = new \Laminas\Log\Processor\ReferenceId();
+        $referenceIdProcessor->setReferenceId('easy-admin/db-loop-resources/job_' . $this->job->getId());
+        $this->logger->addProcessor($referenceIdProcessor);
         $this->easyMeta = $services->get('Common\EasyMeta');
         $this->entityManager = $services->get('Omeka\EntityManager');
 
