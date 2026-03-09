@@ -14,6 +14,11 @@ $formElement = $plugins->get('formElement');
 
 <h3><?= $escape(sprintf($translate('Update module "%s"'), $addon['name'] ?? '')) ?></h3>
 
+<div class="sidebar-scroller">
+
+<p><?= $escape(sprintf($translate('Current version: %s'), $addon['installed_version'] ?? '?')) ?></p>
+<p><?= $escape(sprintf($translate('New version: %s'), $addon['version'] ?? '?')) ?></p>
+
 <?php if ($integrity['status'] === 'modified'): ?>
 <div class="messages warning">
     <p><?= $escape($translate('This module has been modified locally. Updating will overwrite your changes. A backup will be created.')) ?></p>
@@ -33,11 +38,18 @@ $formElement = $plugins->get('formElement');
         <?php endforeach ?>
     </ul>
     <?php endif ?>
+    <?php if (!empty($integrity['deleted'])): ?>
+    <p><strong><?= $escape($translate('Deleted files:')) ?></strong></p>
+    <ul>
+        <?php foreach ($integrity['deleted'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
 </div>
 <?php endif ?>
 
-<p><?= $escape(sprintf($translate('Current version: %s'), $addon['installed_version'] ?? '?')) ?></p>
-<p><?= $escape(sprintf($translate('New version: %s'), $addon['version'] ?? '?')) ?></p>
+</div>
 
 <?php
 $form->add([
@@ -51,11 +63,17 @@ $form->add([
 $form->prepare();
 echo $this->form()->openTag($form);
 echo $formElement($form->get('id'));
+// Render the CSRF token added by Omeka form initializer.
+$csrfName = ($form->getName() ? $form->getName() . '_csrf' : 'csrf');
+if ($form->has($csrfName)) {
+    echo $formElement($form->get($csrfName));
+}
 ?>
-<label>
-    <?= $formElement($form->get('auto_upgrade')) ?>
-    <?= $escape($translate('Run database migrations automatically')) ?>
-</label>
-<br><br>
-<button type="submit" class="button"><?= $escape($translate('Confirm update')) ?></button>
+<div class="sidebar-footer">
+    <label>
+        <?= $formElement($form->get('auto_upgrade')) ?>
+        <?= $escape($translate('Run database migrations automatically')) ?>
+    </label>
+    <button type="submit" class="button"><?= $escape($translate('Confirm update')) ?></button>
+</div>
 <?= $this->form()->closeTag($form) ?>

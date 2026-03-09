@@ -154,9 +154,13 @@ class ModuleController extends AbstractActionController
             );
         }
 
+        $addon['installed_version'] = $addons
+            ->getInstalledVersion($addon);
+
         $integrity = $addons->checkIntegrity($addon);
 
         $form = $this->getForm(ModuleStateForm::class);
+        $form->setAttribute('method', 'post');
         $form->setAttribute('action', $this->url()->fromRoute(
             'admin/easy-admin/default',
             ['controller' => 'module', 'action' => 'update']
@@ -195,6 +199,7 @@ class ModuleController extends AbstractActionController
             : ['status' => 'unknown'];
 
         $form = $this->getForm(ModuleStateForm::class);
+        $form->setAttribute('method', 'post');
         $form->setAttribute('action', $this->url()->fromRoute(
             'admin/easy-admin/default',
             ['controller' => 'module', 'action' => 'remove']
@@ -323,7 +328,14 @@ class ModuleController extends AbstractActionController
             );
         }
 
-        $addons->updateAddon($addon);
+        $result = $addons->updateAddon($addon);
+        if (!$result) {
+            // updateAddon already added error details.
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
 
         // Auto-upgrade if requested.
         $autoUpgrade = (bool) $this->params()->fromPost(
@@ -333,26 +345,48 @@ class ModuleController extends AbstractActionController
             $module = $this->moduleManager->getModule(
                 $addon['dir']
             );
-            if ($module
-                && $module->getState()
-                    === OmekaModuleManager::STATE_NEEDS_UPGRADE
-            ) {
-                try {
-                    $this->moduleManager->upgrade($module);
-                    $this->messenger()->addSuccess(new PsrMessage(
-                        'The module "{name}" database was'
-                            . ' upgraded.', // @translate
-                        ['name' => $addon['name']]
-                    ));
-                } catch (\Exception $e) {
-                    $this->messenger()->addError(new PsrMessage(
-                        'Error upgrading database for'
-                            . ' "{name}": {error}', // @translate
-                        [
-                            'name' => $addon['name'],
-                            'error' => $e->getMessage(),
-                        ]
-                    ));
+            if ($module) {
+                // The ModuleManager cached module ini at bootstrap.
+                // After file update, re-read the ini from disk.
+                $iniPath = OMEKA_PATH . '/modules/'
+                    . $addon['dir'] . '/config/module.ini';
+                $freshIni = file_exists($iniPath)
+                    ? parse_ini_file($iniPath) : [];
+                if ($freshIni) {
+                    $module->setIni($freshIni);
+                }
+                $newIniVersion = $module->getIni('version');
+                $dbVersion = $module->getDb('version');
+                $needsUpgrade = $dbVersion
+                    && $newIniVersion
+                    && version_compare(
+                        $dbVersion, $newIniVersion, '<'
+                    );
+                if ($needsUpgrade) {
+                    // Force the state so the manager accepts
+                    // the upgrade call.
+                    $module->setState(
+                        OmekaModuleManager::STATE_NEEDS_UPGRADE
+                    );
+                    try {
+                        $this->moduleManager->upgrade($module);
+                        $this->messenger()->addSuccess(
+                            new PsrMessage(
+                                'The module "{name}" was upgraded in database.', // @translate
+                                ['name' => $addon['name']]
+                            )
+                        );
+                    } catch (\Exception $e) {
+                        $this->messenger()->addError(
+                            new PsrMessage(
+                                'Error upgrading database for "{name}": {error}', // @translate
+                                [
+                                    'name' => $addon['name'],
+                                    'error' => $e->getMessage(),
+                                ]
+                            )
+                        );
+                    }
                 }
             }
         }

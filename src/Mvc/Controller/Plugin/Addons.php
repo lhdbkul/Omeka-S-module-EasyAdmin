@@ -415,13 +415,21 @@ class Addons extends AbstractPlugin
         @mkdir($tempDir, 0775, true);
 
         // Download new version.
-        $zipFile = $tempDir . '/' . basename($addon['zip']);
-        $result = $this->downloadFile($addon['zip'], $zipFile);
+        $zip = $addon['zip'] ?? '';
+        if (!$zip) {
+            $this->messenger->addError(new PsrMessage(
+                'No download URL available for "{name}".', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
+        $zipFile = $tempDir . '/' . basename($zip);
+        $result = $this->downloadFile($zip, $zipFile);
         if (!$result) {
             $this->messenger->addError(new PsrMessage(
-                'Unable to fetch the update for'
-                    . ' "{name}".', // @translate
-                ['name' => $addon['name']]
+                'Unable to fetch the update for "{name}" from {url}. Check the server internet access and that "allow_url_fopen" is enabled.', // @translate
+                ['name' => $addon['name'], 'url' => $zip]
             ));
             $this->rmDir($tempDir);
             return false;
@@ -439,55 +447,53 @@ class Addons extends AbstractPlugin
             return false;
         }
 
-        // Backup current directory.
-        $timestamp = date('Ymd_His');
-        $backupDir = $addonDir . '.bak-' . $timestamp;
-        $renamed = @rename($addonDir, $backupDir);
-        if (!$renamed) {
+        // Backup current directory as a zip in files/backup/ so it does not
+        // appear in the module/theme list.
+        $backupPath = $this->backupAddonAsZip($addonDir, $addon);
+        if (!$backupPath) {
             $this->messenger->addError(new PsrMessage(
-                'Unable to backup the current version of'
-                    . ' "{name}".', // @translate
+                'Unable to backup the current version of "{name}".', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
+        // Remove the original directory to make room for the new version.
+        $this->rmDir($addonDir);
+
+        // Find the extracted directory inside temp (the zip top-level dir may
+        // have any name, e.g. "Foo-1.0.1").
+        $extractedPath = null;
+        foreach (array_diff(scandir($tempDir) ?: [], ['.', '..']) as $entry) {
+            if (is_dir($tempDir . '/' . $entry)) {
+                $extractedPath = $tempDir . '/' . $entry;
+                break;
+            }
+        }
+        if (!$extractedPath) {
+            @rename($backupDir, $addonDir);
+            $this->messenger->addError(new PsrMessage(
+                'The archive for "{name}" does not contain a directory.', // @translate
                 ['name' => $addon['name']]
             ));
             $this->rmDir($tempDir);
             return false;
         }
 
-        // Move the new addon from temp using existing logic.
-        // moveAddon expects the addon to be extracted into
-        // $destination (like installAddon), so we move from temp
-        // to destination first.
-        $extractedDirs = array_diff(
-            scandir($tempDir) ?: [],
-            ['.', '..']
-        );
-        $moved = false;
-        foreach ($extractedDirs as $extractedDir) {
-            $extractedPath = $tempDir . '/' . $extractedDir;
-            if (is_dir($extractedPath)) {
-                $moved = @rename($extractedPath, $addonDir);
-                if (!$moved) {
-                    // Try to find the right dir via moveAddon
-                    // pattern by moving all dirs to destination.
-                    @rename(
-                        $extractedPath,
-                        $destination . '/' . $extractedDir
-                    );
-                    $moved = $this->moveAddon($addon);
-                }
-                break;
-            }
+        // Move extracted dir to the addon location. Use rename first (fast,
+        // same filesystem), fall back to recursive copy (cross-device).
+        $moved = @rename($extractedPath, $addonDir);
+        if (!$moved) {
+            $moved = $this->copyDir($extractedPath, $addonDir);
         }
 
         $this->rmDir($tempDir);
 
         if (!$moved || !file_exists($addonDir)) {
-            // Rollback: restore from backup.
-            @rename($backupDir, $addonDir);
+            // Rollback: restore from backup zip.
+            $this->restoreAddonFromZip($backupPath, $addonDir);
             $this->messenger->addError(new PsrMessage(
-                'Failed to install the update for "{name}".'
-                    . ' The previous version has been'
-                    . ' restored.', // @translate
+                'Failed to install the update for "{name}" (move from temp failed). The previous version has been restored.', // @translate
                 ['name' => $addon['name']]
             ));
             return false;
@@ -497,10 +503,11 @@ class Addons extends AbstractPlugin
         $this->generateChecksums($addon);
 
         $this->messenger->addSuccess(new PsrMessage(
-            'The addon "{name}" was successfully updated.'
-                . ' The backup is stored in'
-                . ' "{backup}".', // @translate
-            ['name' => $addon['name'], 'backup' => basename($backupDir)]
+            'The addon "{name}" was successfully updated. A backup is stored in "{backup}".', // @translate
+            [
+                'name' => $addon['name'],
+                'backup' => 'files/backup/' . basename($backupPath),
+            ]
         ));
 
         return true;
@@ -1410,106 +1417,73 @@ class Addons extends AbstractPlugin
      */
     protected function moveAddon($addon): bool
     {
-        switch ($addon['type']) {
-            case 'module':
-                $destination = OMEKA_PATH . '/modules';
-                break;
-            case 'theme':
-                $destination = OMEKA_PATH . '/themes';
-                break;
-            default:
-                return false;
-        }
-
-        // Allows to manage case like AddItemLink, where the project name on
-        // github is only "AddItem".
-        $loop = [$addon['dir']];
-        if ($addon['basename'] != $addon['dir']) {
-            $loop[] = $addon['basename'];
-        }
-
-        // Manage only the most common cases.
-        // @todo Use a scan dir + a regex.
-        $checks = [
-            ['', ''],
-            ['', '-master'],
-            ['', '-module-master'],
-            ['', '-theme-master'],
-            ['omeka-', '-master'],
-            ['omeka-s-', '-master'],
-            ['omeka-S-', '-master'],
-            ['module-', '-master'],
-            ['module_', '-master'],
-            ['omeka-module-', '-master'],
-            ['omeka-s-module-', '-master'],
-            ['omeka-S-module-', '-master'],
-            ['theme-', '-master'],
-            ['theme_', '-master'],
-            ['omeka-theme-', '-master'],
-            ['omeka-s-theme-', '-master'],
-            ['omeka-S-theme-', '-master'],
-            ['omeka_', '-master'],
-            ['omeka_s_', '-master'],
-            ['omeka_S_', '-master'],
-            ['omeka_module_', '-master'],
-            ['omeka_s_module_', '-master'],
-            ['omeka_S_module_', '-master'],
-            ['omeka_theme_', '-master'],
-            ['omeka_s_theme_', '-master'],
-            ['omeka_S_theme_', '-master'],
-            ['omeka_Module_', '-master'],
-            ['omeka_s_Module_', '-master'],
-            ['omeka_S_Module_', '-master'],
-            ['omeka_Theme_', '-master'],
-            ['omeka_s_Theme_', '-master'],
-            ['omeka_S_Theme_', '-master'],
-        ];
-
-        $source = '';
-        foreach ($loop as $addonName) {
-            foreach ($checks as $check) {
-                $sourceCheck = $destination . DIRECTORY_SEPARATOR
-                    . $check[0] . $addonName . $check[1];
-                if (file_exists($sourceCheck)) {
-                    $source = $sourceCheck;
-                    break 2;
-                }
-                // Allows to manage case like name is "Ead", not "EAD".
-                $sourceCheck = $destination . DIRECTORY_SEPARATOR
-                    . $check[0] . ucfirst(strtolower($addonName)) . $check[1];
-                if (file_exists($sourceCheck)) {
-                    $source = $sourceCheck;
-                    $addonName = ucfirst(strtolower($addonName));
-                    break 2;
-                }
-                if ($check[0]) {
-                    $sourceCheck = $destination . DIRECTORY_SEPARATOR
-                        . ucfirst($check[0]) . $addonName . $check[1];
-                    if (file_exists($sourceCheck)) {
-                        $source = $sourceCheck;
-                        break 2;
-                    }
-                    $sourceCheck = $destination . DIRECTORY_SEPARATOR
-                        . ucfirst($check[0]) . ucfirst(strtolower($addonName)) . $check[1];
-                    if (file_exists($sourceCheck)) {
-                        $source = $sourceCheck;
-                        $addonName = ucfirst(strtolower($addonName));
-                        break 2;
-                    }
-                }
-            }
-        }
-
-        if ($source === '') {
+        $type = $addon['type'] ?? '';
+        $isModule = in_array($type, ['module', 'omekamodule']);
+        $destination = $isModule
+            ? (OMEKA_PATH . '/modules')
+            : (OMEKA_PATH . '/themes');
+        $addonDir = $addon['dir'] ?? '';
+        if (!$addonDir) {
             return false;
         }
 
-        $path = $destination . DIRECTORY_SEPARATOR . $addon['dir'];
-        if ($source === $path) {
+        $path = $destination . '/' . $addonDir;
+        if (is_dir($path)) {
             return true;
         }
 
-        return rename($source, $path);
+        // Scan destination for a directory that looks like the
+        // addon (covers version suffixes like "Foo-1.0.1",
+        // branch suffixes like "Foo-master", and common
+        // prefixes like "omeka-s-module-Foo-master").
+        // A valid module dir contains Module.php; a valid
+        // theme dir contains config/theme.ini.
+        $marker = $isModule ? 'Module.php' : 'config/theme.ini';
+        $dirLower = strtolower($addonDir);
+
+        foreach (array_diff(scandir($destination) ?: [], ['.', '..']) as $entry) {
+            $entryPath = $destination . '/' . $entry;
+            if (!is_dir($entryPath) || $entry === $addonDir) {
+                continue;
+            }
+            // Quick check: the entry name must contain the
+            // addon dir name (case-insensitive).
+            if (stripos($entry, $dirLower) === false
+                && stripos($entry, str_replace('-', '', $dirLower)) === false
+            ) {
+                continue;
+            }
+            // Validate: must contain the expected marker file.
+            if (!file_exists($entryPath . '/' . $marker)) {
+                continue;
+            }
+            // For modules, verify the namespace matches the
+            // expected dir name.
+            if ($isModule) {
+                $modulePhp = @file_get_contents(
+                    $entryPath . '/Module.php'
+                );
+                if ($modulePhp
+                    && !preg_match(
+                        '/^namespace\s+' . preg_quote($addonDir, '/') . '\s*;/m',
+                        $modulePhp
+                    )
+                ) {
+                    continue;
+                }
+            }
+            // Found: rename to the expected dir name.
+            $renamed = @rename($entryPath, $path);
+            if (!$renamed) {
+                $renamed = $this->copyDir($entryPath, $path);
+                if ($renamed) {
+                    $this->rmDir($entryPath);
+                }
+            }
+            return $renamed;
+        }
+
+        return false;
     }
 
     /**
@@ -1578,6 +1552,32 @@ class Addons extends AbstractPlugin
      *
      * @param string $dirpath Absolute path.
      */
+    /**
+     * Recursively copy a directory (cross-device fallback for rename).
+     */
+    protected function copyDir(string $src, string $dst): bool
+    {
+        if (!is_dir($src)) {
+            return false;
+        }
+        if (!@mkdir($dst, 0775, true) && !is_dir($dst)) {
+            return false;
+        }
+        $files = array_diff(scandir($src) ?: [], ['.', '..']);
+        foreach ($files as $file) {
+            $srcPath = $src . '/' . $file;
+            $dstPath = $dst . '/' . $file;
+            if (is_dir($srcPath)) {
+                if (!$this->copyDir($srcPath, $dstPath)) {
+                    return false;
+                }
+            } elseif (!@copy($srcPath, $dstPath)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     protected function rmDir(string $dirPath): bool
     {
         if (!file_exists($dirPath)) {
@@ -1601,5 +1601,74 @@ class Addons extends AbstractPlugin
             }
         }
         return rmdir($dirPath);
+    }
+
+    /**
+     * Backup an addon directory as a zip in files/backup/.
+     *
+     * @return string|null Path to the created zip, or null on failure.
+     */
+    protected function backupAddonAsZip(
+        string $addonDir,
+        array $addon
+    ): ?string {
+        $backupDir = OMEKA_PATH . '/files/backup';
+        if (!is_dir($backupDir)) {
+            @mkdir($backupDir, 0775, true);
+        }
+        if (!is_dir($backupDir) || !is_writeable($backupDir)) {
+            return null;
+        }
+
+        $version = $this->getInstalledVersion($addon) ?: 'unknown';
+        $zipName = ($addon['dir'] ?? 'addon')
+            . '-' . $version
+            . '-' . date('Ymd_His') . '.zip';
+        $zipPath = $backupDir . '/' . $zipName;
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE) !== true) {
+            return null;
+        }
+
+        $baseDir = basename($addonDir);
+        $this->addDirToZip($zip, $addonDir, $baseDir);
+        $zip->close();
+
+        return file_exists($zipPath) ? $zipPath : null;
+    }
+
+    /**
+     * Recursively add a directory to a ZipArchive.
+     */
+    protected function addDirToZip(
+        \ZipArchive $zip,
+        string $dir,
+        string $zipDir
+    ): void {
+        $zip->addEmptyDir($zipDir);
+        foreach (array_diff(scandir($dir) ?: [], ['.', '..']) as $entry) {
+            $path = $dir . '/' . $entry;
+            $entryZipPath = $zipDir . '/' . $entry;
+            if (is_dir($path)) {
+                $this->addDirToZip($zip, $path, $entryZipPath);
+            } else {
+                $zip->addFile($path, $entryZipPath);
+            }
+        }
+    }
+
+    /**
+     * Restore an addon from a backup zip.
+     */
+    protected function restoreAddonFromZip(
+        string $zipPath,
+        string $addonDir
+    ): bool {
+        if (!file_exists($zipPath)) {
+            return false;
+        }
+        $destination = dirname($addonDir);
+        return $this->unzipFile($zipPath, $destination);
     }
 }

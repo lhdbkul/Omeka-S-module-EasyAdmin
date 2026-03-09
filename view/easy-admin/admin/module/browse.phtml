@@ -49,6 +49,12 @@ $states = [
     <?= $this->navigation('Laminas\Navigation\EasyAdmin')->menu() ?>
 </nav>
 
+<?php if (!$catalogueModules): ?>
+<div class="messages warning">
+    <p><?= $escape($translate('The module catalogue could not be loaded. Update detection is unavailable. Check the server internet access or refresh the catalogue.')) ?></p>
+</div>
+<?php endif ?>
+
 <?php if (!is_writeable(OMEKA_PATH . '/modules')): ?>
 <div class="messages error">
     <p><?= $escape(sprintf($translate('The directory "%s" is not writeable. Module installation, update and removal are disabled.'), 'modules/')) ?></p>
@@ -169,19 +175,25 @@ echo $this->form()->openTag($manageForm);
 
                         <?php if (Manager::STATE_NOT_ACTIVE === $state): ?>
                         <li>
-                            <?php $form = $stateForm('activate', $moduleId); $form->prepare(); echo $this->form($form); ?>
+                            <button type="submit" name="state_action_id" value="activate:<?= $escape($moduleId) ?>"
+                                formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'activate'], ['query' => ['id' => $moduleId]])) ?>"
+                                class="o-icon-activate button"><?= $translate('Activate') ?></button>
                         </li>
                         <?php endif ?>
 
                         <?php if (Manager::STATE_ACTIVE === $state): ?>
                         <li>
-                            <?php $form = $stateForm('deactivate', $moduleId); $form->prepare(); echo $this->form($form); ?>
+                            <button type="submit" name="state_action_id" value="deactivate:<?= $escape($moduleId) ?>"
+                                formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'deactivate'], ['query' => ['id' => $moduleId]])) ?>"
+                                class="o-icon-deactivate button"><?= $translate('Deactivate') ?></button>
                         </li>
                         <?php endif ?>
 
                         <?php if (Manager::STATE_NEEDS_UPGRADE === $state): ?>
                         <li>
-                            <?php $form = $stateForm('upgrade', $moduleId); $form->prepare(); echo $this->form($form); ?>
+                            <button type="submit" name="state_action_id" value="upgrade:<?= $escape($moduleId) ?>"
+                                formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'upgrade'], ['query' => ['id' => $moduleId]])) ?>"
+                                class="o-icon-upgrade button"><?= $translate('Upgrade') ?></button>
                         </li>
                         <?php endif ?>
 
@@ -321,7 +333,7 @@ uasort($catalogueList, function ($a, $b) {
                 <span class="addon-check-name"><?= $escape($catModule['name']) ?></span>
                 <span class="addon-check-source">
                 <?php if (!empty($catModule['is_omeka'])): ?>
-                    <a href="<?= $escape($sourceUrl ?: 'https://omeka.org/s/modules/') ?>" target="_blank" rel="noopener" class="o-icon-omeka" title="Omeka.org" onclick="event.stopPropagation();"></a>
+                    <a href="<?= $escape('https://omeka.org/s/modules/' . $dir) ?>" target="_blank" rel="noopener" class="o-icon-omeka" title="Omeka.org" onclick="event.stopPropagation();"></a>
                 <?php elseif ($sourceUrl): ?>
                     <a href="<?= $escape($sourceUrl) ?>" target="_blank" rel="noopener" class="o-icon-external" title="<?= $escape($translate('Source')) ?>" onclick="event.stopPropagation();"></a>
                 <?php endif ?>

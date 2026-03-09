@@ -55,6 +55,18 @@ $isComposer = is_dir($composerAddonsPath . '/' . $moduleId);
 </div>
 <?php endif ?>
 
+<?php
+// Link to omeka.org page for official modules.
+$omekaOrgUrl = ($addon['server'] ?? '') === 'omeka.org'
+    ? 'https://omeka.org/s/modules/' . ($addon['dir'] ?? '')
+    : null;
+if ($omekaOrgUrl): ?>
+<div class="meta-group">
+    <h4><?= $translate('Omeka.org') ?></h4>
+    <div class="value"><a href="<?= $escape($omekaOrgUrl) ?>" target="_blank" class="o-icon-omeka" title="<?= $escape($translate('View on Omeka.org')) ?>"><?= $escape($translate('View on Omeka.org')) ?></a></div>
+</div>
+<?php endif ?>
+
 <?php if (!empty($ini['omeka_version_constraint'])): ?>
 <div class="meta-group">
     <h4><?= $translate('Omeka S version required') ?></h4>
