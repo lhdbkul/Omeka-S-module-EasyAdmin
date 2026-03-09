@@ -1,11 +1,13 @@
 <?php
 /**
  * @var \Laminas\View\Renderer\PhpRenderer $this
- * @var array $catalogueThemes
+ * @var array $omekaThemes
+ * @var array $webThemes
  * @var array $localThemes
  * @var string|null $filterState
  * @var \EasyAdmin\Form\AddonManageForm $manageForm
  * @var callable $stateForm
+ * @var \EasyAdmin\Form\ModuleStateForm $installCatalogueForm
  */
 
 $plugins = $this->getHelperPluginManager();
@@ -21,6 +23,9 @@ $this->htmlElement('body')->appendAttribute('class', 'themes browse easy-admin')
 
 $composerAddonsPath = OMEKA_PATH . '/composer-addons/themes';
 $omekaVersion = \Omeka\Module::VERSION;
+
+// Merged catalogue for update detection.
+$catalogueThemes = array_merge($omekaThemes, $webThemes);
 ?>
 
 <?= $this->pageTitle($translate('Manage themes'), 1, $translate('Easy Admin')) ?>
@@ -183,6 +188,22 @@ echo $this->form()->openTag($manageForm);
 </div>
 <?php endif ?>
 
+<?php
+// Build a combined list: url => [name, dir, version, installed, isOmeka].
+$catalogueList = [];
+foreach ($omekaThemes as $catUrl => $t) {
+    $catalogueList[$catUrl] = $t + ['is_omeka' => true];
+}
+foreach ($webThemes as $catUrl => $t) {
+    if (!isset($catalogueList[$catUrl])) {
+        $catalogueList[$catUrl] = $t + ['is_omeka' => false];
+    }
+}
+uasort($catalogueList, function ($a, $b) {
+    return strcasecmp($a['name'], $b['name']);
+});
+?>
+
 <div id="sidebar-install" class="sidebar">
     <?= $hyperlink('', '#', [
         'class' => 'sidebar-close o-icon-close',
@@ -191,31 +212,38 @@ echo $this->form()->openTag($manageForm);
     <div class="sidebar-content">
         <h3><?= $escape($translate('Install new theme from catalogue')) ?></h3>
         <p class="explanation">
+            <?= $escape($translate('Select the themes to install.')) ?>
             <?= sprintf($translate('For more information, see pages of known %1$sthemes%2$s or %3$sOmeka.org%2$s.'),
                 '<a href="https://daniel-km.github.io/UpgradeToOmekaS/omeka_s_themes.html" rel="noopener" target="_blank">', '</a>',
                 '<a href="https://omeka.org/s/themes/" rel="noopener" target="_blank">') ?>
-            <?= $translate('Themes with an asterisk are already downloaded.') ?>
         </p>
         <?php
-        $installForm = $stateForm('install', '');
-        $installForm->prepare()
-            ->setAttribute('action', $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'install']));
-        echo $this->form()->openTag($installForm);
+        $installCatalogueForm->prepare();
+        echo $this->form()->openTag($installCatalogueForm);
         ?>
-        <div class="field">
-            <label for="theme_url"><?= $escape($translate('Select a theme')) ?></label>
-            <select name="theme_url" id="theme_url" class="chosen-select">
-                <option value=""><?= $escape($translate('Select below…')) ?></option>
-                <?php foreach ($catalogueThemes as $catUrl => $catTheme):
-                    $label = $catTheme['name'];
-                    $label .= !empty($catTheme['version']) ? ' [v' . $catTheme['version'] . ']' : '';
-                    $label .= !empty($catTheme['installed']) ? ' *' : '';
-                ?>
-                <option value="<?= $escape($catUrl) ?>"<?= !empty($catTheme['installed']) ? ' disabled' : '' ?>><?= $escape($label) ?></option>
-                <?php endforeach ?>
-            </select>
+        <div class="addon-checklist">
+            <?php foreach ($catalogueList as $catUrl => $catTheme):
+                if (!empty($catTheme['installed'])) {
+                    continue;
+                }
+                $sourceUrl = $catTheme['url'] ?? '';
+            ?>
+            <label class="addon-check-item">
+                <input type="checkbox" name="theme_urls[]" value="<?= $escape($catUrl) ?>">
+                <span class="addon-check-name"><?= $escape($catTheme['name']) ?></span>
+                <span class="addon-check-source">
+                <?php if (!empty($catTheme['is_omeka'])): ?>
+                    <a href="<?= $escape($sourceUrl ?: 'https://omeka.org/s/themes/') ?>" target="_blank" rel="noopener" class="o-icon-omeka" title="Omeka.org" onclick="event.stopPropagation();"></a>
+                <?php elseif ($sourceUrl): ?>
+                    <a href="<?= $escape($sourceUrl) ?>" target="_blank" rel="noopener" class="o-icon-external" title="<?= $escape($translate('Source')) ?>" onclick="event.stopPropagation();"></a>
+                <?php endif ?>
+                </span>
+            </label>
+            <?php endforeach ?>
         </div>
-        <button type="submit" class="button"><?= $escape($translate('Install')) ?></button>
-        <?= $this->form()->closeTag($installForm) ?>
+        <div class="confirm-panel">
+            <button type="submit"><?= $escape($translate('Install selected')) ?></button>
+        </div>
+        <?= $this->form()->closeTag($installCatalogueForm) ?>
     </div>
 </div>

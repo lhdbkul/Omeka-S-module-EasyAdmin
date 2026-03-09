@@ -57,7 +57,6 @@ return [
             Form\ModuleStateForm::class => Form\ModuleStateForm::class,
         ],
         'factories' => [
-            Form\AddonsForm::class => Service\Form\AddonsFormFactory::class,
             Form\CheckAndFixForm::class => Service\Form\CheckAndFixFormFactory::class,
             Form\CronForm::class => Service\Form\CronFormFactory::class,
             // Fix #2236 for Omeka < 4.2 (removed dynamically in Module::getConfig() for 4.2+).

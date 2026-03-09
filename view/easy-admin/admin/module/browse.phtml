@@ -2,13 +2,14 @@
 /**
  * @var \Laminas\View\Renderer\PhpRenderer $this
  * @var \Omeka\Module\Module[] $installedModules
- * @var array $catalogueModules
+ * @var array $omekaModules
+ * @var array $webModules
  * @var \EasyAdmin\Form\AddonManageForm $manageForm
- * @var \EasyAdmin\Form\AddonsForm $installForm
  * @var callable $stateForm
  * @var string|null $filterState
  * @var \Omeka\Module\Manager $moduleManager
- * @var \EasyAdmin\Form\ModuleStateForm|null $selectionForm
+ * @var array $selections
+ * @var \EasyAdmin\Form\ModuleStateForm $installCatalogueForm
  * @var \EasyAdmin\Form\ModuleStateForm $refreshForm
  */
 
@@ -24,6 +25,9 @@ $hyperlink = $plugins->get('hyperlink');
 $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
 $this->htmlElement('body')->appendAttribute('class', 'modules browse easy-admin');
+
+// Merged catalogue for update detection.
+$catalogueModules = array_merge($omekaModules, $webModules);
 
 $composerAddonsPath = OMEKA_PATH . '/composer-addons/modules';
 
@@ -55,9 +59,6 @@ $states = [
     <?php $refreshForm->prepare(); echo $this->form()->openTag($refreshForm->setAttribute('class', 'refresh-form')); ?>
     <button type="submit" class="button"><?= $escape($translate('Refresh catalogue')) ?></button>
     <?= $this->form()->closeTag($refreshForm) ?>
-    <?php if ($selectionForm): ?>
-    <a class="button sidebar-content" data-sidebar-selector="#sidebar-selection"><?= $escape($translate('Install a selection')) ?></a>
-    <?php endif ?>
     <a class="button sidebar-content" data-sidebar-selector="#sidebar-install"><?= $escape($translate('Install new module')) ?></a>
 </div>
 
@@ -262,6 +263,22 @@ echo $this->form()->openTag($manageForm);
 </div>
 <?php endif ?>
 
+<?php
+// Build a combined list: url => [name, dir, version, installed, isOmeka].
+$catalogueList = [];
+foreach ($omekaModules as $catUrl => $m) {
+    $catalogueList[$catUrl] = $m + ['is_omeka' => true];
+}
+foreach ($webModules as $catUrl => $m) {
+    if (!isset($catalogueList[$catUrl])) {
+        $catalogueList[$catUrl] = $m + ['is_omeka' => false];
+    }
+}
+uasort($catalogueList, function ($a, $b) {
+    return strcasecmp($a['name'], $b['name']);
+});
+?>
+
 <div id="sidebar-install" class="sidebar">
     <?= $hyperlink('', '#', [
         'class' => 'sidebar-close o-icon-close',
@@ -269,60 +286,75 @@ echo $this->form()->openTag($manageForm);
     ]) ?>
     <div class="sidebar-content">
         <h3><?= $escape($translate('Install new module from catalogue')) ?></h3>
-        <p class="explanation">
+       <p class="explanation">
+            <?= $escape($translate('Select the modules to install or use a curated selection.')) ?>
             <?= sprintf($translate('For more information, see pages of known %1$smodules%2$s or %3$sOmeka.org%2$s.'),
                 '<a href="https://daniel-km.github.io/UpgradeToOmekaS/omeka_s_modules.html" rel="noopener" target="_blank">', '</a>',
                 '<a href="https://omeka.org/s/modules/" rel="noopener" target="_blank">') ?>
-            <?= $translate('Modules with an asterisk are already downloaded.') ?>
         </p>
-        <?php
-        $installForm->prepare()
-            ->setAttribute('action', $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'install']))
-            ->setAttribute('method', 'post');
-        echo $this->form()->openTag($installForm);
-        ?>
+        <?php if ($selections): ?>
         <div class="field">
-            <label for="module_url"><?= $escape($translate('Select a module')) ?></label>
-            <select name="module_url" id="module_url" class="chosen-select">
-                <option value=""><?= $escape($translate('Select below…')) ?></option>
-                <?php foreach ($catalogueModules as $catUrl => $catModule):
-                    $label = $catModule['name'];
-                    $label .= !empty($catModule['version']) ? ' [v' . $catModule['version'] . ']' : '';
-                    $label .= !empty($catModule['installed']) ? ' *' : '';
-                ?>
-                <option value="<?= $escape($catUrl) ?>"<?= !empty($catModule['installed']) ? ' disabled' : '' ?>><?= $escape($label) ?></option>
+            <label for="selection-filter"><?= $escape($translate('Curated selection')) ?></label>
+            <select id="selection-filter">
+                <option value=""><?= $escape($translate('Select a selection…')) ?></option>
+                <?php foreach ($selections as $selName => $selAddons): ?>
+                <option value="<?= $escape($selName) ?>"><?= $escape($selName) ?></option>
                 <?php endforeach ?>
             </select>
         </div>
-        <button type="submit" class="button"><?= $escape($translate('Install')) ?></button>
-        <?= $this->form()->closeTag($installForm) ?>
-    </div>
-</div>
+        <?php endif ?>
 
-<?php if ($selectionForm): ?>
-<div id="sidebar-selection" class="sidebar">
-    <?= $hyperlink('', '#', [
-        'class' => 'sidebar-close o-icon-close',
-        'title' => $translate('Close'),
-    ]) ?>
-    <div class="sidebar-content">
-        <h3><?= $escape($translate('Install a curated selection')) ?></h3>
-        <p><?= $escape($translate('Install a preconfigured set of modules and themes in one step.')) ?></p>
         <?php
-        $selectionForm->prepare();
-        echo $this->form()->openTag($selectionForm);
+        $installCatalogueForm->prepare();
+        echo $this->form()->openTag($installCatalogueForm);
         ?>
-        <div class="field">
-            <?= $this->formElement($selectionForm->get('selection')) ?>
+        <div class="addon-checklist">
+            <?php foreach ($catalogueList as $catUrl => $catModule):
+                if (!empty($catModule['installed'])) {
+                    continue;
+                }
+                $dir = $catModule['dir'] ?? '';
+                $sourceUrl = $catModule['url'] ?? '';
+            ?>
+            <label class="addon-check-item">
+                <input type="checkbox" name="module_urls[]" value="<?= $escape($catUrl) ?>" data-addon-dir="<?= $escape($dir) ?>">
+                <span class="addon-check-name"><?= $escape($catModule['name']) ?></span>
+                <span class="addon-check-source">
+                <?php if (!empty($catModule['is_omeka'])): ?>
+                    <a href="<?= $escape($sourceUrl ?: 'https://omeka.org/s/modules/') ?>" target="_blank" rel="noopener" class="o-icon-omeka" title="Omeka.org" onclick="event.stopPropagation();"></a>
+                <?php elseif ($sourceUrl): ?>
+                    <a href="<?= $escape($sourceUrl) ?>" target="_blank" rel="noopener" class="o-icon-external" title="<?= $escape($translate('Source')) ?>" onclick="event.stopPropagation();"></a>
+                <?php endif ?>
+                </span>
+            </label>
+            <?php endforeach ?>
         </div>
-        <button type="submit" class="button"><?= $escape($translate('Install')) ?></button>
-        <?= $this->form()->closeTag($selectionForm) ?>
+        <div class="confirm-panel">
+            <button type="submit"><?= $escape($translate('Install selected')) ?></button>
+        </div>
+        <?= $this->form()->closeTag($installCatalogueForm) ?>
     </div>
 </div>
-<?php endif ?>
 
 <script>
 $('.state-filter select').change(function() {
     $(this).closest('form').submit();
 });
+
+<?php if ($selections): ?>
+var selections = <?= json_encode($selections, JSON_UNESCAPED_UNICODE) ?>;
+$('#selection-filter').on('change', function() {
+    var name = $(this).val();
+    var $checks = $('.addon-checklist input[type="checkbox"]');
+    $checks.prop('checked', false);
+    if (name && selections[name]) {
+        var dirs = selections[name];
+        $checks.each(function() {
+            if (dirs.indexOf($(this).data('addon-dir')) !== -1) {
+                $(this).prop('checked', true);
+            }
+        });
+    }
+});
+<?php endif ?>
 </script>

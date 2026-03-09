@@ -4,7 +4,6 @@ namespace EasyAdmin\Controller\Admin;
 
 use Common\Stdlib\PsrMessage;
 use EasyAdmin\Form\AddonManageForm;
-use EasyAdmin\Form\AddonsForm;
 use EasyAdmin\Form\ModuleStateForm;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
@@ -45,17 +44,11 @@ class ModuleController extends AbstractActionController
         $catalogueAddons = $addons->getAddons();
         $addons->enrichWithLocalState($catalogueAddons);
 
-        // Merge module types.
-        $allModules = array_merge(
-            $catalogueAddons['omekamodule'] ?? [],
-            $catalogueAddons['module'] ?? []
-        );
+        $omekaModules = $catalogueAddons['omekamodule'] ?? [];
+        $webModules = $catalogueAddons['module'] ?? [];
 
         // Build the manage form for installed modules.
         $manageForm = $this->getForm(AddonManageForm::class);
-
-        // Build the install form.
-        $installForm = $this->getForm(AddonsForm::class);
 
         $request = $this->getRequest();
         if ($request->isPost()) {
@@ -80,33 +73,13 @@ class ModuleController extends AbstractActionController
         // Get curated selections.
         $selections = $addons->getSelections();
 
-        // Build the selection form.
-        $selectionForm = null;
-        if ($selections) {
-            $selectionForm = $this->getForm(ModuleStateForm::class);
-            $selectionForm->setAttribute('action', $this->url()->fromRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module', 'action' => 'install-selection']
-            ));
-            $selectionForm->setAttribute('method', 'post');
-            $selectionForm->remove('id');
-            $selectionForm->add([
-                'name' => 'selection',
-                'type' => \Laminas\Form\Element\Select::class,
-                'options' => [
-                    'label' => 'Selection', // @translate
-                    'value_options' => array_combine(
-                        array_keys($selections),
-                        array_keys($selections)
-                    ),
-                    'empty_option' => 'Select below…', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'selection',
-                    'class' => 'chosen-select',
-                ],
-            ]);
-        }
+        // Build the install form for the sidebar.
+        $installCatalogueForm = $this->getForm(ModuleStateForm::class);
+        $installCatalogueForm->setAttribute('action', $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module', 'action' => 'install']
+        ));
+        $installCatalogueForm->setAttribute('method', 'post');
 
         // Build the refresh form (CSRF only).
         $refreshForm = $this->getForm(ModuleStateForm::class);
@@ -118,13 +91,14 @@ class ModuleController extends AbstractActionController
 
         $view = new ViewModel([
             'installedModules' => $installedModules,
-            'catalogueModules' => $allModules,
+            'omekaModules' => $omekaModules,
+            'webModules' => $webModules,
             'manageForm' => $manageForm,
-            'installForm' => $installForm,
             'stateForm' => $stateForm,
             'filterState' => $state,
             'moduleManager' => $this->moduleManager,
-            'selectionForm' => $selectionForm,
+            'selections' => $selections,
+            'installCatalogueForm' => $installCatalogueForm,
             'refreshForm' => $refreshForm,
         ]);
         $view->setTemplate('easy-admin/admin/module/browse');
@@ -148,92 +122,6 @@ class ModuleController extends AbstractActionController
         $this->messenger()->addSuccess(
             'The catalogue of addons and selections has been refreshed.' // @translate
         );
-
-        return $this->redirect()->toRoute(
-            'admin/easy-admin/default',
-            ['controller' => 'module']
-        );
-    }
-
-    public function installSelectionAction()
-    {
-        if (!$this->getRequest()->isPost()) {
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
-        }
-
-        $selection = $this->params()->fromPost('selection');
-        if (!$selection) {
-            $this->messenger()->addError(
-                'No selection specified.' // @translate
-            );
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
-        }
-
-        /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
-        $addons = $this->easyAdminAddons();
-        $selections = $addons->getSelections();
-        $selectionAddons = $selections[$selection] ?? [];
-        if (!$selectionAddons) {
-            $this->messenger()->addError(
-                'The selection is empty or unknown.' // @translate
-            );
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
-        }
-
-        // Use background job for big selections.
-        $strategy = count($selectionAddons) > 3
-            ? null
-            : $this->api()->read('vocabularies', 1)
-                ->getContent()->getServiceLocator()
-                ->get(\Omeka\Job\DispatchStrategy\Synchronous::class);
-        $job = $this->jobDispatcher()->dispatch(
-            \EasyAdmin\Job\ManageAddons::class,
-            ['selection' => $selection],
-            $strategy
-        );
-        $urlPlugin = $this->url();
-        $message = new PsrMessage(
-            'Processing install of selection "{selection}" in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
-            [
-                'selection' => $selection,
-                'link_job' => sprintf(
-                    '<a href="%s">',
-                    htmlspecialchars($urlPlugin->fromRoute(
-                        'admin/id',
-                        ['controller' => 'job', 'id' => $job->getId()]
-                    ))
-                ),
-                'job_id' => $job->getId(),
-                'link_end' => '</a>',
-                'link_log' => class_exists('Log\Module', false)
-                    ? sprintf(
-                        '<a href="%1$s">',
-                        $urlPlugin->fromRoute(
-                            'admin/default',
-                            ['controller' => 'log'],
-                            ['query' => ['job_id' => $job->getId()]]
-                        )
-                    )
-                    : sprintf(
-                        '<a href="%1$s" target="_blank">',
-                        $urlPlugin->fromRoute(
-                            'admin/id',
-                            ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()]
-                        )
-                    ),
-            ]
-        );
-        $message->setEscapeHtml(false);
-        $this->messenger()->addSuccess($message);
 
         return $this->redirect()->toRoute(
             'admin/easy-admin/default',
@@ -660,8 +548,9 @@ class ModuleController extends AbstractActionController
 
         /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
         $addons = $this->easyAdminAddons();
-        $url = $this->params()->fromPost('module_url');
-        if (!$url) {
+
+        $urls = $this->params()->fromPost('module_urls', []);
+        if (!is_array($urls) || !$urls) {
             $this->messenger()->addError(
                 'No module selected.' // @translate
             );
@@ -671,34 +560,56 @@ class ModuleController extends AbstractActionController
             );
         }
 
-        // Try both types.
-        $addon = $addons->dataFromUrl($url, 'module')
-            ?: $addons->dataFromUrl($url, 'omekamodule');
-        if (!$addon) {
-            $this->messenger()->addError(new PsrMessage(
-                'The module at "{url}" is not'
-                    . ' available.', // @translate
-                ['url' => $url]
-            ));
+        // Build the list of addons to install.
+        $toInstall = [];
+        foreach ($urls as $url) {
+            $addon = $addons->dataFromUrl($url, 'module')
+                ?: $addons->dataFromUrl($url, 'omekamodule');
+            if (!$addon) {
+                continue;
+            }
+            if ($addons->dirExists($addon)) {
+                continue;
+            }
+            $toInstall[] = $addon;
+        }
+
+        if (!$toInstall) {
+            $this->messenger()->addError(
+                'No new module to install.' // @translate
+            );
             return $this->redirect()->toRoute(
                 'admin/easy-admin/default',
                 ['controller' => 'module']
             );
         }
 
-        if ($addons->dirExists($addon)) {
-            $this->messenger()->addError(new PsrMessage(
-                'The module "{name}" is already'
-                    . ' downloaded.', // @translate
-                ['name' => $addon['name']]
-            ));
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
+        // Use background job for multiple modules.
+        if (count($toInstall) > 3) {
+            $job = $this->jobDispatcher()->dispatch(
+                \EasyAdmin\Job\ManageAddons::class,
+                ['operation' => 'install', 'addons' => $toInstall]
             );
+            $urlPlugin = $this->url();
+            $message = new PsrMessage(
+                'Installing {count} modules in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+                [
+                    'count' => count($toInstall),
+                    'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                    'job_id' => $job->getId(),
+                    'link_end' => '</a>',
+                    'link_log' => class_exists('Log\Module', false)
+                        ? sprintf('<a href="%1$s">', $urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]]))
+                        : sprintf('<a href="%1$s" target="_blank">', $urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()])),
+                ]
+            );
+            $message->setEscapeHtml(false);
+            $this->messenger()->addSuccess($message);
+        } else {
+            foreach ($toInstall as $addon) {
+                $addons->installAddon($addon);
+            }
         }
-
-        $addons->installAddon($addon);
 
         return $this->redirect()->toRoute(
             'admin/easy-admin/default',
@@ -820,14 +731,21 @@ class ModuleController extends AbstractActionController
                     \EasyAdmin\Job\ManageAddons::class,
                     $args
                 );
-                $this->messenger()->addSuccess(new PsrMessage(
-                    'Processing {action} in background'
-                        . ' (job #{job_id}).', // @translate
+                $urlPlugin = $this->url();
+                $message = new PsrMessage(
+                    'Processing {action} in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
                     [
                         'action' => $action,
+                        'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
                         'job_id' => $job->getId(),
+                        'link_end' => '</a>',
+                        'link_log' => class_exists('Log\Module', false)
+                            ? sprintf('<a href="%1$s">', $urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]]))
+                            : sprintf('<a href="%1$s" target="_blank">', $urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()])),
                     ]
-                ));
+                );
+                $message->setEscapeHtml(false);
+                $this->messenger()->addSuccess($message);
                 return $this->redirect()->toRoute(
                     'admin/easy-admin/default',
                     ['controller' => 'module']

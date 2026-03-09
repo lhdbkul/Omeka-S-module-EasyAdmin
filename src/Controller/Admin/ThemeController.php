@@ -27,10 +27,8 @@ class ThemeController extends AbstractActionController
         $catalogueAddons = $addons->getAddons();
         $addons->enrichWithLocalState($catalogueAddons);
 
-        $allThemes = array_merge(
-            $catalogueAddons['omekatheme'] ?? [],
-            $catalogueAddons['theme'] ?? []
-        );
+        $omekaThemes = $catalogueAddons['omekatheme'] ?? [];
+        $webThemes = $catalogueAddons['theme'] ?? [];
 
         // Also scan local themes directory.
         $themesDir = OMEKA_PATH . '/themes';
@@ -83,12 +81,27 @@ class ThemeController extends AbstractActionController
             return $form;
         };
 
+        // Build the install form for the sidebar.
+        $installCatalogueForm = $this->getForm(
+            ModuleStateForm::class
+        );
+        $installCatalogueForm->setAttribute(
+            'action',
+            $this->url()->fromRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'theme', 'action' => 'install']
+            )
+        );
+        $installCatalogueForm->setAttribute('method', 'post');
+
         $view = new ViewModel([
-            'catalogueThemes' => $allThemes,
+            'omekaThemes' => $omekaThemes,
+            'webThemes' => $webThemes,
             'localThemes' => $localThemes,
             'filterState' => $state,
             'manageForm' => $manageForm,
             'stateForm' => $stateForm,
+            'installCatalogueForm' => $installCatalogueForm,
         ]);
         $view->setTemplate('easy-admin/admin/theme/browse');
         return $view;
@@ -105,8 +118,9 @@ class ThemeController extends AbstractActionController
 
         /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
         $addons = $this->easyAdminAddons();
-        $url = $this->params()->fromPost('theme_url');
-        if (!$url) {
+
+        $urls = $this->params()->fromPost('theme_urls', []);
+        if (!is_array($urls) || !$urls) {
             $this->messenger()->addError(
                 'No theme selected.' // @translate
             );
@@ -116,33 +130,57 @@ class ThemeController extends AbstractActionController
             );
         }
 
-        $addon = $addons->dataFromUrl($url, 'theme')
-            ?: $addons->dataFromUrl($url, 'omekatheme');
-        if (!$addon) {
-            $this->messenger()->addError(new PsrMessage(
-                'The theme at "{url}" is not'
-                    . ' available.', // @translate
-                ['url' => $url]
-            ));
+        $toInstall = [];
+        foreach ($urls as $url) {
+            $addon = $addons->dataFromUrl($url, 'theme')
+                ?: $addons->dataFromUrl($url, 'omekatheme');
+            if (!$addon) {
+                continue;
+            }
+            if ($addons->dirExists($addon)) {
+                continue;
+            }
+            $toInstall[] = $addon;
+        }
+
+        if (!$toInstall) {
+            $this->messenger()->addError(
+                'No new theme to install.' // @translate
+            );
             return $this->redirect()->toRoute(
                 'admin/easy-admin/default',
                 ['controller' => 'theme']
             );
         }
 
-        if ($addons->dirExists($addon)) {
-            $this->messenger()->addError(new PsrMessage(
-                'The theme "{name}" is already'
-                    . ' downloaded.', // @translate
-                ['name' => $addon['name']]
-            ));
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'theme']
+        if (count($toInstall) > 3) {
+            $job = $this->jobDispatcher()->dispatch(
+                \EasyAdmin\Job\ManageAddons::class,
+                [
+                    'operation' => 'install',
+                    'addons' => $toInstall,
+                ]
             );
+            $urlPlugin = $this->url();
+            $message = new PsrMessage(
+                'Installing {count} themes in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+                [
+                    'count' => count($toInstall),
+                    'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                    'job_id' => $job->getId(),
+                    'link_end' => '</a>',
+                    'link_log' => class_exists('Log\Module', false)
+                        ? sprintf('<a href="%1$s">', $urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]]))
+                        : sprintf('<a href="%1$s" target="_blank">', $urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()])),
+                ]
+            );
+            $message->setEscapeHtml(false);
+            $this->messenger()->addSuccess($message);
+        } else {
+            foreach ($toInstall as $addon) {
+                $addons->installAddon($addon);
+            }
         }
-
-        $addons->installAddon($addon);
 
         return $this->redirect()->toRoute(
             'admin/easy-admin/default',

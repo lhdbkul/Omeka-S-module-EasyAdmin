@@ -257,6 +257,69 @@
         margin-bottom: 1em;
     }
 
+    /* Addon install sidebar: Omeka sidebar-select pattern */
+    #sidebar-install {
+        overflow: hidden;
+    }
+    #sidebar-install form {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+    #sidebar-install .confirm-panel {
+        position: static;
+    }
+    .addon-checklist {
+        flex: 1 1 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-height: 0;
+        border-top: 1px solid #dfdfdf;
+        border-bottom: 1px solid #dfdfdf;
+    }
+    .addon-check-item {
+        display: flex;
+        align-items: center;
+        gap: .5em;
+        padding: .4em .6em;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        font-weight: normal;
+        margin: 0;
+        width: 100%;
+        background-color: inherit;
+    }
+    .addon-check-item::after {
+        content: none;
+    }
+    #sidebar-install .addon-check-item,
+    #sidebar-install .addon-check-item::after {
+	   background-color: inherit;
+    }
+    #sidebar-install .addon-check-item:hover {
+        background-color: #eee;
+    }
+    .addon-check-source {
+        margin-left: auto;
+        flex-shrink: 0;
+        text-align: right;
+        float: right;
+    }
+    .o-icon-omeka::before {
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        content: "\f0ac";
+        font-size: .85em;
+    }
+    .addon-check-source a {
+        color: #888;
+    }
+    .addon-check-source a:hover {
+        color: #333;
+    }
+
     /* Sidebar improvements */
     .sidebar .error {
         color: #c62828;
