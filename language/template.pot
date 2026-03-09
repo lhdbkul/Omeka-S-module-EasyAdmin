@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-02 00:00+0000\n"
+"POT-Creation-Date: 2026-03-09 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,88 +17,105 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/scripts/upgrade.php:42 Module.php:144
+#: data/scripts/upgrade.php:42 Module.php:148
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
 
-#: data/scripts/upgrade.php:83
+#: data/scripts/upgrade.php:46 data/scripts/upgrade.php:87
+msgid "Missing requirement. Unable to upgrade."
+msgstr ""
+
+#: data/scripts/upgrade.php:84
 msgid ""
 "This module cannot install its tables, because they exist already. Try to "
 "remove them first."
 msgstr ""
 
-#: Module.php:289
+#: Module.php:296
 msgid "WARNING:"
 msgstr ""
 
-#: Module.php:301
+#: Module.php:308
 msgid "Remove directory \"files/check\""
 msgstr ""
 
-#: Module.php:1025
+#: Module.php:1065
 msgid "[not in site]"
 msgstr ""
 
-#: src/Controller/Admin/FileManagerController.php:157
+#: src/Controller/Admin/FileManagerController.php:266
 #: src/Media/Ingester/BulkUpload.php:121
 msgid "Pause"
 msgstr ""
 
-#: src/Controller/Admin/FileManagerController.php:158
+#: src/Controller/Admin/FileManagerController.php:267
 #: src/Media/Ingester/BulkUpload.php:122
 msgid "Resume"
 msgstr ""
 
-#: src/Controller/Admin/FileManagerController.php:159
+#: src/Controller/Admin/FileManagerController.php:268
 #: src/Media/Ingester/BulkUpload.php:123
 msgid "No files currently selected for upload"
 msgstr ""
 
-#: src/Controller/Admin/FileManagerController.php:161
+#: src/Controller/Admin/FileManagerController.php:270
 #: src/Media/Ingester/BulkUpload.php:125
 msgid "Not a valid file type or extension. Update your selection."
 msgstr ""
 
-#: src/Controller/Admin/FileManagerController.php:162
+#: src/Controller/Admin/FileManagerController.php:271
 #: src/Media/Ingester/BulkUpload.php:126
 msgid "Not a valid file type, extension or size. Update your selection."
 msgstr ""
 
-#: src/Controller/Admin/FileManagerController.php:163
+#: src/Controller/Admin/FileManagerController.php:272
 #: src/Media/Ingester/BulkUpload.php:127
 msgid "An issue occurred."
 msgstr ""
 
-#: src/Controller/Admin/FileManagerController.php:288
+#: src/Controller/Admin/FileManagerController.php:443
+#, php-format
+msgid "(deleted user #%d)"
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:445
+msgid "your directory"
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:466
 msgid "This directory is managed by Omeka and is read-only."
 msgstr ""
 
-#: src/Controller/UploadController.php:75
+#: src/Controller/UploadController.php:83
 msgid "User not authenticated."
 msgstr ""
 
-#: src/Controller/UploadController.php:97
+#: src/Controller/UploadController.php:96
 msgid "The request must originate from the server."
 msgstr ""
 
-#: src/Controller/UploadController.php:108
+#: src/Controller/UploadController.php:109
 msgid "Expired, invalid or missing CSRF token."
 msgstr ""
 
-#: src/Controller/UploadController.php:176
+#: src/Controller/UploadController.php:189
 msgid "The file is empty."
 msgstr ""
 
-#: src/Controller/UploadController.php:224
+#: src/Controller/UploadController.php:242
+msgid "You can only upload to your own directory."
+msgstr ""
+
+#: src/Controller/UploadController.php:253
 msgid "A file with the same name exists and is not writeable."
 msgstr ""
 
-#: src/Controller/UploadController.php:234
+#: src/Controller/UploadController.php:263
 msgid "An error occurred when storing file."
 msgstr ""
 
-#: src/Controller/UploadController.php:258
+#: src/Controller/UploadController.php:287
 msgid "An existing file was overridden."
 msgstr ""
 
@@ -130,27 +147,27 @@ msgstr ""
 msgid "Empty file"
 msgstr ""
 
-#: src/Job/FileMissing.php:409 src/Job/FileMissing.php:668
+#: src/Job/FileMissing.php:412 src/Job/FileMissing.php:671
 msgid "No source"
 msgstr ""
 
-#: src/Job/FileMissing.php:410
+#: src/Job/FileMissing.php:413
 msgid "Copy issue"
 msgstr ""
 
-#: src/Job/FileMissing.php:411
+#: src/Job/FileMissing.php:414
 msgid "Already exists"
 msgstr ""
 
-#: src/Job/FileMissing.php:669
+#: src/Job/FileMissing.php:672
 msgid "Item removed"
 msgstr ""
 
-#: src/Job/FileMissing.php:670
+#: src/Job/FileMissing.php:673
 msgid "Media removed"
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:204
+#: src/Job/ThemeTemplate.php:215
 #, php-format
 msgid "Automatically appended via module EasyAdmin on %s"
 msgstr ""
@@ -164,7 +181,7 @@ msgid "Drag and drop"
 msgstr ""
 
 #: src/Media/Ingester/BulkUpload.php:134
-#: view/easy-admin/admin/file-manager/browse.phtml:103
+#: view/easy-admin/admin/file-manager/browse.phtml:116
 msgid "Browse files"
 msgstr ""
 
@@ -213,7 +230,7 @@ msgid "Alphabetic (with folder)"
 msgstr ""
 
 #: src/Media/Ingester/BulkUpload.php:149
-#: view/easy-admin/admin/file-manager/browse.phtml:117
+#: view/easy-admin/admin/file-manager/browse.phtml:130
 msgid "Hide uploaded files"
 msgstr ""
 
@@ -241,194 +258,172 @@ msgstr ""
 msgid "No next resource"
 msgstr ""
 
-#: view/easy-admin/admin/addons/index.phtml:20
-msgid "Install addons"
-msgstr ""
-
-#: view/easy-admin/admin/addons/index.phtml:20
-#: view/easy-admin/admin/backup/index.phtml:29
-#: view/easy-admin/admin/check-and-fix/index.phtml:22
-#: view/easy-admin/admin/cron/index.phtml:28
-#: view/easy-admin/admin/file-manager/browse.phtml:55
-msgid "Easy Admin"
-msgstr ""
-
-#: view/easy-admin/admin/addons/index.phtml:27
-#, php-format
-msgid ""
-"For more information on addons, see the pages %smodules%s and %sthemes%s or "
-"on %sOmeka.org%s."
-msgstr ""
-
-#: view/easy-admin/admin/addons/index.phtml:31
-#, php-format
-msgid "See the details of the %1$scurated selections of modules%2$s."
-msgstr ""
-
-#: view/easy-admin/admin/addons/index.phtml:36
-msgid ""
-"Select either a module, a theme or a selection. Only one choice can be "
-"submitted at a time."
-msgstr ""
-
-#: view/easy-admin/admin/addons/index.phtml:37
-msgid "Addons with an asterisk are already downloaded."
-msgstr ""
-
-#: view/easy-admin/admin/backup/index.phtml:29
+#: view/easy-admin/admin/backup/index.phtml:30
 msgid "Backup"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:36
-msgid "Backup database"
+#: view/easy-admin/admin/backup/index.phtml:30
+#: view/easy-admin/admin/check-and-fix/index.phtml:22
+#: view/easy-admin/admin/cron/index.phtml:28
+#: view/easy-admin/admin/file-manager/browse.phtml:57
+#: view/easy-admin/admin/module/browse.phtml:46
+#: view/easy-admin/admin/module/integrity-report.phtml:19
+#: view/easy-admin/admin/theme/browse.phtml:32
+#: view/easy-admin/admin/theme/integrity-report.phtml:19
+msgid "Easy Admin"
 msgstr ""
 
 #: view/easy-admin/admin/backup/index.phtml:37
+msgid "Backup database"
+msgstr ""
+
+#: view/easy-admin/admin/backup/index.phtml:38
 msgid "Backup files"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:42
+#: view/easy-admin/admin/backup/index.phtml:43
 msgid "Database backup"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:43
+#: view/easy-admin/admin/backup/index.phtml:44
 msgid "Create a backup of the database (sql dump)."
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:47
+#: view/easy-admin/admin/backup/index.phtml:49
 msgid "Content"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:51
+#: view/easy-admin/admin/backup/index.phtml:53
 msgid "Structure of tables"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:57
+#: view/easy-admin/admin/backup/index.phtml:59
 msgid "Data"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:63
+#: view/easy-admin/admin/backup/index.phtml:65
 msgid "Include"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:67
+#: view/easy-admin/admin/backup/index.phtml:69
 msgid "Views"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:73
+#: view/easy-admin/admin/backup/index.phtml:75
 msgid "Routines (procedures and functions)"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:79
+#: view/easy-admin/admin/backup/index.phtml:81
 msgid "Triggers"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:85
+#: view/easy-admin/admin/backup/index.phtml:87
 msgid "Skip data for tables (structure only)"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:86
+#: view/easy-admin/admin/backup/index.phtml:88
 msgid ""
 "These tables can be very large. Only their structure will be exported, not "
 "data."
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:114
+#: view/easy-admin/admin/backup/index.phtml:116
 msgid "(all triplestore tables)"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:124
+#: view/easy-admin/admin/backup/index.phtml:126
 msgid "Compress with gzip"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:129
+#: view/easy-admin/admin/backup/index.phtml:131
 msgid "Start database backup"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:135
+#: view/easy-admin/admin/backup/index.phtml:137
 msgid "Files backup"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:136
+#: view/easy-admin/admin/backup/index.phtml:138
 msgid ""
 "Create a backup of Omeka files (modules, themes, configuration). The /files "
 "directory is not included due to its potential size."
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:140
+#: view/easy-admin/admin/backup/index.phtml:143
 msgid "Include in backup"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:145
+#: view/easy-admin/admin/backup/index.phtml:148
 msgid "Omeka core"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:157
+#: view/easy-admin/admin/backup/index.phtml:160
 msgid "Themes"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:163
+#: view/easy-admin/admin/backup/index.phtml:166
 msgid "Local configuration (local.config.php)"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:169
+#: view/easy-admin/admin/backup/index.phtml:172
 msgid "Database configuration (database.ini)"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:175
+#: view/easy-admin/admin/backup/index.phtml:178
 msgid "Logs"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:181
+#: view/easy-admin/admin/backup/index.phtml:184
 msgid ".htaccess"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:187
+#: view/easy-admin/admin/backup/index.phtml:190
 msgid "Compression level"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:189
+#: view/easy-admin/admin/backup/index.phtml:192
 msgid "None (faster)"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:192
+#: view/easy-admin/admin/backup/index.phtml:195
 msgid "default"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:193
+#: view/easy-admin/admin/backup/index.phtml:196
 msgid "maximum"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:197
+#: view/easy-admin/admin/backup/index.phtml:200
 msgid "Start files backup"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:203
+#: view/easy-admin/admin/backup/index.phtml:206
 msgid "Existing backups"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:209
+#: view/easy-admin/admin/backup/index.phtml:212
 msgid "Filename"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:213
+#: view/easy-admin/admin/backup/index.phtml:216
 msgid "Actions"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:222
+#: view/easy-admin/admin/backup/index.phtml:225
 msgid "Database"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:224
+#: view/easy-admin/admin/backup/index.phtml:227
 msgid "Files"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:231
-#: view/easy-admin/admin/file-manager/browse.phtml:184
+#: view/easy-admin/admin/backup/index.phtml:234
+#: view/easy-admin/admin/file-manager/browse.phtml:197
+#: view/easy-admin/admin/file-manager/browse.phtml:201
 msgid "Download"
 msgstr ""
 
-#: view/easy-admin/admin/backup/index.phtml:241
+#: view/easy-admin/admin/backup/index.phtml:244
 msgid "No backups found."
 msgstr ""
 
@@ -476,19 +471,26 @@ msgstr ""
 msgid "Task configuration"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:55
+#: view/easy-admin/admin/file-manager/browse.phtml:57
 msgid "File manager"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:64
+#: view/easy-admin/admin/file-manager/browse.phtml:66
 msgid "Directory:"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:75
+#: view/easy-admin/admin/file-manager/browse.phtml:77
 msgid "Show folders"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:86
+#: view/easy-admin/admin/file-manager/browse.phtml:87
+#: view/easy-admin/admin/file-manager/browse.phtml:94
+#, php-format
+msgid "%1$s: %2$s"
+msgstr ""
+
+#: view/easy-admin/admin/file-manager/browse.phtml:87
+#: view/easy-admin/admin/file-manager/browse.phtml:94
 msgid "Read-only directory"
 msgstr ""
 
@@ -497,45 +499,56 @@ msgid ""
 "This directory is managed by Omeka. Files cannot be uploaded or deleted here."
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:98
+#: view/easy-admin/admin/file-manager/browse.phtml:94
+msgid ""
+"This is another user directory. You can browse and download files but not "
+"modify them."
+msgstr ""
+
+#: view/easy-admin/admin/file-manager/browse.phtml:101
+#, php-format
+msgid "Filesystem path: %s"
+msgstr ""
+
+#: view/easy-admin/admin/file-manager/browse.phtml:111
 msgid "Drag and drop files here"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:108
+#: view/easy-admin/admin/file-manager/browse.phtml:121
 msgid "Select folder"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:127
+#: view/easy-admin/admin/file-manager/browse.phtml:140
 msgid "Uploading…"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:153
+#: view/easy-admin/admin/file-manager/browse.phtml:166
 #, php-format
 msgid "%d file(s)"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:155
+#: view/easy-admin/admin/file-manager/browse.phtml:168
 #, php-format
 msgid "Page %d of %d"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:173
+#: view/easy-admin/admin/file-manager/browse.phtml:186
 msgid "Select file"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:221
+#: view/easy-admin/admin/file-manager/browse.phtml:239
 msgid "No files."
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:237
+#: view/easy-admin/admin/file-manager/browse.phtml:255
 msgid "Delete files"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:238
+#: view/easy-admin/admin/file-manager/browse.phtml:256
 msgid "Are you sure you want to delete the selected files?"
 msgstr ""
 
-#: view/easy-admin/admin/file-manager/browse.phtml:240
+#: view/easy-admin/admin/file-manager/browse.phtml:258
 #, php-format
 msgid "%sWarning%s: This will permanently delete %s file(s)."
 msgstr ""
@@ -550,6 +563,397 @@ msgstr ""
 msgid "File: %s"
 msgstr ""
 
+#: view/easy-admin/admin/module/browse.phtml:46
+msgid "Manage modules"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:54
+msgid ""
+"The module catalogue could not be loaded. Update detection is unavailable. "
+"Check the server internet access or refresh the catalogue."
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:60
+#, php-format
+msgid ""
+"The directory \"%s\" is not writeable. Module installation, update and "
+"removal are disabled."
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:66
+msgid "Refresh catalogue"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:68
+msgid "Install new module"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:99
+msgid "Activate selected"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:100
+msgid "Deactivate selected"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:101
+#: view/easy-admin/admin/theme/browse.phtml:71
+msgid "Update selected"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:102
+#: view/easy-admin/admin/theme/browse.phtml:72
+msgid "Remove selected"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:118
+#: view/easy-admin/admin/module/integrity-report.phtml:35
+msgid "Module"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:120
+#: view/easy-admin/admin/theme/browse.phtml:88
+msgid "Version"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:121
+#: view/easy-admin/admin/module/show-details.phtml:32
+msgid "State"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:157
+#: view/easy-admin/admin/theme/browse.phtml:121
+#, php-format
+msgid "Select %s"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:210
+#: view/easy-admin/admin/theme/browse.phtml:157
+msgid "Update files"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:233
+#: view/easy-admin/admin/theme/browse.phtml:170
+msgid "Managed by Composer"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:247
+#: view/easy-admin/admin/theme/browse.phtml:184
+#, php-format
+msgid "→ %s"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:253
+msgid "Error: invalid Module.php"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:255
+msgid "Error: invalid module.ini"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:257
+#: view/easy-admin/admin/theme/browse.phtml:187
+#, php-format
+msgid "Requires Omeka S %s"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:259
+msgid "Not in filesystem"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:279
+msgid "No modules found."
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:305
+msgid "Install new module from catalogue"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:307
+msgid "Select the modules to install or use a curated selection."
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:308
+#, php-format
+msgid ""
+"For more information, see pages of known %1$smodules%2$s or "
+"%3$sOmeka.org%2$s."
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:314
+msgid "Curated selection"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:316
+msgid "Select a selection…"
+msgstr ""
+
+#: view/easy-admin/admin/module/browse.phtml:350
+#: view/easy-admin/admin/theme/browse.phtml:270
+msgid "Install selected"
+msgstr ""
+
+#: view/easy-admin/admin/module/integrity-report.phtml:19
+msgid "Integrity report — Modules"
+msgstr ""
+
+#: view/easy-admin/admin/module/integrity-report.phtml:26
+msgid "Back to modules"
+msgstr ""
+
+#: view/easy-admin/admin/module/integrity-report.phtml:30
+msgid ""
+"No integrity data available. Generate checksums first by installing or "
+"updating modules."
+msgstr ""
+
+#: view/easy-admin/admin/module/integrity-report.phtml:38
+#: view/easy-admin/admin/module/show-details.phtml:112
+#: view/easy-admin/admin/theme/integrity-report.phtml:38
+#: view/easy-admin/admin/theme/show-details.phtml:135
+msgid "Added"
+msgstr ""
+
+#: view/easy-admin/admin/module/integrity-report.phtml:39
+#: view/easy-admin/admin/module/show-details.phtml:120
+#: view/easy-admin/admin/theme/integrity-report.phtml:39
+#: view/easy-admin/admin/theme/show-details.phtml:143
+msgid "Deleted"
+msgstr ""
+
+#: view/easy-admin/admin/module/integrity-report.phtml:49
+#: view/easy-admin/admin/theme/integrity-report.phtml:49
+msgid "Clean"
+msgstr ""
+
+#: view/easy-admin/admin/module/remove-confirm.phtml:18
+#, php-format
+msgid "Remove module \"%s\""
+msgstr ""
+
+#: view/easy-admin/admin/module/remove-confirm.phtml:22
+#, php-format
+msgid "Are you sure you would like to remove the module %s?"
+msgstr ""
+
+#: view/easy-admin/admin/module/remove-confirm.phtml:26
+#, php-format
+msgid ""
+"%1$s: this action will uninstall the module from the database and delete all "
+"its files. A backup will be created."
+msgstr ""
+
+#: view/easy-admin/admin/module/remove-confirm.phtml:30
+msgid "This module has been modified locally."
+msgstr ""
+
+#: view/easy-admin/admin/module/remove-confirm.phtml:44
+#: view/easy-admin/admin/theme/remove-confirm.phtml:44
+msgid "Confirm removal"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:25
+#: view/easy-admin/admin/theme/show-details.phtml:37
+msgid "Installed version"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:53
+#: view/easy-admin/admin/theme/show-details.phtml:77
+msgid "Link"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:65
+#: view/easy-admin/admin/theme/show-details.phtml:88
+msgid "Omeka.org"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:66
+#: view/easy-admin/admin/theme/show-details.phtml:89
+msgid "View on Omeka.org"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:72
+#: view/easy-admin/admin/theme/show-details.phtml:95
+msgid "Omeka S version required"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:79
+#: view/easy-admin/admin/theme/show-details.phtml:102
+msgid "Local"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:84
+#: view/easy-admin/admin/theme/show-details.phtml:107
+msgid "Catalogue version"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:91
+#: view/easy-admin/admin/theme/show-details.phtml:114
+msgid "Dependencies"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:98
+#: view/easy-admin/admin/theme/show-details.phtml:121
+msgid "Integrity"
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:100
+#: view/easy-admin/admin/theme/show-details.phtml:123
+msgid "All files match the reference checksums."
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:102
+#: view/easy-admin/admin/theme/show-details.phtml:125
+msgid "Some files have been modified."
+msgstr ""
+
+#: view/easy-admin/admin/module/show-details.phtml:128
+#: view/easy-admin/admin/theme/show-details.phtml:151
+msgid "No reference checksums available."
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:15
+#, php-format
+msgid "Update module \"%s\""
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:25
+#: view/easy-admin/admin/theme/update-confirm.phtml:25
+#, php-format
+msgid "Current version: %s"
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:26
+#: view/easy-admin/admin/theme/update-confirm.phtml:26
+#, php-format
+msgid "New version: %s"
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:30
+#: view/easy-admin/admin/theme/update-confirm.phtml:30
+msgid ""
+"The installed version is already up to date or newer than the catalogue "
+"version. The catalogue may not be updated yet."
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:36
+msgid ""
+"This module has been modified locally. Updating will overwrite your changes. "
+"A backup will be created."
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:38
+#: view/easy-admin/admin/theme/update-confirm.phtml:38
+msgid "Modified files:"
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:46
+#: view/easy-admin/admin/theme/update-confirm.phtml:46
+msgid "Added files:"
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:54
+#: view/easy-admin/admin/theme/update-confirm.phtml:54
+msgid "Deleted files:"
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:66
+msgid "WARNING: It is recommended to do a backup before any upgrade."
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:89
+msgid "Run database migrations automatically"
+msgstr ""
+
+#: view/easy-admin/admin/module/update-confirm.phtml:91
+#: view/easy-admin/admin/theme/update-confirm.phtml:76
+msgid "Confirm update"
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:32
+msgid "Manage themes"
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:40
+msgid ""
+"The theme catalogue could not be loaded. Update detection is unavailable. "
+"Check the server internet access or refresh the catalogue."
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:46
+#, php-format
+msgid ""
+"The directory \"%s\" is not writeable. Theme installation, update and "
+"removal are disabled."
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:51
+msgid "Install new theme"
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:212
+msgid "No themes found."
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:238
+msgid "Install new theme from catalogue"
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:240
+msgid "Select the themes to install."
+msgstr ""
+
+#: view/easy-admin/admin/theme/browse.phtml:241
+#, php-format
+msgid ""
+"For more information, see pages of known %1$sthemes%2$s or %3$sOmeka.org%2$s."
+msgstr ""
+
+#: view/easy-admin/admin/theme/integrity-report.phtml:19
+msgid "Integrity report — Themes"
+msgstr ""
+
+#: view/easy-admin/admin/theme/integrity-report.phtml:26
+msgid "Back to themes"
+msgstr ""
+
+#: view/easy-admin/admin/theme/integrity-report.phtml:30
+msgid ""
+"No integrity data available. Generate checksums first by installing or "
+"updating themes."
+msgstr ""
+
+#: view/easy-admin/admin/theme/remove-confirm.phtml:18
+#, php-format
+msgid "Remove theme \"%s\""
+msgstr ""
+
+#: view/easy-admin/admin/theme/remove-confirm.phtml:22
+#, php-format
+msgid "Are you sure you would like to remove the theme %s?"
+msgstr ""
+
+#: view/easy-admin/admin/theme/remove-confirm.phtml:26
+#, php-format
+msgid ""
+"%1$s: this action will delete all theme files. A backup will be created."
+msgstr ""
+
+#: view/easy-admin/admin/theme/remove-confirm.phtml:30
+msgid "This theme has been modified locally."
+msgstr ""
+
+#: view/easy-admin/admin/theme/update-confirm.phtml:15
+#, php-format
+msgid "Update theme \"%s\""
+msgstr ""
+
+#: view/easy-admin/admin/theme/update-confirm.phtml:36
+msgid ""
+"This theme has been modified locally. Updating will overwrite your changes. "
+"A backup will be created."
+msgstr ""
+
 #: view/omeka/admin/asset/add-form.phtml:21
 msgid "Optimize size for web (may degrade quality)"
 msgstr ""
@@ -558,7 +962,7 @@ msgstr ""
 msgid "Store with original name"
 msgstr ""
 
-#: view/omeka/admin/asset/show-details.phtml:18
+#: view/omeka/admin/asset/show-details.phtml:22
 msgid "[unknown]"
 msgstr ""
 
@@ -574,103 +978,103 @@ msgstr ""
 msgid "Renderer"
 msgstr ""
 
-#: data/scripts/upgrade.php:62 data/scripts/upgrade.php:146
-#: data/scripts/upgrade.php:164
+#: data/scripts/upgrade.php:63 data/scripts/upgrade.php:148
+#: data/scripts/upgrade.php:166
 msgid "The module replaces the module {module}. The upgrade is automatic."
 msgstr ""
 
-#: data/scripts/upgrade.php:67
+#: data/scripts/upgrade.php:68
 msgid "It’s now possible to install {link}modules and themes{link_end}."
 msgstr ""
 
-#: data/scripts/upgrade.php:92
+#: data/scripts/upgrade.php:94
 msgid ""
 "A anti-concurrent editing feature has been added: when a user opens a "
 "resource for edition, others users cannot edit it until submission."
 msgstr ""
 
-#: data/scripts/upgrade.php:96 data/scripts/upgrade.php:112
+#: data/scripts/upgrade.php:98 data/scripts/upgrade.php:114
 msgid "This option can be enabled/disabled in {link}main settings{link_end}."
 msgstr ""
 
-#: data/scripts/upgrade.php:109
+#: data/scripts/upgrade.php:111
 msgid "The content locks are removed after 24h by default."
 msgstr ""
 
-#: data/scripts/upgrade.php:122
+#: data/scripts/upgrade.php:124
 msgid ""
 "A task has been added to manage precise xml media types, for example "
 "\"application/alto+xml\" instead of \"text/xml\"."
 msgstr ""
 
-#: data/scripts/upgrade.php:126
+#: data/scripts/upgrade.php:128
 msgid "This task can be run via the main {link}menu{link_end}."
 msgstr ""
 
-#: data/scripts/upgrade.php:155
+#: data/scripts/upgrade.php:157
 msgid "easyadmin_maintenance_text"
 msgstr ""
 
-#: data/scripts/upgrade.php:169
+#: data/scripts/upgrade.php:171
 msgid ""
 "It’s now possible to set the site in {link}maintenance mode{link_end} for "
 "public or users."
 msgstr ""
 
-#: data/scripts/upgrade.php:183
+#: data/scripts/upgrade.php:185
 msgid ""
 "An {link}soption{link_end} allows to display a link from the resource admin "
 "page to the public page."
 msgstr ""
 
-#: data/scripts/upgrade.php:210 Module.php:257
+#: data/scripts/upgrade.php:212 Module.php:264
 msgid ""
 "The module \"{module}\" was upgraded by module \"{module_2}\" and "
 "uninstalled."
 msgstr ""
 
-#: data/scripts/upgrade.php:220
+#: data/scripts/upgrade.php:222
 msgid ""
 "An {link}option{link_end} allows to display links to previous and next "
 "resources."
 msgstr ""
 
-#: data/scripts/upgrade.php:239
+#: data/scripts/upgrade.php:241
 msgid ""
 "The script for tasks was updated and option `--job` is now passed by "
 "default. Check your cron tasks if you use it."
 msgstr ""
 
-#: data/scripts/upgrade.php:246
+#: data/scripts/upgrade.php:248
 msgid ""
 "New tasks were added to set the primary media of all items and to check "
 "resources."
 msgstr ""
 
-#: data/scripts/upgrade.php:254 data/scripts/upgrade.php:288 Module.php:217
-#: Module.php:225 Module.php:233
+#: data/scripts/upgrade.php:256 data/scripts/upgrade.php:290 Module.php:227
+#: Module.php:235 Module.php:243
 msgid "The directory \"{dir}\" is not writeable."
 msgstr ""
 
-#: data/scripts/upgrade.php:261
+#: data/scripts/upgrade.php:263
 msgid ""
 "A new task allows to backup Omeka installation files (without directory /"
 "files)."
 msgstr ""
 
-#: data/scripts/upgrade.php:266
+#: data/scripts/upgrade.php:268
 msgid ""
 "A new task allows to clear php caches (code and data), in particular after "
 "an update or direct modification of code."
 msgstr ""
 
-#: data/scripts/upgrade.php:295
+#: data/scripts/upgrade.php:297
 msgid ""
 "A new task allows to loop resources, for example to manage a new setting in "
 "template or in parameters via triggers."
 msgstr ""
 
-#: data/scripts/upgrade.php:300
+#: data/scripts/upgrade.php:302
 msgid ""
 "It is now possible to bulk upload files without any server limit (file size, "
 "post size, number of files) in item form and in a separate form (feature "
@@ -678,79 +1082,84 @@ msgid ""
 "omeka-s #1785{link_end})."
 msgstr ""
 
-#: data/scripts/upgrade.php:311
+#: data/scripts/upgrade.php:313
 msgid "A new option allows to notify new version of inactive modules."
 msgstr ""
 
-#: data/scripts/upgrade.php:318
+#: data/scripts/upgrade.php:320
 msgid "It is now possible to optimize assets for web."
 msgstr ""
 
-#: data/scripts/upgrade.php:341
+#: data/scripts/upgrade.php:343
 msgid "It is now possible to install a curated selection of modules."
 msgstr ""
 
-#: data/scripts/upgrade.php:348
+#: data/scripts/upgrade.php:350
 msgid ""
 "It is now possible to upload and delete local files in a configurated "
 "directory."
 msgstr ""
 
-#: data/scripts/upgrade.php:355
+#: data/scripts/upgrade.php:357
 msgid ""
 "To allow to upload files in a specific path outside of directory files/, "
 "update the file local.config.php."
 msgstr ""
 
-#: data/scripts/upgrade.php:367
+#: data/scripts/upgrade.php:369
 msgid ""
 "It is now possible to define regular tasks to remove sessions regularly. A "
 "first cleaning of old ones is launched."
 msgstr ""
 
-#: data/scripts/upgrade.php:392
+#: data/scripts/upgrade.php:394
 msgid ""
 "The feature to lock concurrent editing was moved to the new module {link}"
 "Lock Edit{link_end}. You should install it if you need it."
 msgstr ""
 
-#: data/scripts/upgrade.php:402
+#: data/scripts/upgrade.php:404
 msgid "A new setting allows the reviewer to delete any resource."
 msgstr ""
 
-#: data/scripts/upgrade.php:407
+#: data/scripts/upgrade.php:409
 msgid ""
 "A new setting allows to add a button to quick create a resource with a "
 "specific template."
 msgstr ""
 
-#: data/scripts/upgrade.php:414
+#: data/scripts/upgrade.php:416
 msgid "A new setting allows to define the name of the administrator."
 msgstr ""
 
-#: data/scripts/upgrade.php:419
+#: data/scripts/upgrade.php:421
 msgid ""
 "A new setting allows to define a no-reply email for automatic messages and "
 "notifications."
 msgstr ""
 
-#: data/scripts/upgrade.php:437
+#: data/scripts/upgrade.php:439
 msgid ""
 "A new setting allows to define a list of directories available for browsing."
 msgstr ""
 
-#: data/scripts/upgrade.php:444
+#: data/scripts/upgrade.php:446
 msgid "A new task allows to clean and to deduplicate resources values."
 msgstr ""
 
-#: data/scripts/upgrade.php:451
+#: data/scripts/upgrade.php:453
 msgid "A new setting allows to define more media-types for assets."
 msgstr ""
 
-#: data/scripts/upgrade.php:485
+#: data/scripts/upgrade.php:487
 msgid ""
 "A new setting allows to skip security check csrf when uploading files in "
 "order to fix use behind some vpn/proxy."
+msgstr ""
+
+#: data/scripts/upgrade.php:533
+msgid ""
+"It is now possible to update modules and themes directly in admin board."
 msgstr ""
 
 #: data/scripts/task.php:21
@@ -816,498 +1225,628 @@ msgstr ""
 msgid "The task name must be set and exist."
 msgstr ""
 
-#: data/scripts/task.php:190
+#: data/scripts/task.php:158
+msgid "The task name contains invalid characters."
+msgstr ""
+
+#: data/scripts/task.php:207
 #, php-format
 msgid "The task \"%s\" should be set and exist."
 msgstr ""
 
-#: data/scripts/task.php:198
+#: data/scripts/task.php:215
 msgid "The user id must be set and exist."
 msgstr ""
 
-#: data/scripts/task.php:212
+#: data/scripts/task.php:229
 msgid ""
 "Database is not available. Check if php-mysql is installed with the php "
 "version available on cli."
 msgstr ""
 
-#: data/scripts/task.php:216
+#: data/scripts/task.php:233
 msgid "The database does not exist."
 msgstr ""
 
-#: data/scripts/task.php:225
+#: data/scripts/task.php:242
 #, php-format
 msgid "The user #%d is set for the task \"%s\", but doesn’t exist."
 msgstr ""
 
-#: data/scripts/task.php:243
+#: data/scripts/task.php:260
 msgid "No server url passed, so use: --server-url \"http://localhost\""
 msgstr ""
 
-#: data/scripts/task.php:252
+#: data/scripts/task.php:269
 msgid "No base path passed, so use: --base-path \"/\""
 msgstr ""
 
-#: data/scripts/task.php:343
+#: data/scripts/task.php:277
+msgid "Invalid server URL given; use --server-url <scheme://host>"
+msgstr ""
+
+#: data/scripts/task.php:364
 #, php-format
 msgid "Task \"%1$s\" is starting (job: #%2$d, reference: %3$s)."
 msgstr ""
 
-#: data/scripts/task.php:345
+#: data/scripts/task.php:366
 #, php-format
 msgid "Task \"%1$s\" is starting (reference: %2$s)."
 msgstr ""
 
-#: data/scripts/task.php:347
+#: data/scripts/task.php:368
 #, php-format
 msgid "Task \"%1$s\" is starting (job: #%2$d)."
 msgstr ""
 
-#: data/scripts/task.php:349
+#: data/scripts/task.php:370
 #, php-format
 msgid "Task \"%1$s\" is starting."
 msgstr ""
 
-#: data/scripts/task.php:353
+#: data/scripts/task.php:374
 msgid "Task is starting."
 msgstr ""
 
-#: data/scripts/task.php:367
+#: data/scripts/task.php:388
 #, php-format
 msgid "Task \"%1$s\" has an error: %2$s"
 msgstr ""
 
-#: data/scripts/task.php:372
+#: data/scripts/task.php:393
 msgid "Task ended."
 msgstr ""
 
-#: data/scripts/task.php:373
+#: data/scripts/task.php:394
 #, php-format
 msgid "Task \"%1$s\" ended."
 msgstr ""
 
-#: Module.php:153
+#: Module.php:159
 msgid ""
 "The libraries should be installed. See module’s installation documentation."
 msgstr ""
 
-#: Module.php:209
+#: Module.php:219
 msgid ""
 "Upgrading module BulkCheck: Unable to rename directory \"files/bulk_check\" "
 "into \"files/check\". Trying to create it."
 msgstr ""
 
-#: Module.php:295
+#: Module.php:302
 msgid ""
 "All stored files from checks and fixes, if any, will be removed from folder "
 "\"{folder}\"."
 msgstr ""
 
-#: Module.php:1021
+#: Module.php:1061
 msgid "View this {resource_type} in \"{site}\""
 msgstr ""
 
-#: Module.php:1164
+#: Module.php:1242
 msgid "File successfuly uploaded."
 msgstr ""
 
-#: Module.php:1165
+#: Module.php:1243
 msgid "The total of file sizes exceeds the the server limit directive."
 msgstr ""
 
-#: Module.php:1166
+#: Module.php:1244
 msgid "The file size exceeds the specified limit."
 msgstr ""
 
-#: Module.php:1167
+#: Module.php:1245
 msgid "The file was only partially uploaded."
 msgstr ""
 
-#: Module.php:1168
+#: Module.php:1246
 msgid "No file was uploaded."
 msgstr ""
 
-#: Module.php:1169
+#: Module.php:1247
 msgid "The temporary folder to store the file is missing."
 msgstr ""
 
-#: Module.php:1170
+#: Module.php:1248
 msgid "Failed to write file to disk."
 msgstr ""
 
-#: Module.php:1171
+#: Module.php:1249
 msgid "A PHP extension stopped the file upload."
 msgstr ""
 
-#: Module.php:1186 Module.php:1191
+#: Module.php:1264 Module.php:1269
 msgid "There is no uploaded files."
 msgstr ""
 
-#: Module.php:1210
+#: Module.php:1288
 msgid "File #{index} \"{filename}\" has an error: {error}."
 msgstr ""
 
-#: Module.php:1217
+#: Module.php:1295
 msgid "File #{index} \"{filename}\" must not start with a \".\"."
 msgstr ""
 
-#: Module.php:1224
+#: Module.php:1302
 msgid "File #{index} \"{filename}\" must not contain a reserved character."
 msgstr ""
 
-#: Module.php:1231
+#: Module.php:1309
 msgid ""
 "File #{index} temp name \"{filename}\" must not contain a reserved character."
 msgstr ""
 
-#: Module.php:1239
+#: Module.php:1317
 msgid "File #{index} \"{filename}\" is an empty file."
 msgstr ""
 
-#: Module.php:1388
+#: Module.php:1466
 msgid ""
 "An error occurred when fetching asset \"{asset_filename}\" (#{asset_id}): "
 "{errors}"
 msgstr ""
 
-#: Module.php:1403
+#: Module.php:1481
 msgid ""
 "An error occurred when optimizing asset \"{asset_filename}\" (#{asset_id}): "
 "{error}"
 msgstr ""
 
-#: Module.php:1432
+#: Module.php:1510
 msgid ""
 "An error occurred when storing asset \"{asset_filename}\" (#{asset_id}): "
 "{error}"
 msgstr ""
 
-#: Module.php:1468
+#: Module.php:1546
 msgid ""
 "The asset \"{asset_filename}\" (#{asset_id}) has been successfully optimized "
 "by {percent}%, from {size_1} to {size_2} bytes."
 msgstr ""
 
-#: Module.php:1542
-msgid "Unable to rename asset file from \"{old}\" to \"{new}\"."
+#: Module.php:1594
+msgid ""
+"Asset #{asset_id}: cannot rename, file \"{filename}\" not found in asset "
+"directory."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:309
+#: Module.php:1640
+msgid ""
+"Unable to rename asset file from \"{old}\" to \"{new}\": {error}. Check that "
+"the web server has write permission on the directory \"{dir}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:385
+msgid "The addon \"{name}\" is managed by Composer and cannot be updated here."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:399
+#: src/Mvc/Controller/Plugin/Addons.php:539
+#: src/Mvc/Controller/Plugin/Addons.php:1129
+msgid "The {type} directory is not writeable by the server."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:407
+#: src/Mvc/Controller/Plugin/Addons.php:547
+msgid "The addon \"{name}\" is not installed."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:421
+msgid "No download URL available for \"{name}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:431
+msgid ""
+"Unable to fetch the update for \"{name}\" from {url}. Check the server "
+"internet access and that \"allow_url_fopen\" is enabled."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:443
+msgid "An error occurred during the unzipping of \"{name}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:455
+msgid "Unable to backup the current version of \"{name}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:476
+#: src/Mvc/Controller/Plugin/Addons.php:1188
+msgid "The archive for \"{name}\" does not contain a directory."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:496
+msgid ""
+"Failed to install the update for \"{name}\" (move from temp failed). The "
+"previous version has been restored."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:506
+msgid ""
+"The addon \"{name}\" was successfully updated. A backup is stored in "
+"\"{backup}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:525
+msgid "The addon \"{name}\" is managed by Composer and cannot be removed here."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:574
+msgid "Error during uninstall of \"{name}\": {error}"
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:594
+msgid "The theme \"{name}\" is used by site \"{site}\" and cannot be removed."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:611
+msgid "Unable to backup \"{name}\" before removal."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:620
+msgid "Unable to remove the directory of \"{name}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:636
+msgid "The addon \"{name}\" was removed. A backup is stored in \"{backup}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:973
 msgid "Unable to fetch the url {url}."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:456
+#: src/Mvc/Controller/Plugin/Addons.php:1120
 msgid ""
 "The module \"{module}\" requires the dependencies \"{names}\" installed and "
 "enabled first."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:465
-msgid "The {type} directory is not writeable by the server."
-msgstr ""
-
-#: src/Mvc/Controller/Plugin/Addons.php:472
+#: src/Mvc/Controller/Plugin/Addons.php:1136
 msgid ""
 "Don’t forget to protect the {type} directory from writing after installation."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:482
+#: src/Mvc/Controller/Plugin/Addons.php:1143
+msgid "The {type} \"{name}\" already exists. Use update instead."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:1159
 msgid ""
-"A zipfile exists with the same name in the {type} directory and cannot be "
-"removed."
+"Unable to fetch the {type} \"{name}\". Check the server internet access and "
+"that \"allow_url_fopen\" is enabled."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:491
-msgid "The {type} directory \"{name}\" already exists."
-msgstr ""
-
-#: src/Mvc/Controller/Plugin/Addons.php:501
-msgid "Unable to fetch the {type} \"{name}\"."
-msgstr ""
-
-#: src/Mvc/Controller/Plugin/Addons.php:514
+#: src/Mvc/Controller/Plugin/Addons.php:1170
 msgid "An error occurred during the unzipping of the {type} \"{name}\"."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:538
+#: src/Mvc/Controller/Plugin/Addons.php:1204
+msgid "Failed to install the {type} \"{name}\"."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/Addons.php:1225
 msgid ""
 "The module \"{name}\" requires the dependency \"Generic\" version \"{version}"
 "\" available first."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:551
+#: src/Mvc/Controller/Plugin/Addons.php:1238
 msgid ""
 "If \"{name}\" doesn’t appear in the list of {type}, its directory may need "
 "to be renamed."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:559
+#: src/Mvc/Controller/Plugin/Addons.php:1246
 msgid "{type} uploaded successfully"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:564
+#: src/Mvc/Controller/Plugin/Addons.php:1251
 msgid ""
 "It is always recommended to read the original readme or help of the addon."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:610
-msgid "ZipArchive"
+#: src/Mvc/Controller/Plugin/Addons.php:1365
+msgid "/^[a-zA-Z]:/"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/Addons.php:833
+#: src/Mvc/Controller/Plugin/Addons.php:1557
 msgid "Failed to execute command: {command}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:57
+#: src/Mvc/Controller/Plugin/CheckMailer.php:75
 msgid "Sender email: {email}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:62
+#: src/Mvc/Controller/Plugin/CheckMailer.php:80
 msgid "Sender email: Not configured (will use server default)"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:75
+#: src/Mvc/Controller/Plugin/CheckMailer.php:93
 msgid "Transport type: sendmail (default - no explicit configuration)"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:78
+#: src/Mvc/Controller/Plugin/CheckMailer.php:96
 msgid ""
 "Note: Using local sendmail requires proper DNS records (SPF, DKIM, DMARC, "
 "PTR) for good deliverability. Consider using SMTP relay instead."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:82
+#: src/Mvc/Controller/Plugin/CheckMailer.php:100
 msgid "Transport type: {value}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:92
+#: src/Mvc/Controller/Plugin/CheckMailer.php:110
 msgid "SMTP host: {value}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:98
+#: src/Mvc/Controller/Plugin/CheckMailer.php:116
 msgid "SMTP port: {value}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:104
+#: src/Mvc/Controller/Plugin/CheckMailer.php:122
 msgid "SMTP name (HELO): {value}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:113
+#: src/Mvc/Controller/Plugin/CheckMailer.php:131
 msgid "Connection class: {value}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:121
+#: src/Mvc/Controller/Plugin/CheckMailer.php:139
 msgid "Security: {value}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:126
+#: src/Mvc/Controller/Plugin/CheckMailer.php:144
 msgid "Security: None (not recommended)"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:132
+#: src/Mvc/Controller/Plugin/CheckMailer.php:150
 msgid "Authentication: Yes (user: {value})"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:137
+#: src/Mvc/Controller/Plugin/CheckMailer.php:155
 msgid "Authentication: No"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:684
+#: src/Mvc/Controller/Plugin/CheckMailer.php:165
+msgid ""
+"Warning: Port 465 requires implicit SSL. Try \"ssl\" => \"ssl\" instead of "
+"\"ssl\" => \"tls\". STARTTLS (\"tls\") is for port 587."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/CheckMailer.php:169
+msgid ""
+"Warning: Port 587 requires STARTTLS. Try \"ssl\" => \"tls\" instead of "
+"\"ssl\" => \"ssl\". Implicit SSL (\"ssl\") is for port 465."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/CheckMailer.php:173
+msgid ""
+"Warning: Port 25 does not support implicit SSL. Try \"ssl\" => \"tls\" for "
+"STARTTLS or remove the \"ssl\" option."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/CheckMailer.php:721
 msgid ""
 "Cannot check DNS records: no domain provided and sender email is not "
 "configured."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:700
+#: src/Mvc/Controller/Plugin/CheckMailer.php:737
 msgid ""
 "Email deliverability score: {passed}/{total} checks passed ({percentage}%)"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:722
+#: src/Mvc/Controller/Plugin/CheckMailer.php:759
 msgid ""
 "Recommended: Switch to SMTP transport using \"{host}\" for better "
 "deliverability."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:731
+#: src/Mvc/Controller/Plugin/CheckMailer.php:768
 msgid ""
 "Config: Your SMTP host \"{current}\" is correctly configured (matches "
 "recommended \"{recommended}\")."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:736
+#: src/Mvc/Controller/Plugin/CheckMailer.php:773
 msgid ""
 "Note: Your SMTP host \"{current}\" differs from detected mail server "
 "\"{recommended}\". This may be intentional if using a different mail "
 "provider."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:744
+#: src/Mvc/Controller/Plugin/CheckMailer.php:781
 msgid "Checking DNS records for domain: {domain} (server IP: {ip})"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:749
+#: src/Mvc/Controller/Plugin/CheckMailer.php:786
 msgid "Checking DNS records for domain: {domain}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:763
+#: src/Mvc/Controller/Plugin/CheckMailer.php:800
 msgid "MX: OK — Primary: {primary}{provider}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:768
+#: src/Mvc/Controller/Plugin/CheckMailer.php:805
 msgid "MX: MISSING — No mail server configured for {domain}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:772
+#: src/Mvc/Controller/Plugin/CheckMailer.php:809
 msgid "MX: Add MX record for \"{domain}\" pointing to your mail server."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:780
+#: src/Mvc/Controller/Plugin/CheckMailer.php:817
 msgid "SPF: OK — {record}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:785
+#: src/Mvc/Controller/Plugin/CheckMailer.php:822
 msgid "SPF: MISSING"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:788
+#: src/Mvc/Controller/Plugin/CheckMailer.php:825
 msgid "SPF: Add TXT record at \"{domain}\" with value: {record}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:799
+#: src/Mvc/Controller/Plugin/CheckMailer.php:836
 msgid "DKIM: OK (selector \"{selector}\") — {record}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:807
+#: src/Mvc/Controller/Plugin/CheckMailer.php:844
 msgid "DKIM: MISSING (selector \"{selector}\")"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:819
+#: src/Mvc/Controller/Plugin/CheckMailer.php:856
 msgid ""
 "DKIM (own mail server): Add TXT record at \"{dkim_domain}\" with value:"
 "<br><pre>{record}</pre>Private key (configure in your mail server, e.g. "
 "OpenDKIM):<br><pre>{private_key}</pre>"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:830
+#: src/Mvc/Controller/Plugin/CheckMailer.php:867
 msgid ""
 "DKIM: Failed to generate key. Add TXT record at \"{dkim_domain}\" with "
 "value: {record}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:839
+#: src/Mvc/Controller/Plugin/CheckMailer.php:876
 msgid ""
 "DKIM: Add TXT record at \"{dkim_domain}\". If using SMTP relay, ask your "
 "mail provider for the public key. If running your own mail server, check the "
 "box to generate a key pair."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:850
+#: src/Mvc/Controller/Plugin/CheckMailer.php:887
 msgid "DMARC: OK — {record}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:855
+#: src/Mvc/Controller/Plugin/CheckMailer.php:892
 msgid "DMARC: MISSING"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:858
+#: src/Mvc/Controller/Plugin/CheckMailer.php:895
 msgid "DMARC: Add TXT record at \"{dmarc_domain}\" with value: {record}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:878
+#: src/Mvc/Controller/Plugin/CheckMailer.php:915
 msgid "PTR: OK — {ip} resolves to {hostname}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:887
+#: src/Mvc/Controller/Plugin/CheckMailer.php:924
 msgid "PTR: MISMATCH — {ip} resolves to {hostname} (does not match {domain})"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:895
+#: src/Mvc/Controller/Plugin/CheckMailer.php:932
 msgid ""
 "PTR (reverse DNS): Set reverse DNS for IP {ip} to \"mail.{domain}\" in your "
 "server/VPS provider panel ({provider}). Current value \"{hostname}\" causes "
 "email rejection."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:904
-#: src/Mvc/Controller/Plugin/CheckMailer.php:927
+#: src/Mvc/Controller/Plugin/CheckMailer.php:941
+#: src/Mvc/Controller/Plugin/CheckMailer.php:964
 msgid ""
 "Important: First create an A record for \"mail.{domain}\" pointing to {ip} "
 "at your domain registrar ({registrar}), then wait for DNS propagation (up to "
 "24h) before configuring the PTR."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:915
+#: src/Mvc/Controller/Plugin/CheckMailer.php:952
 msgid "PTR: NOT CONFIGURED for {ip}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:919
+#: src/Mvc/Controller/Plugin/CheckMailer.php:956
 msgid ""
 "PTR (reverse DNS): Set reverse DNS for IP {ip} to \"mail.{domain}\" in your "
 "server/VPS provider panel ({provider})."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:943
+#: src/Mvc/Controller/Plugin/CheckMailer.php:980
 msgid " (SSL OK: {subject}, expires {expires})"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:953
+#: src/Mvc/Controller/Plugin/CheckMailer.php:990
 msgid "SMTP: OK — Connected to {host} on port {port}{ssl}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:962
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1009
+msgid ""
+"SMTP: Port 465 requires implicit SSL (\"ssl\" => \"ssl\"). Your "
+"configuration uses \"ssl\" => \"tls\" (STARTTLS), which is for port 587. "
+"Change to \"ssl\" => \"ssl\" or switch to port 587."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1012
+msgid ""
+"SMTP: Change \"ssl\" => \"tls\" to \"ssl\" => \"ssl\" in config/"
+"local.config.php (port 465 = implicit SSL, port 587 = STARTTLS)."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1016
+msgid ""
+"SMTP: Port 587 requires STARTTLS (\"ssl\" => \"tls\"). Your configuration "
+"uses \"ssl\" => \"ssl\" (implicit SSL), which is for port 465. Change to "
+"\"ssl\" => \"tls\" or switch to port 465."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1019
+msgid ""
+"SMTP: Change \"ssl\" => \"ssl\" to \"ssl\" => \"tls\" in config/"
+"local.config.php (port 587 = STARTTLS, port 465 = implicit SSL)."
+msgstr ""
+
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1025
 msgid "SMTP: UNREACHABLE — Cannot connect to {host}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:972
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1035
 msgid "SSL: EXPIRED — Certificate for {subject} expired on {date}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:979
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1042
 msgid ""
 "SSL: Renew the SSL certificate for the mail server. Current certificate "
 "expired on {date}."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:989
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1052
 msgid "Blacklist: CLEAN — IP not listed on {count} checked blacklists"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:994
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1057
 msgid "Blacklist: LISTED — IP found on: {lists}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:998
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1061
 msgid ""
 "Blacklist: Your IP is listed on {lists}. Request delisting from these "
 "blacklists, or use an SMTP relay to send emails."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:1007
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1070
 msgid ""
 "Sender: MISMATCH — Email \"{email}\" domain does not match site domain "
 "\"{domain}\""
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:1014
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1077
 msgid ""
 "Sender: Consider using an email address from the domain \"{domain}\" to "
 "improve deliverability."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:1019
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1082
 msgid "Sender: OK — Email \"{email}\" matches site domain"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:1027
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1090
 msgid "All checks passed! Your email configuration is properly set up."
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:1032
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1095
 msgid "Actions needed to improve email deliverability:{actions}"
 msgstr ""
 
-#: src/Mvc/Controller/Plugin/CheckMailer.php:1094
+#: src/Mvc/Controller/Plugin/CheckMailer.php:1157
 msgid ""
 "Alternative: Use SMTP relay through your mail server{mail_provider_info}. "
 "This avoids DNS configuration issues on cloud servers{provider_info}. Add "
@@ -1316,14 +1855,14 @@ msgstr ""
 
 #: src/Job/FileStorage.php:15 src/Job/FileSize.php:15
 #: src/Job/FileMissing.php:11 src/Job/FileDerivative.php:29
-#: src/Job/FileExcess.php:9 src/Job/FileHash.php:15
+#: src/Job/FileExcess.php:11 src/Job/FileHash.php:15
 #: src/Job/FileMediaType.php:15
 msgid "Extension"
 msgstr ""
 
 #: src/Job/FileStorage.php:16 src/Job/FileSize.php:16
 #: src/Job/FileDimension.php:13 src/Job/FileMissing.php:14
-#: src/Job/FileDerivative.php:30 src/Job/FileExcess.php:11
+#: src/Job/FileDerivative.php:30 src/Job/FileExcess.php:13
 #: src/Job/FileHash.php:16 src/Job/FileMediaType.php:16
 msgid "Exists"
 msgstr ""
@@ -1340,7 +1879,7 @@ msgstr ""
 #: src/Job/DbResourceTitle.php:15 src/Job/DbUtf8Encode.php:15
 #: src/Job/FileMediaNoOriginal.php:12 src/Job/FileDimension.php:16
 #: src/Job/DbItemNoValue.php:13 src/Job/FileMissing.php:16
-#: src/Job/FileDerivative.php:32 src/Job/FileExcess.php:14
+#: src/Job/FileDerivative.php:32 src/Job/FileExcess.php:16
 #: src/Job/FileHash.php:19 src/Job/FileMediaType.php:19
 #: src/Job/ThemeTemplate.php:11
 msgid "Fixed"
@@ -1349,13 +1888,13 @@ msgstr ""
 #: src/Job/DbResourceIncomplete.php:20 src/Job/DbResourceInvalid.php:20
 #: src/Job/DbJob.php:24 src/Job/AbstractCheckFile.php:40
 #: src/Job/DbResourceTitle.php:60 src/Job/DbUtf8Encode.php:66
-#: src/Job/Backup.php:107 src/Job/DbSession.php:39 src/Job/DbLog.php:67
+#: src/Job/Backup.php:107 src/Job/DbSession.php:41 src/Job/DbLog.php:71
 #: src/Job/FileMediaNoOriginal.php:27 src/Job/FileDimension.php:43
 #: src/Job/DbItemPrimaryMedia.php:28 src/Job/DirExcess.php:16
 #: src/Job/DbItemNoValue.php:29 src/Job/DbValueAnnotationTemplate.php:38
-#: src/Job/FileMissing.php:136 src/Job/MediaPosition.php:16
-#: src/Job/DbValueClean.php:146 src/Job/FileExcess.php:37
-#: src/Job/DbCustomVocabMissingItemSets.php:42
+#: src/Job/FileMissing.php:139 src/Job/MediaPosition.php:16
+#: src/Job/DbValueClean.php:146 src/Job/FileExcess.php:39
+#: src/Job/DbCustomVocabMissingItemSets.php:45
 msgid "Process \"{process}\" completed."
 msgstr ""
 
@@ -1403,20 +1942,48 @@ msgstr ""
 msgid "A total of {count} dead jobs have been cleaned."
 msgstr ""
 
-#: src/Job/ManageAddons.php:86
-msgid "The following modules of the selection are unknown: {addons}."
+#: src/Job/ManageAddons.php:114
+msgid "Unknown addon for update: {name}."
 msgstr ""
 
-#: src/Job/ManageAddons.php:92
-msgid "The following modules are already installed: {addons}."
+#: src/Job/ManageAddons.php:137
+msgid "Failed to update: {addons}."
 msgstr ""
 
-#: src/Job/ManageAddons.php:99
-msgid "The following modules cannot be installed: {addons}."
+#: src/Job/ManageAddons.php:143
+msgid "Updated: {addons}."
 msgstr ""
 
-#: src/Job/ManageAddons.php:105
-msgid "The following modules have been installed: {addons}."
+#: src/Job/ManageAddons.php:185
+msgid "Failed to remove: {addons}."
+msgstr ""
+
+#: src/Job/ManageAddons.php:191
+msgid "Removed: {addons}."
+msgstr ""
+
+#: src/Job/ManageAddons.php:209
+msgid "Database upgraded for {name}."
+msgstr ""
+
+#: src/Job/ManageAddons.php:214
+msgid "DB upgrade failed for {name}: {error}"
+msgstr ""
+
+#: src/Job/ManageAddons.php:264
+msgid "The following addons are unknown: {addons}."
+msgstr ""
+
+#: src/Job/ManageAddons.php:270
+msgid "The following addons are already installed: {addons}."
+msgstr ""
+
+#: src/Job/ManageAddons.php:279
+msgid "The following addons failed to {operation}: {addons}."
+msgstr ""
+
+#: src/Job/ManageAddons.php:288
+msgid "The following addons were successfully with {operation}: {addons}."
 msgstr ""
 
 #: src/Job/AbstractCheckFile.php:54
@@ -1437,27 +2004,27 @@ msgstr ""
 msgid "{total_no} media have no original file, so no {type}."
 msgstr ""
 
-#: src/Job/AbstractCheckFile.php:92 src/Job/FileMissing.php:359
+#: src/Job/AbstractCheckFile.php:92 src/Job/FileMissing.php:362
 msgid "Checking {total} media with original files."
 msgstr ""
 
-#: src/Job/AbstractCheckFile.php:98 src/Job/FileMissing.php:373
+#: src/Job/AbstractCheckFile.php:98 src/Job/FileMissing.php:376
 #: src/Job/MediaPosition.php:27
 msgid "No media to process."
 msgstr ""
 
 #: src/Job/AbstractCheckFile.php:128 src/Job/FileMediaNoOriginal.php:104
-#: src/Job/FileDimension.php:147 src/Job/FileMissing.php:464
-#: src/Job/FileMissing.php:709
+#: src/Job/FileDimension.php:147 src/Job/FileMissing.php:467
+#: src/Job/FileMissing.php:712
 msgid "{processed}/{total} media processed."
 msgstr ""
 
 #: src/Job/AbstractCheckFile.php:134 src/Job/DbResourceTitle.php:208
-#: src/Job/DbResourceTitle.php:352 src/Job/DbResourceTitle.php:481
+#: src/Job/DbResourceTitle.php:362 src/Job/DbResourceTitle.php:515
 #: src/Job/DbUtf8Encode.php:181 src/Job/FileMediaNoOriginal.php:97
-#: src/Job/FileDimension.php:140 src/Job/FileMissing.php:457
-#: src/Job/FileMissing.php:702 src/Job/MediaPosition.php:61
-#: src/Job/FileExcess.php:120
+#: src/Job/FileDimension.php:140 src/Job/FileMissing.php:460
+#: src/Job/FileMissing.php:705 src/Job/MediaPosition.php:61
+#: src/Job/FileExcess.php:231
 msgid "The job was stopped."
 msgstr ""
 
@@ -1509,14 +2076,14 @@ msgid ""
 "not exist."
 msgstr ""
 
-#: src/Job/AbstractCheckFile.php:349 src/Job/FileDimension.php:261
+#: src/Job/AbstractCheckFile.php:351 src/Job/FileDimension.php:261
 #: src/Job/MediaPosition.php:124
 msgid ""
 "End of process: {processed}/{total} processed, {total_succeed} succeed, "
 "{total_failed} failed."
 msgstr ""
 
-#: src/Job/AbstractCheckFile.php:451
+#: src/Job/AbstractCheckFile.php:453
 msgid "Directory or file not readable: {error}"
 msgstr ""
 
@@ -1570,8 +2137,8 @@ msgstr ""
 msgid "{count} templates have fallback title properties."
 msgstr ""
 
-#: src/Job/DbResourceTitle.php:215 src/Job/DbResourceTitle.php:346
-#: src/Job/DbResourceTitle.php:488 src/Job/DbLoopResources.php:136
+#: src/Job/DbResourceTitle.php:215 src/Job/DbResourceTitle.php:356
+#: src/Job/DbResourceTitle.php:522 src/Job/DbLoopResources.php:139
 msgid "{processed}/{total} resources processed."
 msgstr ""
 
@@ -1580,15 +2147,15 @@ msgid ""
 "End of process: {processed}/{total} processed, {total_succeed} different."
 msgstr ""
 
-#: src/Job/DbResourceTitle.php:438
+#: src/Job/DbResourceTitle.php:472
 msgid "End of process: {processed}/{total} processed, {total_succeed} updated."
 msgstr ""
 
-#: src/Job/DbResourceTitle.php:550
+#: src/Job/DbResourceTitle.php:584
 msgid "Error updating resource #{resource_id}: {error}"
 msgstr ""
 
-#: src/Job/DbResourceTitle.php:564
+#: src/Job/DbResourceTitle.php:598
 msgid ""
 "End of process: {processed}/{total} processed, {total_succeed} updated via "
 "API."
@@ -1616,6 +2183,30 @@ msgid ""
 "{total_succeed} converted ({type})."
 msgstr ""
 
+#: src/Job/AddonIntegrityCheck.php:67
+msgid "Module \"{name}\" has been modified: {count} file(s)."
+msgstr ""
+
+#: src/Job/AddonIntegrityCheck.php:77
+msgid "Module \"{name}\" is clean."
+msgstr ""
+
+#: src/Job/AddonIntegrityCheck.php:82
+msgid "Module \"{name}\": no checksums available."
+msgstr ""
+
+#: src/Job/AddonIntegrityCheck.php:105
+msgid "Integrity report saved to {file}."
+msgstr ""
+
+#: src/Job/AddonIntegrityCheck.php:111
+msgid "Some modules have been modified. Check the report for details."
+msgstr ""
+
+#: src/Job/AddonIntegrityCheck.php:115
+msgid "All checked modules are clean or have no reference checksums."
+msgstr ""
+
 #: src/Job/Backup.php:52
 msgid ""
 "To do a backup, the php extension \"zip\" or the command \"zip\" should be "
@@ -1640,27 +2231,27 @@ msgid ""
 "{total_size} bytes, compressed: {size} bytes ({ratio}%)."
 msgstr ""
 
-#: src/Job/DbSession.php:23
-msgid "A minimum number of seconds is needed to clean sessions."
+#: src/Job/DbSession.php:31
+msgid "A minimum number of days is needed to clean sessions."
 msgstr ""
 
-#: src/Job/DbSession.php:55
+#: src/Job/DbSession.php:57
 msgid ""
 "Unable to add index \"{column}\" in table \"{table}\" to improve "
 "performance: {msg}"
 msgstr ""
 
-#: src/Job/DbSession.php:73
+#: src/Job/DbSession.php:75
 msgid "Unable to delete last sessions: {msg}"
 msgstr ""
 
-#: src/Job/DbSession.php:115
+#: src/Job/DbSession.php:114
 msgid ""
 "The table \"{table}\" has a size of {size} MB. {old}/{all} records are older "
 "than {total} seconds."
 msgstr ""
 
-#: src/Job/DbSession.php:127
+#: src/Job/DbSession.php:125
 msgid ""
 "{count} records older than {seconds} seconds were removed. The table "
 "\"{table}\" has a size of {size} MB."
@@ -1695,17 +2286,17 @@ msgid ""
 "A minimum number of days and a maximal severity is needed to clean logs."
 msgstr ""
 
-#: src/Job/DbLog.php:56
+#: src/Job/DbLog.php:57
 msgid "The severity \"{severity}\" is not managed."
 msgstr ""
 
-#: src/Job/DbLog.php:139
+#: src/Job/DbLog.php:143
 msgid ""
 "The table \"{table}\" has a size of {size} MB. {old}/{all} records are older "
 "than {days} days and below or equal severity \"{severity}\"."
 msgstr ""
 
-#: src/Job/DbLog.php:174
+#: src/Job/DbLog.php:177
 msgid ""
 "{count} records older than {days} days with maximum severity \"{severity}\" "
 "were removed. The table \"{table}\" has a size of {size} MB."
@@ -1786,13 +2377,13 @@ msgid ""
 "thumbnails."
 msgstr ""
 
-#: src/Job/FileDimension.php:130 src/Job/FileMissing.php:692
+#: src/Job/FileDimension.php:130 src/Job/FileMissing.php:695
 msgid ""
 "Job stopped: {processed}/{total} processed, {total_succeed} succeed, "
 "{total_failed} failed, {total_fixed} fixed."
 msgstr ""
 
-#: src/Job/FileDimension.php:250 src/Job/FileMissing.php:772
+#: src/Job/FileDimension.php:250 src/Job/FileMissing.php:780
 msgid ""
 "End of process: {processed}/{total} processed, {total_succeed} succeed, "
 "{total_failed} failed, {total_fixed} fixed."
@@ -1830,31 +2421,35 @@ msgstr ""
 msgid "Database backup failed."
 msgstr ""
 
-#: src/Job/DatabaseBackup.php:163
+#: src/Job/DatabaseBackup.php:164
 msgid "Database backup completed: {link} (size: {size})."
 msgstr ""
 
-#: src/Job/DatabaseBackup.php:241
+#: src/Job/DatabaseBackup.php:247
 msgid "gzip not available, backup will not be compressed."
 msgstr ""
 
-#: src/Job/DatabaseBackup.php:411 src/Job/ZipTrait.php:253
+#: src/Job/DatabaseBackup.php:428 src/Job/ZipTrait.php:253
 msgid "Backup stopped by user."
 msgstr ""
 
-#: src/Job/DatabaseBackup.php:446
+#: src/Job/DatabaseBackup.php:463
 msgid "PHP export failed: {error}"
 msgstr ""
 
-#: src/Job/DatabaseBackup.php:555
+#: src/Job/DatabaseBackup.php:575
 msgid "Exported table {table}: {count} rows."
 msgstr ""
 
-#: src/Job/DatabaseBackup.php:758
-msgid "The backup directory is not writable: {path}"
+#: src/Job/DatabaseBackup.php:769
+msgid "Unable to create temporary file for database credentials."
 msgstr ""
 
-#: src/Job/DatabaseBackup.php:771
+#: src/Job/DatabaseBackup.php:821
+msgid "The backup directory is not writeable: {path}"
+msgstr ""
+
+#: src/Job/DatabaseBackup.php:834
 msgid "Unable to create backup directory: {path}"
 msgstr ""
 
@@ -1912,9 +2507,9 @@ msgstr ""
 msgid "Media #{media_id}: Original file \"{filename}\" was missing."
 msgstr ""
 
-#: src/Job/DbItemNoValue.php:116 src/Job/FileExcess.php:28
-#: src/Job/FileExcess.php:50 src/Job/FileExcess.php:67
-#: src/Job/FileExcess.php:178
+#: src/Job/DbItemNoValue.php:116 src/Job/FileExcess.php:30
+#: src/Job/FileExcess.php:52 src/Job/FileExcess.php:69
+#: src/Job/FileExcess.php:273
 msgid "Unable to prepare directory \"{path}\". Check rights."
 msgstr ""
 
@@ -1945,91 +2540,91 @@ msgstr ""
 msgid "Hash"
 msgstr ""
 
-#: src/Job/FileMissing.php:98
+#: src/Job/FileMissing.php:100
 msgid "Matching mode is required for process \"{process}\"."
 msgstr ""
 
-#: src/Job/FileMissing.php:108
+#: src/Job/FileMissing.php:110
 msgid "Matching mode \"{mode}\" is not supported."
 msgstr ""
 
-#: src/Job/FileMissing.php:144
+#: src/Job/FileMissing.php:147
 msgid ""
 "The source files are not hashed with sha256, so they must be updated with "
 "the right task."
 msgstr ""
 
-#: src/Job/FileMissing.php:150
+#: src/Job/FileMissing.php:153
 msgid ""
 "The derivative files are not rebuilt automatically. Check them and recreate "
 "them via the other processes."
 msgstr ""
 
-#: src/Job/FileMissing.php:161
+#: src/Job/FileMissing.php:164
 msgid "Source directory \"{path}\" is not set or not readable."
 msgstr ""
 
-#: src/Job/FileMissing.php:170
+#: src/Job/FileMissing.php:173
 msgid "Source directory \"{path}\" should be a real path ({realpath})."
 msgstr ""
 
-#: src/Job/FileMissing.php:182
+#: src/Job/FileMissing.php:185
 msgid "Preparing hashes of files (this may take a long time)."
 msgstr ""
 
-#: src/Job/FileMissing.php:186
+#: src/Job/FileMissing.php:189
 msgid "Preparing list of files."
 msgstr ""
 
-#: src/Job/FileMissing.php:208 src/Job/FileMissing.php:256
+#: src/Job/FileMissing.php:211 src/Job/FileMissing.php:259
 msgid "Source file \"{path}\" has no extension."
 msgstr ""
 
-#: src/Job/FileMissing.php:223 src/Job/FileMissing.php:275
+#: src/Job/FileMissing.php:226 src/Job/FileMissing.php:278
 msgid "Source file \"{path}\" is not readable."
 msgstr ""
 
-#: src/Job/FileMissing.php:231 src/Job/FileMissing.php:291
+#: src/Job/FileMissing.php:234 src/Job/FileMissing.php:294
 msgid "{count} elements prepared."
 msgstr ""
 
-#: src/Job/FileMissing.php:240
+#: src/Job/FileMissing.php:243
 msgid "This following flles have duplicate names: {json}"
 msgstr ""
 
-#: src/Job/FileMissing.php:286
+#: src/Job/FileMissing.php:289
 msgid "{count} hashes prepared."
 msgstr ""
 
-#: src/Job/FileMissing.php:304
+#: src/Job/FileMissing.php:307
 msgid "Source directory \"{path}\" is empty."
 msgstr ""
 
-#: src/Job/FileMissing.php:311
+#: src/Job/FileMissing.php:314
 msgid "The source directory contains {total} readable files."
 msgstr ""
 
-#: src/Job/FileMissing.php:316
+#: src/Job/FileMissing.php:319
 msgid "The source directory contains {total} duplicate files."
 msgstr ""
 
-#: src/Job/FileMissing.php:366
+#: src/Job/FileMissing.php:369
 msgid "Checking {total} media with thumbnails."
 msgstr ""
 
-#: src/Job/FileMissing.php:447
+#: src/Job/FileMissing.php:450
 msgid ""
 "Job stopped: {processed}/{total} processed, {total_succeed} succeed, "
 "{total_failed} failed ({mode})."
 msgstr ""
 
-#: src/Job/FileMissing.php:615
+#: src/Job/FileMissing.php:618
 msgid ""
 "End of process: {processed}/{total} processed, {total_succeed} succeed, "
 "{total_failed} failed, {total_skipped} skipped ({mode})."
 msgstr ""
 
-#: src/Job/FileMissing.php:616
+#: src/Job/FileMissing.php:619
 msgid ""
 "End of process: {processed}/{total} processed, {total_succeed} succeed, "
 "{total_failed} failed ({mode})."
@@ -2051,61 +2646,61 @@ msgid ""
 "total of {total} medias)."
 msgstr ""
 
-#: src/Job/FileDerivative.php:166
+#: src/Job/FileDerivative.php:164
 msgid ""
 "The job \"Derivative Images\" was stopped: {count]/{total} resources "
 "processed."
 msgstr ""
 
-#: src/Job/FileDerivative.php:188
+#: src/Job/FileDerivative.php:186
 msgid ""
 "Media #{media_id} ({index}/{total}): the original file \"{filename}\" does "
 "not exist."
 msgstr ""
 
-#: src/Job/FileDerivative.php:198
+#: src/Job/FileDerivative.php:196
 msgid ""
 "Media #{media_id} ({index}/{total}): the original file \"{filename}\" is not "
 "readable."
 msgstr ""
 
-#: src/Job/FileDerivative.php:216
+#: src/Job/FileDerivative.php:214
 msgid ""
 "Media #{media_id} ({index}/{total}): derivative file \"{filename}\" is not "
 "writeable (type \"{type}\")."
 msgstr ""
 
-#: src/Job/FileDerivative.php:237
+#: src/Job/FileDerivative.php:234
 msgid "Media #{media_id} ({index}/{total}): creating derivative files."
 msgstr ""
 
-#: src/Job/FileDerivative.php:281
+#: src/Job/FileDerivative.php:278
 msgid "Media #{media_id} ({index}/{total}): derivative files created."
 msgstr ""
 
-#: src/Job/FileDerivative.php:287
+#: src/Job/FileDerivative.php:284
 msgid "Media #{media_id} ({index}/{total}): derivative files not created."
 msgstr ""
 
-#: src/Job/FileDerivative.php:306
+#: src/Job/FileDerivative.php:303
 msgid ""
 "Progress: {processed}/{total} media processed, {existing} existing, "
 "{succeed} succeed, {failed} failed so far."
 msgstr ""
 
-#: src/Job/FileDerivative.php:311
+#: src/Job/FileDerivative.php:308
 msgid ""
 "Progress: {processed}/{total} media processed, {succeed} succeed, {failed} "
 "failed so far."
 msgstr ""
 
-#: src/Job/FileDerivative.php:327
+#: src/Job/FileDerivative.php:324
 msgid ""
 "End of the creation of derivative files: {count}/{total} processed, "
 "{skipped} skipped, {existing} existing,  {succeed} succeed, {failed} failed."
 msgstr ""
 
-#: src/Job/FileDerivative.php:332
+#: src/Job/FileDerivative.php:329
 msgid ""
 "End of the creation of derivative files: {count}/{total} processed, "
 "{skipped} skipped, {succeed} succeed, {failed} failed."
@@ -2169,11 +2764,11 @@ msgid ""
 "wrong positions."
 msgstr ""
 
-#: src/Job/DbValueClean.php:28
+#: src/Job/DbValueClean.php:33
 msgid "No action defined."
 msgstr ""
 
-#: src/Job/DbValueClean.php:36
+#: src/Job/DbValueClean.php:41
 msgid "No valid action defined."
 msgstr ""
 
@@ -2193,7 +2788,7 @@ msgstr ""
 msgid "Resource types to process: all."
 msgstr ""
 
-#: src/Job/DbValueClean.php:100 src/Job/DbLoopResources.php:68
+#: src/Job/DbValueClean.php:100 src/Job/DbLoopResources.php:71
 msgid "Resource types to process: {resource_types}."
 msgstr ""
 
@@ -2213,60 +2808,64 @@ msgstr ""
 msgid "Processing deduplication of values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:208
+#: src/Job/DbValueClean.php:214
 msgid "Trimmed {count} values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:229
+#: src/Job/DbValueClean.php:231
 msgid "Removed {count} empty string values after trimming."
 msgstr ""
 
-#: src/Job/DbValueClean.php:269
+#: src/Job/DbValueClean.php:275
 msgid "Updated empty values and uris of {count} values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:310
+#: src/Job/DbValueClean.php:320
 msgid "Updated empty language of {count} values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:384
+#: src/Job/DbValueClean.php:407
+msgid "Error during deduplication: {error}"
+msgstr ""
+
+#: src/Job/DbValueClean.php:417
 msgid "Deduplicated {count} values."
 msgstr ""
 
-#: src/Job/FileExcess.php:108
+#: src/Job/FileExcess.php:110
 msgid "Starting check of files for type {type}."
 msgstr ""
 
-#: src/Job/FileExcess.php:115
-msgid "{processed} files processed."
-msgstr ""
-
-#: src/Job/FileExcess.php:188
-msgid ""
-"File \"{filename}\" (\"{type}\", #{processed}) doesn't exist in database and "
-"was moved."
-msgstr ""
-
-#: src/Job/FileExcess.php:195
-msgid ""
-"File \"{filename}\" (type \"{type}\") doesn't exist in database, and cannot "
-"be moved."
-msgstr ""
-
-#: src/Job/FileExcess.php:202
-msgid ""
-"File \"{filename}\" (\"{type}\", #{processed}) doesn't exist in database."
-msgstr ""
-
-#: src/Job/FileExcess.php:215
+#: src/Job/FileExcess.php:150
 msgid ""
 "End check of {total} files for type {type}: {total_excess} files in excess "
 "moved."
 msgstr ""
 
-#: src/Job/FileExcess.php:220
+#: src/Job/FileExcess.php:155
 msgid ""
 "End check of {total} files for type {type}: {total_excess} files in excess."
+msgstr ""
+
+#: src/Job/FileExcess.php:226
+msgid "{processed} files processed."
+msgstr ""
+
+#: src/Job/FileExcess.php:283
+msgid ""
+"File \"{filename}\" (\"{type}\", #{processed}) doesn't exist in database and "
+"was moved."
+msgstr ""
+
+#: src/Job/FileExcess.php:290
+msgid ""
+"File \"{filename}\" (type \"{type}\") doesn't exist in database, and cannot "
+"be moved."
+msgstr ""
+
+#: src/Job/FileExcess.php:297
+msgid ""
+"File \"{filename}\" (\"{type}\", #{processed}) doesn't exist in database."
 msgstr ""
 
 #: src/Job/FileHash.php:17
@@ -2277,23 +2876,23 @@ msgstr ""
 msgid "Real hash"
 msgstr ""
 
-#: src/Job/DbLoopResources.php:62
+#: src/Job/DbLoopResources.php:65
 msgid "No resource types defined."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:93
+#: src/Job/DbLoopResources.php:96
 msgid "No {resource_type} to process."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:100
+#: src/Job/DbLoopResources.php:103
 msgid "Processing {count} {resource_type}."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:122
+#: src/Job/DbLoopResources.php:125
 msgid "The job \"{name}\" was stopped."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:148
+#: src/Job/DbLoopResources.php:151
 msgid "End of process: {count}/{total} {resource_type} processed."
 msgstr ""
 
@@ -2305,37 +2904,33 @@ msgstr ""
 msgid "Real media type"
 msgstr ""
 
-#: src/Job/DbCustomVocabMissingItemSets.php:31
+#: src/Job/DbCustomVocabMissingItemSets.php:33
 msgid "The custom vocab with missing item sets will be removed."
 msgstr ""
 
-#: src/Job/DbCustomVocabMissingItemSets.php:35
+#: src/Job/DbCustomVocabMissingItemSets.php:37
 msgid ""
 "The custom vocab with missing item sets will be updated as simple empty list."
 msgstr ""
 
-#: src/Job/DbCustomVocabMissingItemSets.php:82
+#: src/Job/DbCustomVocabMissingItemSets.php:85
 msgid "There is no custom vocab with a missing item set."
 msgstr ""
 
-#: src/Job/DbCustomVocabMissingItemSets.php:88
+#: src/Job/DbCustomVocabMissingItemSets.php:91
 msgid ""
 "There are {count} custom vocabs that references a missing item set: "
 "{item_sets}."
 msgstr ""
 
-#: src/Job/DbCustomVocabMissingItemSets.php:105
+#: src/Job/DbCustomVocabMissingItemSets.php:108
 msgid "Missing item sets of custom vocabs were removed."
 msgstr ""
 
-#: src/Job/DbCustomVocabMissingItemSets.php:122
+#: src/Job/DbCustomVocabMissingItemSets.php:125
 msgid ""
 "Missing item sets of custom vocabs were replaced by standard empty custom "
 "vocabs."
-msgstr ""
-
-#: src/Job/ThemeTemplate.php:8
-msgid "Module"
 msgstr ""
 
 #: src/Job/ThemeTemplate.php:12
@@ -2360,69 +2955,69 @@ msgid ""
 "backup of themes and files exist."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:80
+#: src/Job/ThemeTemplate.php:86
 msgid ""
 "End of process: {processed} processed, {total_succeed} succeed, "
 "{total_failed} failed, {total_fixed} fixed."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:98
+#: src/Job/ThemeTemplate.php:104
 msgid "The directory \"{path}\" is not set or not readable."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:107
+#: src/Job/ThemeTemplate.php:113
 msgid "The directory \"{path}\" should be a real path ({realpath})."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:130
+#: src/Job/ThemeTemplate.php:140
 msgid "The module {module} is not managed."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:168
+#: src/Job/ThemeTemplate.php:179
 msgid "The theme is invalid: no file config/theme.ini."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:170
+#: src/Job/ThemeTemplate.php:181
 msgid "The theme file config/theme.ini is not readable."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:172
+#: src/Job/ThemeTemplate.php:183
 msgid "The theme file config/theme.ini is not writeable."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:178
+#: src/Job/ThemeTemplate.php:189
 msgid "The destination directory is invalid."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:180
+#: src/Job/ThemeTemplate.php:191
 msgid "The destination directory is not writeable."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:182
+#: src/Job/ThemeTemplate.php:193
 msgid "The main destination directory is not writeable."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:186
+#: src/Job/ThemeTemplate.php:197
 msgid "The destination directory cannot be created."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:192
+#: src/Job/ThemeTemplate.php:203
 msgid "Invalid source file path."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:194
+#: src/Job/ThemeTemplate.php:205
 msgid "The destination file exists."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:196
+#: src/Job/ThemeTemplate.php:207
 msgid "The source is not readable."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:215
+#: src/Job/ThemeTemplate.php:226
 msgid "The file was moved, but the config/theme.ini cannot be updated."
 msgstr ""
 
-#: src/Job/ThemeTemplate.php:218
+#: src/Job/ThemeTemplate.php:229
 msgid "The source cannot be moved to destination."
 msgstr ""
 
@@ -2434,30 +3029,30 @@ msgstr ""
 msgid "Unable to open output: {error}."
 msgstr ""
 
-#: src/Job/AbstractCheck.php:217
+#: src/Job/AbstractCheck.php:221
 msgid ""
 "The spreadsheet has more than 1048576 messages, so it will be truncated when "
 "opened in LibreOffice or Excel."
 msgstr ""
 
-#: src/Job/AbstractCheck.php:277
+#: src/Job/AbstractCheck.php:281
 msgid "Results are available in this spreadsheet: {url}."
 msgstr ""
 
-#: src/Job/AbstractCheck.php:311
+#: src/Job/AbstractCheck.php:315
 msgid ""
 "Error when saving \"{filename}\" (temp file: \"{tempfile}\"): {exception}"
 msgstr ""
 
-#: src/Job/AbstractCheck.php:320
+#: src/Job/AbstractCheck.php:324
 msgid "Error when saving \"{filename}\" (temp file: \"{tempfile}\"): {error}"
 msgstr ""
 
-#: src/Job/AbstractCheck.php:374 src/Controller/TraitEasyDir.php:194
+#: src/Job/AbstractCheck.php:378 src/Controller/TraitEasyDir.php:280
 msgid "The directory \"{path}\" is not writeable."
 msgstr ""
 
-#: src/Job/AbstractCheck.php:389 src/Controller/TraitEasyDir.php:205
+#: src/Job/AbstractCheck.php:393 src/Controller/TraitEasyDir.php:291
 msgid "The directory \"{path}\" is not writeable: {error}."
 msgstr ""
 
@@ -2563,54 +3158,73 @@ msgid ""
 msgstr ""
 
 #: src/Form/SettingsFieldset.php:183
-msgid "Disable CSRF check for uploads"
+msgid "Enable per-user directories"
 msgstr ""
 
 #: src/Form/SettingsFieldset.php:184
-msgid "May be required with some VPN/proxy configurations."
+msgid ""
+"Each user who can create items gets a private directory for uploads and "
+"imports. Administrators can browse all user directories. Files are "
+"accessible for import via their filesystem path."
 msgstr ""
 
 #: src/Form/SettingsFieldset.php:195
-msgid "Allow empty files"
+msgid "Disable CSRF check for uploads"
 msgstr ""
 
 #: src/Form/SettingsFieldset.php:196
+msgid "May be required with some VPN/proxy configurations."
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:207
+msgid "Allow empty files"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:208
 msgid ""
 "Allow uploading empty files. Requires disabling file validation or adding "
 "media type \"application/x-empty\" in main settings."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:208
+#: src/Form/SettingsFieldset.php:220
 msgid "Notify new versions for inactive modules"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:219
+#: src/Form/SettingsFieldset.php:231
 msgid "Notify development versions of modules"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:231
+#: src/Form/SettingsFieldset.php:243
 msgid "Display error on screen"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:232
+#: src/Form/SettingsFieldset.php:244
 msgid ""
 "This option helps fix issues and should be unset in production. For "
 "development, use the key \"APPLICATION_ENV\" in file .htaccess."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:245
-msgid "Set Omeka under maintenance"
+#: src/Form/SettingsFieldset.php:247
+msgid "Admin only"
 msgstr ""
 
 #: src/Form/SettingsFieldset.php:248
+msgid "All (short use only)"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:262
+msgid "Set Omeka under maintenance"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:265
 msgid "Public front-end"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:249
+#: src/Form/SettingsFieldset.php:266
 msgid "Admin (except global admins)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:263
+#: src/Form/SettingsFieldset.php:280
 msgid "Text to display for maintenance"
 msgstr ""
 
@@ -3350,6 +3964,22 @@ msgstr ""
 msgid "Refresh lists of addons and selections"
 msgstr ""
 
+#: src/Form/AddonManageForm.php:17
+msgid "Bulk action"
+msgstr ""
+
+#: src/Form/AddonManageForm.php:19
+msgid "Select action…"
+msgstr ""
+
+#: src/Form/AddonManageForm.php:24
+msgid "Check integrity"
+msgstr ""
+
+#: src/Form/AddonManageForm.php:35
+msgid "Run database migrations automatically after update"
+msgstr ""
+
 #: src/Form/CronForm.php:54
 msgid "Scheduled tasks"
 msgstr ""
@@ -3370,39 +4000,39 @@ msgstr ""
 msgid "Weekly"
 msgstr ""
 
-#: src/Form/CronForm.php:116 config/module.config.php:322
+#: src/Form/CronForm.php:116 config/module.config.php:348
 msgid "Clear old sessions"
 msgstr ""
 
-#: src/Form/CronForm.php:122 config/module.config.php:328
+#: src/Form/CronForm.php:122 config/module.config.php:354
 msgid "older than 1 hour"
 msgstr ""
 
-#: src/Form/CronForm.php:123 config/module.config.php:329
+#: src/Form/CronForm.php:123 config/module.config.php:355
 msgid "older than 2 hours"
 msgstr ""
 
-#: src/Form/CronForm.php:124 config/module.config.php:330
+#: src/Form/CronForm.php:124 config/module.config.php:356
 msgid "older than 4 hours"
 msgstr ""
 
-#: src/Form/CronForm.php:125 config/module.config.php:331
+#: src/Form/CronForm.php:125 config/module.config.php:357
 msgid "older than 12 hours"
 msgstr ""
 
-#: src/Form/CronForm.php:126 config/module.config.php:332
+#: src/Form/CronForm.php:126 config/module.config.php:358
 msgid "older than 1 day"
 msgstr ""
 
-#: src/Form/CronForm.php:127 config/module.config.php:333
+#: src/Form/CronForm.php:127 config/module.config.php:359
 msgid "older than 2 days"
 msgstr ""
 
-#: src/Form/CronForm.php:128 config/module.config.php:334
+#: src/Form/CronForm.php:128 config/module.config.php:360
 msgid "older than 8 days"
 msgstr ""
 
-#: src/Form/CronForm.php:129 config/module.config.php:335
+#: src/Form/CronForm.php:129 config/module.config.php:361
 msgid "older than 30 days"
 msgstr ""
 
@@ -3424,119 +4054,114 @@ msgstr ""
 msgid "Bulk uploaded"
 msgstr ""
 
-#: src/Controller/Admin/AddonsController.php:31
-msgid "No addon to list: check your connection."
+#: src/Controller/Admin/FileManagerController.php:83
+#: src/Controller/Admin/FileManagerController.php:89
+#: src/Controller/Admin/FileManagerController.php:188
+#: src/Controller/Admin/FileManagerController.php:210
+msgid "Access denied."
 msgstr ""
 
-#: src/Controller/Admin/AddonsController.php:46
-msgid "There was an error on the form. Please try again."
+#: src/Controller/Admin/FileManagerController.php:196
+#: src/Controller/Admin/FileManagerController.php:202
+msgid "Invalid request."
 msgstr ""
 
-#: src/Controller/Admin/AddonsController.php:58
-msgid "The lists of addons and selections were refreshed."
+#: src/Controller/Admin/FileManagerController.php:225
+#: src/Controller/Admin/BackupController.php:256
+msgid "Invalid file path."
 msgstr ""
 
-#: src/Controller/Admin/AddonsController.php:79
-msgid ""
-"Processing install of selection \"{selection}\" in background (job {link_job}"
-"#{job_id}{link_end}, {link_log}logs{link_end})."
-msgstr ""
-
-#: src/Controller/Admin/AddonsController.php:106
-msgid "The {type} \"{name}\" is already downloaded."
-msgstr ""
-
-#: src/Controller/Admin/AddonsController.php:117
-msgid "Nothing processed. Please try again."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:316
-msgid "file"
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:360
-msgid "You must set a writable directory to delete files."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:372
-msgid "You must select at least one file to delete."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:387
-msgid "{count} file(s) deleted."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:391
-msgid "No file deleted."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:442
-msgid "Cannot delete a folder."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:449
-msgid "The file cannot be deleted."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:456
-msgid "File deleted."
-msgstr ""
-
-#: src/Controller/Admin/FileManagerController.php:462
-msgid "An error occurred during deletion."
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:59
-msgid "At least one of \"Structure\" or \"Data\" must be selected."
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:76
-msgid "Database backup started. Check job logs for progress."
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:80
-#: src/Controller/Admin/BackupController.php:115
-msgid "Job #{job_id} started."
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:96
-msgid "Please select at least one item to backup."
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:111
-msgid "Files backup started. Check job logs for progress."
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:130
-#: src/Controller/Admin/BackupController.php:168
-#: src/Controller/Admin/BackupController.php:211
-msgid "No file specified."
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:146
-#: src/Controller/Admin/BackupController.php:175
-#: src/Controller/Admin/BackupController.php:249
+#: src/Controller/Admin/FileManagerController.php:237
+#: src/Controller/Admin/BackupController.php:176
+#: src/Controller/Admin/BackupController.php:205
+#: src/Controller/Admin/BackupController.php:279
 msgid "File not found."
 msgstr ""
 
-#: src/Controller/Admin/BackupController.php:151
+#: src/Controller/Admin/FileManagerController.php:494
+msgid "file"
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:538
+msgid "You must set a writeable directory to delete files."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:550
+msgid "You must select at least one file to delete."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:565
+msgid "{count} file(s) deleted."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:569
+msgid "No file deleted."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:610
+msgid "You can only delete files in your own directory."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:619
+msgid "Only administrators can delete files in shared directories."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:642
+msgid "Cannot delete a folder."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:649
+msgid "The file cannot be deleted."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:656
+msgid "File deleted."
+msgstr ""
+
+#: src/Controller/Admin/FileManagerController.php:662
+msgid "An error occurred during deletion."
+msgstr ""
+
+#: src/Controller/Admin/BackupController.php:70
+msgid "At least one of \"Structure\" or \"Data\" must be selected."
+msgstr ""
+
+#: src/Controller/Admin/BackupController.php:88
+msgid ""
+"Database backup started in background (job {link_job}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+
+#: src/Controller/Admin/BackupController.php:120
+msgid "Please select at least one item to backup."
+msgstr ""
+
+#: src/Controller/Admin/BackupController.php:136
+msgid ""
+"Files backup started in background (job {link_job}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+
+#: src/Controller/Admin/BackupController.php:160
+#: src/Controller/Admin/BackupController.php:198
+#: src/Controller/Admin/BackupController.php:241
+msgid "No file specified."
+msgstr ""
+
+#: src/Controller/Admin/BackupController.php:181
 msgid "Cannot delete this file."
 msgstr ""
 
-#: src/Controller/Admin/BackupController.php:156
+#: src/Controller/Admin/BackupController.php:186
 msgid "Backup deleted."
 msgstr ""
 
-#: src/Controller/Admin/BackupController.php:158
+#: src/Controller/Admin/BackupController.php:188
 msgid "Failed to delete backup."
 msgstr ""
 
-#: src/Controller/Admin/BackupController.php:192
+#: src/Controller/Admin/BackupController.php:222
 msgid "backup"
-msgstr ""
-
-#: src/Controller/Admin/BackupController.php:226
-msgid "Invalid file path."
 msgstr ""
 
 #: src/Controller/Admin/CheckAndFixController.php:46
@@ -3553,90 +4178,90 @@ msgid ""
 "{link_log}logs{link_end})."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:234
+#: src/Controller/Admin/CheckAndFixController.php:231
 msgid "No type of cache selected."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:246
+#: src/Controller/Admin/CheckAndFixController.php:243
 msgid "The application cache of Symfony Doctrine is available."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:255
+#: src/Controller/Admin/CheckAndFixController.php:252
 msgid "The application cache of Symfony Doctrine was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:257
+#: src/Controller/Admin/CheckAndFixController.php:254
 msgid "The application cache of Symfony Doctrine cannot be reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:261
+#: src/Controller/Admin/CheckAndFixController.php:258
 msgid "The application cache of Symfony Doctrine is disabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:270
+#: src/Controller/Admin/CheckAndFixController.php:267
 msgid ""
 "An issue occurred when checking status of \"opcache\" or the status is not "
 "enabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:287
+#: src/Controller/Admin/CheckAndFixController.php:284
 msgid "The cache \"opcache\" was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:289
+#: src/Controller/Admin/CheckAndFixController.php:286
 msgid "The cache \"opcache\" is disabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:293
+#: src/Controller/Admin/CheckAndFixController.php:290
 msgid "The php extension \"opcache\" is not available."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:302
+#: src/Controller/Admin/CheckAndFixController.php:299
 msgid ""
 "An issue occurred when checking status of \"apcu\" or the status is disabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:311
+#: src/Controller/Admin/CheckAndFixController.php:308
 msgid "The cache \"apcu\" was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:314
+#: src/Controller/Admin/CheckAndFixController.php:311
 msgid "The php extension \"apcu\" is not available."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:322
+#: src/Controller/Admin/CheckAndFixController.php:319
 msgid "The cache of real paths was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:337
+#: src/Controller/Admin/CheckAndFixController.php:334
 msgid "Install tasks were run without errors."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:344
+#: src/Controller/Admin/CheckAndFixController.php:341
 msgid ""
 "The php extension \"intl\" is not available. It is recommended to install it "
 "to translate dates."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:365
+#: src/Controller/Admin/CheckAndFixController.php:362
 msgid ""
 "Current email configuration:\n"
 "{config}"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:380
+#: src/Controller/Admin/CheckAndFixController.php:377
 msgid "No recipient email provided. Test email was not sent."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:386
+#: src/Controller/Admin/CheckAndFixController.php:383
 msgid "Invalid recipient email address: {email}"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:399
+#: src/Controller/Admin/CheckAndFixController.php:396
 msgid "[{title}] Test email"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:403
+#: src/Controller/Admin/CheckAndFixController.php:400
 msgid ""
 "This is a test email from {title}.\n"
 "\n"
@@ -3646,12 +4271,43 @@ msgid ""
 "Sent at: {datetime}"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:415
+#: src/Controller/Admin/CheckAndFixController.php:412
 msgid "Test email successfully sent to {email}."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:420
+#: src/Controller/Admin/CheckAndFixController.php:417
 msgid "Failed to send test email: {error}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:436
+msgid ""
+"Hint: Your current security setting is \"ssl\" => \"{current}\" (port "
+"{port}). A common fix is to try \"ssl\" => \"{alternative}\" with port "
+"{alt_port}."
+msgstr ""
+
+#: src/Controller/Admin/ThemeController.php:141
+msgid "No theme selected."
+msgstr ""
+
+#: src/Controller/Admin/ThemeController.php:164
+msgid "No new theme to install."
+msgstr ""
+
+#: src/Controller/Admin/ThemeController.php:182
+msgid ""
+"Installing {count} themes in background (job {link_job}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+
+#: src/Controller/Admin/ThemeController.php:223
+#: src/Controller/Admin/ThemeController.php:284
+msgid "Unknown theme \"{name}\"."
+msgstr ""
+
+#: src/Controller/Admin/ThemeController.php:270
+#: src/Controller/Admin/ThemeController.php:391
+msgid "No theme specified."
 msgstr ""
 
 #: src/Controller/Admin/CronController.php:99
@@ -3670,70 +4326,155 @@ msgstr ""
 msgid "Cron tasks executed."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:80
+#: src/Controller/Admin/ModuleController.php:123
+msgid "The catalogue of addons and selections has been refreshed."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:148
+#: src/Controller/Admin/ModuleController.php:322
+msgid "Unknown module \"{name}\"."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:267
+#: src/Controller/Admin/ModuleController.php:462
+#: src/Controller/Admin/ModuleController.php:504
+#: src/Controller/Admin/ModuleController.php:546
+msgid "Module \"{name}\" not found."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:279
+msgid "Module \"{name}\" installed and activated."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:284
+msgid "Error installing \"{name}\": {error}"
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:308
+#: src/Controller/Admin/ModuleController.php:413
+msgid "No module specified."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:375
+msgid "The module \"{name}\" was upgraded in database."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:382
+msgid "Error upgrading database for \"{name}\": {error}"
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:474
+msgid "Module \"{name}\" activated."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:479
+msgid "Error activating \"{name}\": {error}"
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:516
+msgid "Module \"{name}\" deactivated."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:521
+msgid "Error deactivating \"{name}\": {error}"
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:558
+msgid "Module \"{name}\" upgraded."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:563
+msgid "Error upgrading \"{name}\": {error}"
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:589
+msgid "No module selected."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:613
+msgid "No new module to install."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:629
+msgid ""
+"Installing {count} modules in background (job {link_job}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+
+#: src/Controller/Admin/ModuleController.php:770
+msgid ""
+"Processing {action} in background (job {link_job}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+
+#: src/Controller/TraitEasyDir.php:153
 msgid "The file does not exist."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:85
+#: src/Controller/TraitEasyDir.php:158
 msgid "The file is a dir."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:95
+#: src/Controller/TraitEasyDir.php:168
 msgid "Filename empty."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:101
+#: src/Controller/TraitEasyDir.php:174
 msgid "Filename too much short or long."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:110
+#: src/Controller/TraitEasyDir.php:183
 msgid "Filename contains forbidden characters."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:116
+#: src/Controller/TraitEasyDir.php:189
 msgid "Filename has no extension."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:134
+#: src/Controller/TraitEasyDir.php:207
 msgid "Local path is not configured."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:141
+#: src/Controller/TraitEasyDir.php:214
 msgid "Local path cannot be the root directory."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:150
+#: src/Controller/TraitEasyDir.php:224
+msgid "Local path is not valid."
+msgstr ""
+
+#: src/Controller/TraitEasyDir.php:236
 msgid "Local path should be a sub-directory of /files."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:167
+#: src/Controller/TraitEasyDir.php:253
 msgid "Local path is not readable."
 msgstr ""
 
-#: src/Controller/TraitEasyDir.php:176
+#: src/Controller/TraitEasyDir.php:262
 msgid "Local path is not writeable."
 msgstr ""
 
-#: config/module.config.php:191 config/module.config.php:228
+#: config/module.config.php:193 config/module.config.php:238
 msgid "Checks and fixes"
 msgstr ""
 
-#: config/module.config.php:346
+#: config/module.config.php:372
 msgid "Compressed (gzip)"
 msgstr ""
 
-#: config/module.config.php:347
+#: config/module.config.php:373
 msgid "Plain SQL"
 msgstr ""
 
-#: config/module.config.php:352
+#: config/module.config.php:378
 msgid "Backup files (modules, themes, config)"
 msgstr ""
 
-#: config/module.config.php:358
+#: config/module.config.php:384
 msgid "Full backup (core, modules, themes, config)"
 msgstr ""
 
-#: config/module.config.php:359
+#: config/module.config.php:385
 msgid "Configuration only"
 msgstr ""
