@@ -4,6 +4,7 @@
  * @var array $omekaThemes
  * @var array $webThemes
  * @var array $localThemes
+ * @var array $sitesByTheme
  * @var string|null $filterState
  * @var \EasyAdmin\Form\AddonManageForm $manageForm
  * @var callable $stateForm
@@ -33,6 +34,12 @@ $catalogueThemes = array_merge($omekaThemes, $webThemes);
 <nav class="section-nav">
     <?= $this->navigation('Laminas\Navigation\EasyAdmin')->menu() ?>
 </nav>
+
+<?php if (!$catalogueThemes): ?>
+<div class="messages warning">
+    <p><?= $escape($translate('The theme catalogue could not be loaded. Update detection is unavailable. Check the server internet access or refresh the catalogue.')) ?></p>
+</div>
+<?php endif ?>
 
 <?php if (!is_writeable(OMEKA_PATH . '/themes')): ?>
 <div class="messages error">
@@ -88,7 +95,7 @@ echo $this->form()->openTag($manageForm);
 
         $catalogueVersion = null;
         foreach ($catalogueThemes as $ct) {
-            if (($ct['dir'] ?? '') === $themeId) {
+            if (strcasecmp($ct['dir'] ?? '', $themeId) === 0) {
                 $catalogueVersion = $ct['version'] ?? null;
                 break;
             }
@@ -112,12 +119,19 @@ echo $this->form()->openTag($manageForm);
             <td>
                 <?php if (!$isComposer): ?>
                 <input type="checkbox" name="themes[]" value="<?= $escape($themeId) ?>" aria-label="<?= $escape(sprintf($translate('Select %s'), $theme['name'])) ?>">
+                <?php else: ?>
+                <span class="checkbox-placeholder"></span>
                 <?php endif ?>
 
                 <?php if (!empty($theme['theme_link'])): ?>
                 <?= $hyperlink($theme['name'], $theme['theme_link'], ['target' => '_blank']) ?>
                 <?php else: ?>
                 <strong><?= $escape($theme['name']) ?></strong>
+                <?php endif ?>
+                <?php if ($themeId !== strtolower($theme['name'] ?? '')
+                    && $themeId !== str_replace(' ', '', strtolower($theme['name'] ?? ''))
+                ): ?>
+                <span class="addon-dir">[<?= $escape($themeId) ?>]</span>
                 <?php endif ?>
 
                 <?php if (!empty($theme['author'])): ?>
@@ -127,12 +141,21 @@ echo $this->form()->openTag($manageForm);
                 <span class="addon-description"><?= $escape($theme['description']) ?></span>
                 <?php endif ?>
 
+                <?php
+                $themeSites = $sitesByTheme[$themeId] ?? [];
+                if ($themeSites): ?>
+                <span class="theme-sites-badge" title="<?= $escape(implode(', ', array_column($themeSites, 'title'))) ?>"><?= count($themeSites) ?></span>
+                <?php endif ?>
+
                 <ul class="actions">
                     <?php if (!$isComposer): ?>
                         <?php if ($hasUpdate): ?>
-                        <li>
-                            <?php $form = $stateForm('update', $themeId); $form->prepare(); echo $this->form($form); ?>
-                        </li>
+                        <li><?= $hyperlink('', '#', [
+                            'data-sidebar-selector' => '#sidebar',
+                            'data-sidebar-content-url' => $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'update-confirm'], ['query' => ['id' => $themeId]]),
+                            'class' => 'o-icon-install sidebar-content',
+                            'title' => $translate('Update files'),
+                        ]) ?></li>
                         <?php endif ?>
 
                         <li><?= $hyperlink('', '#', [
@@ -156,9 +179,9 @@ echo $this->form()->openTag($manageForm);
                 </ul>
             </td>
             <td class="col-version<?= $hasUpdate ? ' has-update' : '' ?><?= $invalidOmeka ? ' invalid-omeka' : '' ?>">
-                <?= $escape($theme['version']) ?>
+                <span class="version-current"><?= $escape($theme['version']) ?></span>
                 <?php if ($hasUpdate): ?>
-                <?= sprintf($translate('→ %s'), $escape($catalogueVersion)) ?>
+                <span class="version-available"><?= sprintf($translate('→ %s'), $escape($catalogueVersion)) ?></span>
                 <?php endif ?>
                 <?php if ($invalidOmeka): ?>
                 <span class="error"><?= sprintf($translate('Requires Omeka S %s'), $escape($constraint)) ?></span>
@@ -235,7 +258,7 @@ uasort($catalogueList, function ($a, $b) {
                 <span class="addon-check-name"><?= $escape($catTheme['name']) ?></span>
                 <span class="addon-check-source">
                 <?php if (!empty($catTheme['is_omeka'])): ?>
-                    <a href="<?= $escape($sourceUrl ?: 'https://omeka.org/s/themes/') ?>" target="_blank" rel="noopener" class="o-icon-omeka" title="Omeka.org" onclick="event.stopPropagation();"></a>
+                    <a href="<?= $escape('https://omeka.org/s/themes/' . ($catTheme['dir'] ?? '')) ?>" target="_blank" rel="noopener" class="o-icon-omeka" title="Omeka.org" onclick="event.stopPropagation();"></a>
                 <?php elseif ($sourceUrl): ?>
                     <a href="<?= $escape($sourceUrl) ?>" target="_blank" rel="noopener" class="o-icon-external" title="<?= $escape($translate('Source')) ?>" onclick="event.stopPropagation();"></a>
                 <?php endif ?>

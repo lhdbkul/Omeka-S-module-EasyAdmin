@@ -5,6 +5,7 @@
  * @var array $ini
  * @var array|null $addon
  * @var array|null $integrity
+ * @var array $themeSites
  */
 
 $plugins = $this->getHelperPluginManager();
@@ -38,6 +39,25 @@ if (file_exists($thumbFile)) {
 </div>
 <?php endif ?>
 
+<?php if ($themeSites): ?>
+<div class="meta-group item-sites">
+    <h4><?= $translate('Sites') ?></h4>
+    <?php
+    $url = $plugins->get('url');
+    $hyperlink = $plugins->get('hyperlink');
+    foreach ($themeSites as $site): ?>
+    <div class="value">
+        <a href="<?= $escape($url('admin/site/slug', ['site-slug' => $site['slug']])) ?>"><?= $escape($site['title']) ?></a>
+        <?= $hyperlink('', $url('site', ['site-slug' => $site['slug']]), [
+            'class' => 'o-icon-external',
+            'target' => '_blank',
+            'title' => $escape($site['title']),
+        ]) ?>
+    </div>
+    <?php endforeach ?>
+</div>
+<?php endif ?>
+
 <?php if (!empty($ini['author'])): ?>
 <div class="meta-group">
     <h4><?= $translate('Author') ?></h4>
@@ -56,6 +76,17 @@ if (file_exists($thumbFile)) {
 <div class="meta-group">
     <h4><?= $translate('Link') ?></h4>
     <div class="value"><a href="<?= $escape($ini['theme_link']) ?>" target="_blank"><?= $escape($ini['theme_link']) ?></a></div>
+</div>
+<?php endif ?>
+
+<?php
+$omekaOrgUrl = ($addon['server'] ?? '') === 'omeka.org'
+    ? 'https://omeka.org/s/themes/' . ($addon['dir'] ?? '')
+    : null;
+if ($omekaOrgUrl): ?>
+<div class="meta-group">
+    <h4><?= $translate('Omeka.org') ?></h4>
+    <div class="value"><a href="<?= $escape($omekaOrgUrl) ?>" target="_blank" class="o-icon-omeka" title="<?= $escape($translate('View on Omeka.org')) ?>"><?= $escape($translate('View on Omeka.org')) ?></a></div>
 </div>
 <?php endif ?>
 

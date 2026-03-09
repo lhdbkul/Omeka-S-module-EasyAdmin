@@ -155,12 +155,17 @@ echo $this->form()->openTag($manageForm);
             <td>
                 <?php if (!$isComposer): ?>
                 <input type="checkbox" name="modules[]" value="<?= $escape($moduleId) ?>" aria-label="<?= $escape(sprintf($translate('Select %s'), $name)) ?>">
+                <?php else: ?>
+                <span class="checkbox-placeholder"></span>
                 <?php endif ?>
 
                 <?php if ($moduleLink = $module->getIni('module_link')): ?>
                 <?= $hyperlink($name, $moduleLink, ['target' => '_blank']) ?>
                 <?php else: ?>
                 <strong><?= $escape($name) ?></strong>
+                <?php endif ?>
+                <?php if ($moduleId !== $name): ?>
+                <span class="addon-dir">[<?= $escape($moduleId) ?>]</span>
                 <?php endif ?>
 
                 <?php if ($author = $module->getIni('author')): ?>

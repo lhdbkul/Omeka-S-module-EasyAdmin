@@ -324,4 +324,68 @@
     .sidebar .error {
         color: #c62828;
     }
+
+    /* Checkbox alignment placeholder */
+    .checkbox-placeholder {
+        display: inline-block;
+        width: 13px;
+        margin-right: 5px;
+    }
+
+    /* Addon directory indicator */
+    .addon-dir {
+        font-size: .9em;
+        color: #555;
+        margin-left: .25em;
+    }
+
+    /* Theme site usage badge */
+    .theme-sites-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.5em;
+        height: 1.5em;
+        padding: 0 .35em;
+        margin-left: .5em;
+        border-radius: 50%;
+        background: #dfdfdf;
+        font-size: .85em;
+        line-height: 1;
+        vertical-align: middle;
+        cursor: default;
+    }
+
+    /* Sidebar scrollable content with sticky footer */
+    .sidebar-content .sidebar-scroller {
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: calc(100vh - 200px);
+        padding-bottom: 1em;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .sidebar-content .sidebar-footer {
+        padding: .75em 0;
+        border-top: 1px solid #dfdfdf;
+    }
+
+    .sidebar-content .sidebar-footer .button {
+        display: block;
+        width: 100%;
+        margin-top: .5em;
+    }
+
+    /* External link icon in sidebar site lists */
+    .sidebar .meta-group.item-sites .o-icon-external {
+        float: right;
+    }
+
+    /* Theme version error on its own line, left-aligned */
+    .themes .col-version.invalid-omeka .tablesaw-cell-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

@@ -1,0 +1,66 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var array $addon
+ * @var array $integrity
+ * @var \EasyAdmin\Form\ModuleStateForm $form
+ */
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$translate = $plugins->get('translate');
+$formElement = $plugins->get('formElement');
+?>
+
+<h3><?= $escape(sprintf($translate('Update theme "%s"'), $addon['name'] ?? '')) ?></h3>
+
+<div class="sidebar-scroller">
+
+<p><?= $escape(sprintf($translate('Current version: %s'), $addon['installed_version'] ?? '?')) ?></p>
+<p><?= $escape(sprintf($translate('New version: %s'), $addon['version'] ?? '?')) ?></p>
+
+<?php if ($integrity['status'] === 'modified'): ?>
+<div class="messages warning">
+    <p><?= $escape($translate('This theme has been modified locally. Updating will overwrite your changes. A backup will be created.')) ?></p>
+    <?php if (!empty($integrity['modified'])): ?>
+    <p><strong><?= $escape($translate('Modified files:')) ?></strong></p>
+    <ul>
+        <?php foreach ($integrity['modified'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+    <?php if (!empty($integrity['added'])): ?>
+    <p><strong><?= $escape($translate('Added files:')) ?></strong></p>
+    <ul>
+        <?php foreach ($integrity['added'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+    <?php if (!empty($integrity['deleted'])): ?>
+    <p><strong><?= $escape($translate('Deleted files:')) ?></strong></p>
+    <ul>
+        <?php foreach ($integrity['deleted'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+</div>
+<?php endif ?>
+
+</div>
+
+<?php
+$form->prepare();
+echo $this->form()->openTag($form);
+echo $formElement($form->get('id'));
+$csrfName = ($form->getName() ? $form->getName() . '_csrf' : 'csrf');
+if ($form->has($csrfName)) {
+    echo $formElement($form->get($csrfName));
+}
+?>
+<div class="sidebar-footer">
+    <button type="submit" class="button"><?= $escape($translate('Confirm update')) ?></button>
+</div>
+<?= $this->form()->closeTag($form) ?>

@@ -98,10 +98,22 @@ class ThemeController extends AbstractActionController
         );
         $installCatalogueForm->setAttribute('method', 'post');
 
+        // Get sites grouped by theme for usage indicator.
+        $connection = $this->getEvent()->getApplication()
+            ->getServiceManager()->get('Omeka\Connection');
+        $sitesByTheme = [];
+        $rows = $connection->executeQuery(
+            'SELECT `theme`, `slug`, `title` FROM `site` ORDER BY `title`'
+        )->fetchAllAssociative();
+        foreach ($rows as $row) {
+            $sitesByTheme[$row['theme']][] = $row;
+        }
+
         $view = new ViewModel([
             'omekaThemes' => $omekaThemes,
             'webThemes' => $webThemes,
             'localThemes' => $localThemes,
+            'sitesByTheme' => $sitesByTheme,
             'filterState' => $state,
             'manageForm' => $manageForm,
             'stateForm' => $stateForm,
@@ -192,6 +204,56 @@ class ThemeController extends AbstractActionController
         );
     }
 
+    public function updateConfirmAction()
+    {
+        $id = $this->params()->fromQuery('id');
+        if (!$id) {
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'theme']
+            );
+        }
+
+        /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
+        $addons = $this->easyAdminAddons();
+        $addon = $addons->dataFromNamespace($id, 'theme')
+            ?: $addons->dataFromNamespace($id);
+        if (!$addon) {
+            $this->messenger()->addError(new PsrMessage(
+                'Unknown theme "{name}".', // @translate
+                ['name' => $id]
+            ));
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'theme']
+            );
+        }
+
+        $addon['installed_version'] = $addons
+            ->getInstalledVersion($addon);
+
+        $integrity = $addons->checkIntegrity($addon);
+
+        $form = $this->getForm(ModuleStateForm::class);
+        $form->setAttribute('method', 'post');
+        $form->setAttribute('action', $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'theme', 'action' => 'update']
+        ));
+        $form->get('id')->setValue($addon['dir'] ?? '');
+
+        $view = new ViewModel([
+            'addon' => $addon,
+            'integrity' => $integrity,
+            'form' => $form,
+        ]);
+        $view->setTerminal(true);
+        $view->setTemplate(
+            'easy-admin/admin/theme/update-confirm'
+        );
+        return $view;
+    }
+
     public function updateAction()
     {
         if (!$this->getRequest()->isPost()) {
@@ -257,11 +319,21 @@ class ThemeController extends AbstractActionController
             ? $addons->checkIntegrity($addon)
             : null;
 
+        // Sites using this theme.
+        $connection = $this->getEvent()->getApplication()
+            ->getServiceManager()->get('Omeka\Connection');
+        $themeSites = $connection->executeQuery(
+            'SELECT `slug`, `title` FROM `site`'
+            . ' WHERE `theme` = ? ORDER BY `title`',
+            [$id]
+        )->fetchAllAssociative();
+
         $view = new ViewModel([
             'themeId' => $id,
             'ini' => $ini,
             'addon' => $addon,
             'integrity' => $integrity,
+            'themeSites' => $themeSites,
         ]);
         $view->setTerminal(true);
         $view->setTemplate(

@@ -15,24 +15,32 @@ $formElement = $plugins->get('formElement');
 $name = $addon['name'] ?? $addonDir;
 ?>
 
-<div id="sidebar-confirm">
-    <h3><?= $escape(sprintf($translate('Remove theme "%s"'), $name)) ?></h3>
+<h3><?= $escape(sprintf($translate('Remove theme "%s"'), $name)) ?></h3>
+
+<div class="sidebar-scroller">
     <p><?= $escape(sprintf(
         $translate('Are you sure you would like to remove the theme %s?'),
         $name
     )) ?></p>
     <p class="error"><?= sprintf(
-        $translate('%1$s: this action will delete all theme files. This cannot be undone.'),
+        $translate('%1$s: this action will delete all theme files. A backup will be created.'),
         sprintf('<strong>%s</strong>', $escape($translate('Warning')))
     ) ?></p>
     <?php if ($integrity['status'] === 'modified'): ?>
     <p class="error"><?= $escape($translate('This theme has been modified locally.')) ?></p>
     <?php endif ?>
-    <?php
-    $form->prepare();
-    echo $this->form()->openTag($form);
-    echo $formElement($form->get('id'));
-    ?>
-    <input type="submit" value="<?= $escape($translate('Confirm removal')) ?>">
-    <?= $this->form()->closeTag($form) ?>
 </div>
+
+<?php
+$form->prepare();
+echo $this->form()->openTag($form);
+echo $formElement($form->get('id'));
+$csrfName = ($form->getName() ? $form->getName() . '_csrf' : 'csrf');
+if ($form->has($csrfName)) {
+    echo $formElement($form->get($csrfName));
+}
+?>
+<div class="sidebar-footer">
+    <button type="submit" class="button"><?= $escape($translate('Confirm removal')) ?></button>
+</div>
+<?= $this->form()->closeTag($form) ?>
