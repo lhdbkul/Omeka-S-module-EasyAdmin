@@ -1,0 +1,133 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var array $catalogueThemes
+ * @var array $localThemes
+ * @var string|null $filterState
+ */
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$url = $plugins->get('url');
+$translate = $plugins->get('translate');
+$assetUrl = $plugins->get('assetUrl');
+
+$this->headLink()
+    ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
+
+$this->htmlElement('body')->appendAttribute('class', 'easy-admin easy-admin-theme');
+
+$composerAddonsPath = OMEKA_PATH . '/composer-addons/themes';
+?>
+
+<?= $this->pageTitle($translate('Manage themes'), 1, $translate('Easy Admin')) ?>
+
+<nav class="section-nav">
+    <?= $this->navigation('Laminas\Navigation\EasyAdmin')->menu() ?>
+</nav>
+
+<div id="page-actions">
+    <a href="#install-section" class="button"><?= $escape($translate('Install new theme')) ?></a>
+    <form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'integrity']) ?>">
+        <?= $this->csrf('integrity') ?>
+        <button type="submit" class="button"><?= $escape($translate('Check all integrity')) ?></button>
+    </form>
+</div>
+
+<form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'theme']) ?>">
+    <?= $this->csrf('theme_manage') ?>
+
+    <table class="tablesaw" data-tablesaw-mode="stack">
+        <thead>
+            <tr>
+                <th class="check"><input type="checkbox" class="select-all"></th>
+                <th><?= $escape($translate('Theme')) ?></th>
+                <th><?= $escape($translate('Version')) ?></th>
+                <th><?= $escape($translate('Source')) ?></th>
+                <th><?= $escape($translate('Actions')) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($localThemes as $themeId => $theme):
+            $isComposer = is_dir($composerAddonsPath . '/' . $themeId);
+
+            $catalogueVersion = null;
+            foreach ($catalogueThemes as $ct) {
+                if (($ct['dir'] ?? '') === $themeId) {
+                    $catalogueVersion = $ct['version'] ?? null;
+                    break;
+                }
+            }
+            $hasUpdate = $catalogueVersion
+                && $theme['version']
+                && version_compare($theme['version'], $catalogueVersion, '<');
+        ?>
+            <tr class="theme<?= $isComposer ? ' composer-managed' : '' ?>">
+                <td class="check">
+                    <?php if (!$isComposer): ?>
+                    <input type="checkbox" name="themes[]" value="<?= $escape($themeId) ?>">
+                    <?php endif ?>
+                </td>
+                <td>
+                    <strong><?= $escape($theme['name']) ?></strong>
+                    <?php if ($isComposer): ?>
+                        <span class="badge composer">Composer</span>
+                    <?php endif ?>
+                </td>
+                <td>
+                    <?= $escape($theme['version']) ?>
+                    <?php if ($hasUpdate): ?>
+                        <span class="badge update"><?= $escape(sprintf($translate('→ %s'), $catalogueVersion)) ?></span>
+                    <?php endif ?>
+                </td>
+                <td><?= $isComposer ? 'Composer' : $translate('Local') ?></td>
+                <td class="actions">
+                    <?php if (!$isComposer): ?>
+                        <?php if ($hasUpdate): ?>
+                        <form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'update']) ?>" style="display:inline">
+                            <?= $this->csrf('theme_update') ?>
+                            <input type="hidden" name="id" value="<?= $escape($themeId) ?>">
+                            <button type="submit" class="button-small"><?= $escape($translate('Update')) ?></button>
+                        </form>
+                        <?php endif ?>
+
+                        <a href="<?= $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'remove-confirm'], ['query' => ['id' => $themeId]]) ?>" class="button-small sidebar-content o-icon-delete"><?= $escape($translate('Remove')) ?></a>
+                    <?php else: ?>
+                        <em><?= $escape($translate('Managed by Composer')) ?></em>
+                    <?php endif ?>
+                </td>
+            </tr>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+
+    <div class="batch-actions">
+        <select name="bulk_action">
+            <option value=""><?= $escape($translate('Bulk action…')) ?></option>
+            <option value="update"><?= $escape($translate('Update')) ?></option>
+            <option value="remove"><?= $escape($translate('Remove')) ?></option>
+        </select>
+        <button type="submit" class="button"><?= $escape($translate('Apply')) ?></button>
+    </div>
+</form>
+
+<div id="install-section">
+    <h2><?= $escape($translate('Install new theme from catalogue')) ?></h2>
+    <form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'install']) ?>">
+        <?= $this->csrf('theme_install') ?>
+        <div class="field">
+            <label for="theme_url"><?= $escape($translate('Select a theme')) ?></label>
+            <select name="theme_url" id="theme_url" class="chosen-select">
+                <option value=""><?= $escape($translate('Select below…')) ?></option>
+                <?php foreach ($catalogueThemes as $catUrl => $catTheme):
+                    $label = $catTheme['name'];
+                    $label .= !empty($catTheme['version']) ? ' [v' . $catTheme['version'] . ']' : '';
+                    $label .= !empty($catTheme['installed']) ? ' *' : '';
+                ?>
+                <option value="<?= $escape($catUrl) ?>"<?= !empty($catTheme['installed']) ? ' disabled' : '' ?>><?= $escape($label) ?></option>
+                <?php endforeach ?>
+            </select>
+        </div>
+        <button type="submit" class="button"><?= $escape($translate('Install')) ?></button>
+    </form>
+</div>

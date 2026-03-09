@@ -1,0 +1,50 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var array $addon
+ * @var array $integrity
+ */
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$url = $plugins->get('url');
+$translate = $plugins->get('translate');
+?>
+
+<h3><?= $escape(sprintf($translate('Update module "%s"'), $addon['name'] ?? '')) ?></h3>
+
+<?php if ($integrity['status'] === 'modified'): ?>
+<div class="messages warning">
+    <p><?= $escape($translate('This module has been modified locally. Updating will overwrite your changes. A backup will be created.')) ?></p>
+    <?php if (!empty($integrity['modified'])): ?>
+    <p><strong><?= $escape($translate('Modified files:')) ?></strong></p>
+    <ul>
+        <?php foreach ($integrity['modified'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+    <?php if (!empty($integrity['added'])): ?>
+    <p><strong><?= $escape($translate('Added files:')) ?></strong></p>
+    <ul>
+        <?php foreach ($integrity['added'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+</div>
+<?php endif ?>
+
+<p><?= $escape(sprintf($translate('Current version: %s'), $addon['installed_version'] ?? '?')) ?></p>
+<p><?= $escape(sprintf($translate('New version: %s'), $addon['version'] ?? '?')) ?></p>
+
+<form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'update']) ?>">
+    <?= $this->csrf('module_update') ?>
+    <input type="hidden" name="id" value="<?= $escape($addon['dir'] ?? '') ?>">
+    <label>
+        <input type="checkbox" name="auto_upgrade" value="1" checked>
+        <?= $escape($translate('Run database migrations automatically')) ?>
+    </label>
+    <br><br>
+    <button type="submit" class="button"><?= $escape($translate('Confirm update')) ?></button>
+</form>

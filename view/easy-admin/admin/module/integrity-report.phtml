@@ -1,0 +1,89 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var array $report
+ */
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$url = $plugins->get('url');
+$translate = $plugins->get('translate');
+$assetUrl = $plugins->get('assetUrl');
+
+$this->headLink()
+    ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
+
+$this->htmlElement('body')->appendAttribute('class', 'easy-admin');
+?>
+
+<?= $this->pageTitle($translate('Integrity report — Modules'), 1, $translate('Easy Admin')) ?>
+
+<nav class="section-nav">
+    <?= $this->navigation('Laminas\Navigation\EasyAdmin')->menu() ?>
+</nav>
+
+<div class="browse-controls">
+    <a href="<?= $url('admin/easy-admin/default', ['controller' => 'module']) ?>" class="button"><?= $escape($translate('Back to modules')) ?></a>
+</div>
+
+<?php if (empty($report)): ?>
+<p><?= $escape($translate('No integrity data available. Generate checksums first by installing or updating modules.')) ?></p>
+<?php else: ?>
+<table class="tablesaw" data-tablesaw-mode="stack">
+    <thead>
+        <tr>
+            <th><?= $escape($translate('Module')) ?></th>
+            <th><?= $escape($translate('Status')) ?></th>
+            <th><?= $escape($translate('Modified')) ?></th>
+            <th><?= $escape($translate('Added')) ?></th>
+            <th><?= $escape($translate('Deleted')) ?></th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($report as $moduleId => $data): ?>
+        <tr class="integrity-<?= $escape($data['status'] ?? 'unknown') ?>">
+            <td><strong><?= $escape($moduleId) ?></strong></td>
+            <td>
+                <?php
+                $statusLabels = [
+                    'clean' => $translate('Clean'),
+                    'modified' => $translate('Modified'),
+                    'unknown' => $translate('Unknown'),
+                ];
+                ?>
+                <span class="badge <?= $escape($data['status'] ?? 'unknown') ?>">
+                    <?= $escape($statusLabels[$data['status'] ?? 'unknown'] ?? $data['status']) ?>
+                </span>
+            </td>
+            <td>
+                <?php if (!empty($data['modified'])): ?>
+                <ul>
+                    <?php foreach ($data['modified'] as $file): ?>
+                    <li><?= $escape($file) ?></li>
+                    <?php endforeach ?>
+                </ul>
+                <?php else: ?>—<?php endif ?>
+            </td>
+            <td>
+                <?php if (!empty($data['added'])): ?>
+                <ul>
+                    <?php foreach ($data['added'] as $file): ?>
+                    <li><?= $escape($file) ?></li>
+                    <?php endforeach ?>
+                </ul>
+                <?php else: ?>—<?php endif ?>
+            </td>
+            <td>
+                <?php if (!empty($data['deleted'])): ?>
+                <ul>
+                    <?php foreach ($data['deleted'] as $file): ?>
+                    <li><?= $escape($file) ?></li>
+                    <?php endforeach ?>
+                </ul>
+                <?php else: ?>—<?php endif ?>
+            </td>
+        </tr>
+    <?php endforeach ?>
+    </tbody>
+</table>
+<?php endif ?>

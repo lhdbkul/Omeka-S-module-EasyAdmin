@@ -11,6 +11,7 @@ use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 use Laminas\Session\Container;
 use Laminas\Uri\Http as HttpUri;
 use Omeka\Api\Representation\ModuleRepresentation;
+use Omeka\Module\Manager as ModuleManager;
 use Omeka\Mvc\Controller\Plugin\Api;
 use Omeka\Mvc\Controller\Plugin\Messenger;
 use ZipArchive;
@@ -39,6 +40,11 @@ class Addons extends AbstractPlugin
      * @var \Omeka\Mvc\Controller\Plugin\Messenger
      */
     protected $messenger;
+
+    /**
+     * @var \Omeka\Module\Manager
+     */
+    protected $moduleManager;
 
     /**
      * Source of data and destination of addons.
@@ -95,11 +101,13 @@ class Addons extends AbstractPlugin
     public function __construct(
         Api $api,
         HttpClient $httpClient,
-        Messenger $messenger
+        Messenger $messenger,
+        ?ModuleManager $moduleManager = null
     ) {
         $this->api = $api;
         $this->httpClient = $httpClient;
         $this->messenger = $messenger;
+        $this->moduleManager = $moduleManager;
     }
 
     public function __invoke(): self
@@ -229,6 +237,623 @@ class Addons extends AbstractPlugin
         $existings = array_map('strtolower', $existings);
         return in_array(strtolower($addon['dir']), $existings)
             || in_array(strtolower($addon['basename']), $existings);
+    }
+
+    /**
+     * Check if an addon is managed by Composer (in composer-addons/).
+     */
+    public function isComposerManaged(array $addon): bool
+    {
+        $type = $addon['type'] ?? '';
+        $dir = $addon['dir'] ?? '';
+        if (!$type || !$dir) {
+            return false;
+        }
+
+        $subDir = in_array($type, ['module', 'omekamodule'])
+            ? 'modules' : 'themes';
+        $composerPath = OMEKA_PATH . '/composer-addons/' . $subDir
+            . '/' . $dir;
+
+        if (!file_exists($composerPath)) {
+            return false;
+        }
+
+        // Check if the local path is a symlink pointing to
+        // composer-addons.
+        $localPath = OMEKA_PATH . '/' . $subDir . '/' . $dir;
+        if (is_link($localPath)) {
+            $target = realpath($localPath);
+            $composerReal = realpath($composerPath);
+            if ($target && $composerReal
+                && strpos($target, $composerReal) === 0
+            ) {
+                return true;
+            }
+        }
+
+        // The addon exists only in composer-addons/.
+        $destination = OMEKA_PATH . '/' . $subDir . '/' . $dir;
+        return !file_exists($destination) || !is_dir($destination);
+    }
+
+    /**
+     * Get the installed version from the addon ini file.
+     */
+    public function getInstalledVersion(array $addon): ?string
+    {
+        $type = $addon['type'] ?? '';
+        $dir = $addon['dir'] ?? '';
+        if (!$type || !$dir) {
+            return null;
+        }
+
+        $subDir = in_array($type, ['module', 'omekamodule'])
+            ? 'modules' : 'themes';
+        $iniFile = in_array($type, ['module', 'omekamodule'])
+            ? 'config/module.ini' : 'config/theme.ini';
+
+        $path = OMEKA_PATH . '/' . $subDir . '/' . $dir
+            . '/' . $iniFile;
+
+        // Fallback to composer-addons.
+        if (!file_exists($path)) {
+            $path = OMEKA_PATH . '/composer-addons/' . $subDir
+                . '/' . $dir . '/' . $iniFile;
+        }
+
+        if (!file_exists($path)) {
+            return null;
+        }
+
+        $ini = parse_ini_file($path);
+        return $ini['version'] ?? null;
+    }
+
+    /**
+     * Enrich the addon list with local state information.
+     *
+     * Fills installed_version, installed, is_composer, and
+     * update_available for each addon.
+     */
+    public function enrichWithLocalState(array &$addons): void
+    {
+        foreach ($addons as $type => &$addonsForType) {
+            foreach ($addonsForType as $url => &$addon) {
+                $addon['installed'] = $this->dirExists($addon);
+                $addon['is_composer'] = $this->isComposerManaged(
+                    $addon
+                );
+                $addon['installed_version'] = $addon['installed']
+                    ? $this->getInstalledVersion($addon)
+                    : null;
+                $addon['update_available'] = $addon['installed']
+                    && $addon['installed_version']
+                    && $addon['version']
+                    && version_compare(
+                        $addon['installed_version'],
+                        $addon['version'],
+                        '<'
+                    );
+
+                // For modules, get the state from ModuleManager.
+                if ($addon['installed']
+                    && $this->moduleManager
+                    && in_array($type, ['module', 'omekamodule'])
+                ) {
+                    $module = $this->moduleManager->getModule(
+                        $addon['dir']
+                    );
+                    $addon['state'] = $module
+                        ? $module->getState() : null;
+                } else {
+                    $addon['state'] = null;
+                }
+            }
+        }
+        unset($addon, $addonsForType);
+    }
+
+    /**
+     * Update an addon: download new version with backup/rollback.
+     *
+     * @return bool True on success.
+     */
+    public function updateAddon(array $addon): bool
+    {
+        if ($this->isComposerManaged($addon)) {
+            $this->messenger->addError(new PsrMessage(
+                'The addon "{name}" is managed by Composer and cannot be updated here.', // @translate
+                ['name' => $addon['name']]
+            ));
+            return false;
+        }
+
+        $type = $addon['type'] ?? '';
+        $subDir = in_array($type, ['module', 'omekamodule'])
+            ? 'modules' : 'themes';
+        $destination = OMEKA_PATH . '/' . $subDir;
+        $addonDir = $destination . '/' . $addon['dir'];
+
+        if (!is_writeable($destination)) {
+            $this->messenger->addError(new PsrMessage(
+                'The {type} directory is not writeable by the server.', // @translate
+                ['type' => $subDir]
+            ));
+            return false;
+        }
+
+        if (!file_exists($addonDir)) {
+            $this->messenger->addError(new PsrMessage(
+                'The addon "{name}" is not installed.', // @translate
+                ['name' => $addon['name']]
+            ));
+            return false;
+        }
+
+        $tempDir = sys_get_temp_dir() . '/easyadmin_update_'
+            . $addon['dir'] . '_' . time();
+        @mkdir($tempDir, 0775, true);
+
+        // Download new version.
+        $zipFile = $tempDir . '/' . basename($addon['zip']);
+        $result = $this->downloadFile($addon['zip'], $zipFile);
+        if (!$result) {
+            $this->messenger->addError(new PsrMessage(
+                'Unable to fetch the update for'
+                    . ' "{name}".', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
+
+        // Unzip into temp.
+        $result = $this->unzipFile($zipFile, $tempDir);
+        @unlink($zipFile);
+        if (!$result) {
+            $this->messenger->addError(new PsrMessage(
+                'An error occurred during the unzipping of "{name}".', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
+
+        // Backup current directory.
+        $timestamp = date('Ymd_His');
+        $backupDir = $addonDir . '.bak-' . $timestamp;
+        $renamed = @rename($addonDir, $backupDir);
+        if (!$renamed) {
+            $this->messenger->addError(new PsrMessage(
+                'Unable to backup the current version of'
+                    . ' "{name}".', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
+
+        // Move the new addon from temp using existing logic.
+        // moveAddon expects the addon to be extracted into
+        // $destination (like installAddon), so we move from temp
+        // to destination first.
+        $extractedDirs = array_diff(
+            scandir($tempDir) ?: [],
+            ['.', '..']
+        );
+        $moved = false;
+        foreach ($extractedDirs as $extractedDir) {
+            $extractedPath = $tempDir . '/' . $extractedDir;
+            if (is_dir($extractedPath)) {
+                $moved = @rename($extractedPath, $addonDir);
+                if (!$moved) {
+                    // Try to find the right dir via moveAddon
+                    // pattern by moving all dirs to destination.
+                    @rename(
+                        $extractedPath,
+                        $destination . '/' . $extractedDir
+                    );
+                    $moved = $this->moveAddon($addon);
+                }
+                break;
+            }
+        }
+
+        $this->rmDir($tempDir);
+
+        if (!$moved || !file_exists($addonDir)) {
+            // Rollback: restore from backup.
+            @rename($backupDir, $addonDir);
+            $this->messenger->addError(new PsrMessage(
+                'Failed to install the update for "{name}".'
+                    . ' The previous version has been'
+                    . ' restored.', // @translate
+                ['name' => $addon['name']]
+            ));
+            return false;
+        }
+
+        // Generate checksums for the new version.
+        $this->generateChecksums($addon);
+
+        $this->messenger->addSuccess(new PsrMessage(
+            'The addon "{name}" was successfully updated.'
+                . ' The backup is stored in'
+                . ' "{backup}".', // @translate
+            ['name' => $addon['name'], 'backup' => basename($backupDir)]
+        ));
+
+        return true;
+    }
+
+    /**
+     * Remove an addon: uninstall from DB and delete files.
+     *
+     * @return bool True on success.
+     */
+    public function removeAddon(array $addon): bool
+    {
+        if ($this->isComposerManaged($addon)) {
+            $this->messenger->addError(new PsrMessage(
+                'The addon "{name}" is managed by Composer and cannot be removed here.', // @translate
+                ['name' => $addon['name']]
+            ));
+            return false;
+        }
+
+        $type = $addon['type'] ?? '';
+        $subDir = in_array($type, ['module', 'omekamodule'])
+            ? 'modules' : 'themes';
+        $destination = OMEKA_PATH . '/' . $subDir;
+        $addonDir = $destination . '/' . $addon['dir'];
+
+        if (!is_writeable($destination)) {
+            $this->messenger->addError(new PsrMessage(
+                'The {type} directory is not writeable by the server.', // @translate
+                ['type' => $subDir]
+            ));
+            return false;
+        }
+
+        if (!file_exists($addonDir)) {
+            $this->messenger->addError(new PsrMessage(
+                'The addon "{name}" is not installed.', // @translate
+                ['name' => $addon['name']]
+            ));
+            return false;
+        }
+
+        // For modules: uninstall from DB via ModuleManager.
+        if (in_array($type, ['module', 'omekamodule'])
+            && $this->moduleManager
+        ) {
+            $module = $this->moduleManager->getModule(
+                $addon['dir']
+            );
+            if ($module) {
+                $state = $module->getState();
+                try {
+                    if ($state === ModuleManager::STATE_ACTIVE) {
+                        $this->moduleManager->deactivate($module);
+                    }
+                    if (in_array($state, [
+                        ModuleManager::STATE_ACTIVE,
+                        ModuleManager::STATE_NOT_ACTIVE,
+                    ])) {
+                        $this->moduleManager->uninstall($module);
+                    }
+                } catch (Exception $e) {
+                    $this->messenger->addError(new PsrMessage(
+                        'Error during uninstall of "{name}": {error}', // @translate
+                        [
+                            'name' => $addon['name'],
+                            'error' => $e->getMessage(),
+                        ]
+                    ));
+                    return false;
+                }
+            }
+        }
+
+        // For themes: check no site uses it as active theme.
+        if (in_array($type, ['theme', 'omekatheme'])) {
+            $sites = $this->api->search('sites', [
+                'limit' => 0,
+            ])->getContent();
+            foreach ($sites as $site) {
+                $siteTheme = $site->theme();
+                if ($siteTheme === $addon['dir']) {
+                    $this->messenger->addError(new PsrMessage(
+                        'The theme "{name}" is used by site "{site}" and cannot be removed.', // @translate
+                        [
+                            'name' => $addon['name'],
+                            'site' => $site->title(),
+                        ]
+                    ));
+                    return false;
+                }
+            }
+        }
+
+        $result = $this->rmDir($addonDir);
+        if (!$result) {
+            $this->messenger->addError(new PsrMessage(
+                'Unable to remove the directory of'
+                    . ' "{name}".', // @translate
+                ['name' => $addon['name']]
+            ));
+            return false;
+        }
+
+        // Remove checksums file if exists.
+        $checksumsDir = OMEKA_PATH
+            . '/files/check/addon-checksums';
+        $checksumsFile = $checksumsDir . '/'
+            . $addon['dir'] . '.json';
+        if (file_exists($checksumsFile)) {
+            @unlink($checksumsFile);
+        }
+
+        $this->messenger->addSuccess(new PsrMessage(
+            'The addon "{name}" was successfully'
+                . ' removed.', // @translate
+            ['name' => $addon['name']]
+        ));
+
+        return true;
+    }
+
+    /**
+     * Generate SHA-256 checksums for an addon and store as JSON.
+     */
+    public function generateChecksums(array $addon): bool
+    {
+        $type = $addon['type'] ?? '';
+        $dir = $addon['dir'] ?? '';
+        if (!$type || !$dir) {
+            return false;
+        }
+
+        $subDir = in_array($type, ['module', 'omekamodule'])
+            ? 'modules' : 'themes';
+        $addonDir = OMEKA_PATH . '/' . $subDir . '/' . $dir;
+
+        if (!file_exists($addonDir) || !is_dir($addonDir)) {
+            return false;
+        }
+
+        $checksums = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $addonDir,
+                \RecursiveDirectoryIterator::SKIP_DOTS
+            )
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $relativePath = ltrim(
+                    str_replace($addonDir, '', $file->getPathname()),
+                    '/'
+                );
+                // Skip vendor/ and node_modules/.
+                if (strpos($relativePath, 'vendor/') === 0
+                    || strpos($relativePath, 'node_modules/') === 0
+                ) {
+                    continue;
+                }
+                $checksums[$relativePath] = hash_file(
+                    'sha256',
+                    $file->getPathname()
+                );
+            }
+        }
+
+        ksort($checksums);
+
+        $checksumsDir = OMEKA_PATH
+            . '/files/check/addon-checksums';
+        if (!file_exists($checksumsDir)) {
+            @mkdir($checksumsDir, 0775, true);
+        }
+
+        $version = $this->getInstalledVersion($addon);
+        $data = [
+            'addon' => $dir,
+            'version' => $version,
+            'generated' => date('c'),
+            'algorithm' => 'sha256',
+            'files' => $checksums,
+        ];
+
+        $result = file_put_contents(
+            $checksumsDir . '/' . $dir . '.json',
+            json_encode($data, JSON_PRETTY_PRINT
+                | JSON_UNESCAPED_SLASHES)
+        );
+
+        return $result !== false;
+    }
+
+    /**
+     * Check integrity of an addon by comparing checksums.
+     *
+     * @param bool $fromSource Re-download zip to generate
+     *   reference checksums.
+     * @return array With keys status, modified, added, deleted.
+     */
+    public function checkIntegrity(
+        array $addon,
+        bool $fromSource = false
+    ): array {
+        $result = [
+            'status' => 'unknown',
+            'modified' => [],
+            'added' => [],
+            'deleted' => [],
+        ];
+
+        $type = $addon['type'] ?? '';
+        $dir = $addon['dir'] ?? '';
+        if (!$type || !$dir) {
+            return $result;
+        }
+
+        $subDir = in_array($type, ['module', 'omekamodule'])
+            ? 'modules' : 'themes';
+        $addonDir = OMEKA_PATH . '/' . $subDir . '/' . $dir;
+
+        if (!file_exists($addonDir)) {
+            return $result;
+        }
+
+        if ($fromSource) {
+            $referenceChecksums = $this
+                ->generateChecksumsFromSource($addon);
+        } else {
+            $checksumsFile = OMEKA_PATH
+                . '/files/check/addon-checksums/'
+                . $dir . '.json';
+            if (!file_exists($checksumsFile)) {
+                return $result;
+            }
+            $json = json_decode(
+                file_get_contents($checksumsFile),
+                true
+            );
+            $referenceChecksums = $json['files'] ?? [];
+        }
+
+        if (!$referenceChecksums) {
+            return $result;
+        }
+
+        // Compute current checksums.
+        $currentChecksums = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $addonDir,
+                \RecursiveDirectoryIterator::SKIP_DOTS
+            )
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $relativePath = ltrim(
+                    str_replace(
+                        $addonDir,
+                        '',
+                        $file->getPathname()
+                    ),
+                    '/'
+                );
+                if (strpos($relativePath, 'vendor/') === 0
+                    || strpos(
+                        $relativePath,
+                        'node_modules/'
+                    ) === 0
+                ) {
+                    continue;
+                }
+                $currentChecksums[$relativePath] = hash_file(
+                    'sha256',
+                    $file->getPathname()
+                );
+            }
+        }
+
+        // Compare.
+        foreach ($referenceChecksums as $path => $hash) {
+            if (!isset($currentChecksums[$path])) {
+                $result['deleted'][] = $path;
+            } elseif ($currentChecksums[$path] !== $hash) {
+                $result['modified'][] = $path;
+            }
+        }
+        foreach ($currentChecksums as $path => $hash) {
+            if (!isset($referenceChecksums[$path])) {
+                $result['added'][] = $path;
+            }
+        }
+
+        $result['status'] = ($result['modified']
+            || $result['added']
+            || $result['deleted'])
+            ? 'modified' : 'clean';
+
+        return $result;
+    }
+
+    /**
+     * Download the source zip and compute reference checksums.
+     */
+    protected function generateChecksumsFromSource(
+        array $addon
+    ): array {
+        $tempDir = sys_get_temp_dir() . '/easyadmin_check_'
+            . ($addon['dir'] ?? 'unknown') . '_' . time();
+        @mkdir($tempDir, 0775, true);
+
+        $zipFile = $tempDir . '/' . basename($addon['zip'] ?? '');
+        if (!$this->downloadFile(
+            $addon['zip'] ?? '',
+            $zipFile
+        )) {
+            $this->rmDir($tempDir);
+            return [];
+        }
+
+        if (!$this->unzipFile($zipFile, $tempDir)) {
+            $this->rmDir($tempDir);
+            return [];
+        }
+        @unlink($zipFile);
+
+        // Find the extracted directory.
+        $dirs = array_filter(
+            array_diff(scandir($tempDir) ?: [], ['.', '..']),
+            fn ($f) => is_dir($tempDir . '/' . $f)
+        );
+        $extractedDir = $tempDir . '/' . reset($dirs);
+        if (!$extractedDir || !is_dir($extractedDir)) {
+            $this->rmDir($tempDir);
+            return [];
+        }
+
+        $checksums = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $extractedDir,
+                \RecursiveDirectoryIterator::SKIP_DOTS
+            )
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $relativePath = ltrim(
+                    str_replace(
+                        $extractedDir,
+                        '',
+                        $file->getPathname()
+                    ),
+                    '/'
+                );
+                if (strpos($relativePath, 'vendor/') === 0
+                    || strpos(
+                        $relativePath,
+                        'node_modules/'
+                    ) === 0
+                ) {
+                    continue;
+                }
+                $checksums[$relativePath] = hash_file(
+                    'sha256',
+                    $file->getPathname()
+                );
+            }
+        }
+
+        $this->rmDir($tempDir);
+        ksort($checksums);
+        return $checksums;
     }
 
     protected function initAddons(bool $refresh = false): self
@@ -564,6 +1189,9 @@ class Addons extends AbstractPlugin
             'It is always recommended to read the original readme or help of the addon.' // @translate
         ));
 
+        // Generate checksums for integrity checking.
+        $this->generateChecksums($addon);
+
         return true;
     }
 
@@ -885,7 +1513,7 @@ class Addons extends AbstractPlugin
      *
      * @param string $dirpath Absolute path.
      */
-    private function rmDir(string $dirPath): bool
+    protected function rmDir(string $dirPath): bool
     {
         if (!file_exists($dirPath)) {
             return true;

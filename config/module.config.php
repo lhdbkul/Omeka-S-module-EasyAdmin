@@ -53,6 +53,7 @@ return [
             Form\Element\Note::class => Form\Element\Note::class,
             Form\ConfigForm::class => Form\ConfigForm::class,
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,
+            Form\AddonManageForm::class => Form\AddonManageForm::class,
         ],
         'factories' => [
             Form\AddonsForm::class => Service\Form\AddonsFormFactory::class,
@@ -75,6 +76,8 @@ return [
             'EasyAdmin\Controller\Admin\Backup' => Service\Controller\BackupControllerFactory::class,
             'EasyAdmin\Controller\Admin\FileManager' => Service\Controller\FileManagerControllerFactory::class,
             'EasyAdmin\Controller\Upload' => Service\Controller\UploadControllerFactory::class,
+            'EasyAdmin\Controller\Admin\Module' => Service\Controller\ModuleControllerFactory::class,
+            'EasyAdmin\Controller\Admin\Theme' => Service\Controller\ThemeControllerFactory::class,
         ],
     ],
     'controller_plugins' => [
@@ -220,6 +223,20 @@ return [
                         'controller' => 'addons',
                         'class' => 'o-icon- fa-puzzle-piece',
                     ],
+                    [
+                        'label' => 'Manage modules', // @translate
+                        'route' => 'admin/easy-admin/default',
+                        'controller' => 'module',
+                        'resource' => 'EasyAdmin\Controller\Admin\Module',
+                        'class' => 'o-icon- fa-cubes',
+                    ],
+                    [
+                        'label' => 'Manage themes', // @translate
+                        'route' => 'admin/easy-admin/default',
+                        'controller' => 'theme',
+                        'resource' => 'EasyAdmin\Controller\Admin\Theme',
+                        'class' => 'o-icon- fa-paint-brush',
+                    ],
                 ],
             ],
         ],
@@ -256,6 +273,18 @@ return [
                 'label' => 'Install addons', // @translate
                 'route' => 'admin/easy-admin/default',
                 'controller' => 'addons',
+            ],
+            [
+                'label' => 'Manage modules', // @translate
+                'route' => 'admin/easy-admin/default',
+                'controller' => 'module',
+                'resource' => 'EasyAdmin\Controller\Admin\Module',
+            ],
+            [
+                'label' => 'Manage themes', // @translate
+                'route' => 'admin/easy-admin/default',
+                'controller' => 'theme',
+                'resource' => 'EasyAdmin\Controller\Admin\Theme',
             ],
         ],
     ],

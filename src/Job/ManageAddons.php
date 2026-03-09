@@ -19,34 +19,58 @@ class ManageAddons extends AbstractJob
         /**
          * @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons
          * @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger
-         * @var \Common\View\Helper\Messages $messages
          */
 
         $services = $this->getServiceLocator();
 
-        // The reference id is the job id for now.
         $referenceIdProcessor = new \Laminas\Log\Processor\ReferenceId();
-        $referenceIdProcessor->setReferenceId('easy-admin/addons/job_' . $this->job->getId());
+        $referenceIdProcessor->setReferenceId(
+            'easy-admin/addons/job_' . $this->job->getId()
+        );
 
         $this->logger = $services->get('Omeka\Logger');
         $this->logger->addProcessor($referenceIdProcessor);
 
         $plugins = $services->get('ControllerPluginManager');
-        $helpers = $services->get('ViewHelperManager');
-
         $addons = $plugins->get('easyAdminAddons');
         $messenger = $plugins->get('messenger');
-        $messages = $helpers->get('messages');
 
+        $operation = $this->getArg('operation', 'install');
+        $options = $this->getArg('options', []);
+
+        switch ($operation) {
+            case 'install':
+                $this->performInstall($addons, $messenger);
+                break;
+            case 'update':
+                $this->performUpdate($addons, $messenger, $options);
+                break;
+            case 'remove':
+                $this->performRemove($addons, $messenger);
+                break;
+            default:
+                // Legacy: selection-based install.
+                $this->performInstall($addons, $messenger);
+                break;
+        }
+    }
+
+    protected function performInstall($addons, $messenger): void
+    {
+        // Support legacy selection mode.
         $selection = $this->getArg('selection');
-        $selections = $addons->getSelections();
-        $selectionAddons = $selections[$selection] ?? [];
+        $addonList = $this->getArg('addons', []);
+
+        if ($selection) {
+            $selections = $addons->getSelections();
+            $addonList = $selections[$selection] ?? [];
+        }
 
         $unknowns = [];
         $existings = [];
         $errors = [];
         $installeds = [];
-        foreach ($selectionAddons as $addonName) {
+        foreach ($addonList as $addonName) {
             $addon = $addons->dataFromNamespace($addonName);
             if (!$addon) {
                 $unknowns[] = $addonName;
@@ -62,8 +86,146 @@ class ManageAddons extends AbstractJob
             }
         }
 
-        // Convert messages from addons into logs.
-        // TODO Use Common\View\Helper\Messages->log() for simpler code (Common 3.4.65+).
+        $this->flushMessages($messenger);
+        $this->logSummary(
+            'install',
+            $unknowns,
+            $existings,
+            $errors,
+            $installeds
+        );
+    }
+
+    protected function performUpdate(
+        $addons,
+        $messenger,
+        array $options
+    ): void {
+        $addonList = $this->getArg('addons', []);
+        $autoUpgrade = !empty($options['auto_upgrade']);
+
+        $errors = [];
+        $updated = [];
+        foreach ($addonList as $addonName) {
+            $addon = $addons->dataFromNamespace($addonName)
+                ?: $addons->dataFromNamespace($addonName, 'module');
+            if (!$addon) {
+                $this->logger->warn(
+                    'Unknown addon for update: {name}.', // @translate
+                    ['name' => $addonName]
+                );
+                continue;
+            }
+            $result = $addons->updateAddon($addon);
+            if ($result) {
+                $updated[] = $addonName;
+                if ($autoUpgrade) {
+                    $this->tryUpgradeDb($addonName);
+                }
+            } else {
+                $errors[] = $addonName;
+            }
+        }
+
+        $this->flushMessages($messenger);
+
+        if ($errors) {
+            $this->job->setStatus(
+                \Omeka\Entity\Job::STATUS_ERROR
+            );
+            $this->logger->error(
+                'Failed to update: {addons}.', // @translate
+                ['addons' => implode(', ', $errors)]
+            );
+        }
+        if ($updated) {
+            $this->logger->notice(
+                'Updated: {addons}.', // @translate
+                ['addons' => implode(', ', $updated)]
+            );
+        }
+    }
+
+    protected function performRemove($addons, $messenger): void
+    {
+        $addonList = $this->getArg('addons', []);
+
+        $errors = [];
+        $removed = [];
+        foreach ($addonList as $addonName) {
+            $addon = $addons->dataFromNamespace($addonName)
+                ?: $addons->dataFromNamespace($addonName, 'module');
+            if (!$addon) {
+                $addon = [
+                    'type' => 'module',
+                    'name' => $addonName,
+                    'dir' => $addonName,
+                    'basename' => $addonName,
+                    'url' => '',
+                    'zip' => '',
+                    'version' => '',
+                    'dependencies' => [],
+                ];
+            }
+            $result = $addons->removeAddon($addon);
+            if ($result) {
+                $removed[] = $addonName;
+            } else {
+                $errors[] = $addonName;
+            }
+        }
+
+        $this->flushMessages($messenger);
+
+        if ($errors) {
+            $this->job->setStatus(
+                \Omeka\Entity\Job::STATUS_ERROR
+            );
+            $this->logger->error(
+                'Failed to remove: {addons}.', // @translate
+                ['addons' => implode(', ', $errors)]
+            );
+        }
+        if ($removed) {
+            $this->logger->notice(
+                'Removed: {addons}.', // @translate
+                ['addons' => implode(', ', $removed)]
+            );
+        }
+    }
+
+    protected function tryUpgradeDb(string $moduleId): void
+    {
+        $services = $this->getServiceLocator();
+        $moduleManager = $services->get('Omeka\ModuleManager');
+        $module = $moduleManager->getModule($moduleId);
+        if ($module
+            && $module->getState()
+                === \Omeka\Module\Manager::STATE_NEEDS_UPGRADE
+        ) {
+            try {
+                $moduleManager->upgrade($module);
+                $this->logger->notice(
+                    'Database upgraded for {name}.', // @translate
+                    ['name' => $moduleId]
+                );
+            } catch (\Exception $e) {
+                $this->logger->err(
+                    'DB upgrade failed for {name}: {error}', // @translate
+                    [
+                        'name' => $moduleId,
+                        'error' => $e->getMessage(),
+                    ]
+                );
+            }
+        }
+    }
+
+    /**
+     * Convert messenger messages into logger entries.
+     */
+    protected function flushMessages($messenger): void
+    {
         $typesToLogPriorities = [
             Messenger::ERROR => Logger::ERR,
             Messenger::SUCCESS => Logger::NOTICE,
@@ -72,38 +234,62 @@ class ManageAddons extends AbstractJob
         ];
         foreach ($messenger->get() as $type => $messages) {
             foreach ($messages as $message) {
-                $priority = $typesToLogPriorities[$type] ?? Logger::NOTICE;
+                $priority = $typesToLogPriorities[$type]
+                    ?? Logger::NOTICE;
                 if ($message instanceof TranslatorAwareInterface) {
-                    $this->logger->log($priority, $message->getMessage(), $message->getContext());
+                    $this->logger->log(
+                        $priority,
+                        $message->getMessage(),
+                        $message->getContext()
+                    );
                 } else {
-                    $this->logger->log($priority, (string) $message);
+                    $this->logger->log(
+                        $priority,
+                        (string) $message
+                    );
                 }
             }
         }
+    }
 
-        if (count($unknowns)) {
+    protected function logSummary(
+        string $operation,
+        array $unknowns,
+        array $existings,
+        array $errors,
+        array $success
+    ): void {
+        if ($unknowns) {
             $this->logger->notice(
-                'The following modules of the selection are unknown: {addons}.', // @translate
+                'The following addons are unknown: {addons}.', // @translate
                 ['addons' => implode(', ', $unknowns)]
             );
         }
-        if (count($existings)) {
+        if ($existings) {
             $this->logger->notice(
-                'The following modules are already installed: {addons}.', // @translate
+                'The following addons are already installed: {addons}.', // @translate
                 ['addons' => implode(', ', $existings)]
             );
         }
-        if (count($errors)) {
-            $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
+        if ($errors) {
+            $this->job->setStatus(
+                \Omeka\Entity\Job::STATUS_ERROR
+            );
             $this->logger->error(
-                'The following modules cannot be installed: {addons}.', // @translate
-                ['addons' => implode(', ', $errors)]
+                'The following addons failed to {operation}: {addons}.', // @translate
+                [
+                    'operation' => $operation,
+                    'addons' => implode(', ', $errors),
+                ]
             );
         }
-        if (count($installeds)) {
+        if ($success) {
             $this->logger->notice(
-                'The following modules have been installed: {addons}.', // @translate
-                ['addons' => implode(', ', $installeds)]
+                'The following addons were successfully with {operation}: {addons}.', // @translate
+                [
+                    'operation' => $operation,
+                    'addons' => implode(', ', $success),
+                ]
             );
         }
     }

@@ -1,0 +1,40 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var array|null $addon
+ * @var string $addonDir
+ * @var array $integrity
+ */
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$url = $plugins->get('url');
+$translate = $plugins->get('translate');
+
+$name = $addon['name'] ?? $addonDir;
+?>
+
+<h3><?= $escape(sprintf($translate('Remove module "%s"'), $name)) ?></h3>
+
+<div class="messages error">
+    <p><?= $escape($translate('This action will uninstall the module from the database and delete all its files. This cannot be undone.')) ?></p>
+</div>
+
+<?php if ($integrity['status'] === 'modified'): ?>
+<div class="messages warning">
+    <p><?= $escape($translate('This module has been modified locally.')) ?></p>
+    <?php if (!empty($integrity['modified'])): ?>
+    <ul>
+        <?php foreach ($integrity['modified'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+</div>
+<?php endif ?>
+
+<form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'remove']) ?>">
+    <?= $this->csrf('module_remove') ?>
+    <input type="hidden" name="id" value="<?= $escape($addonDir) ?>">
+    <button type="submit" class="button o-icon-delete"><?= $escape($translate('Confirm removal')) ?></button>
+</form>
