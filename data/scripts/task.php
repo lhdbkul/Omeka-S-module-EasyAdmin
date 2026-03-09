@@ -152,6 +152,15 @@ if (empty($taskName)) {
     exit();
 }
 
+// Validate task name to prevent path traversal via include.
+if (!preg_match('/^[A-Za-z0-9_\\\\]+$/', $taskName)) {
+    $message = new Message(
+        'The task name contains invalid characters.' // @translate
+    );
+    echo $translator->translate($message) . PHP_EOL;
+    exit();
+}
+
 // Manually scan modules directory instead of using plugin manager because this
 // script may be called before the service manager is fully initialized.
 // This approach works reliably for execution of jobs via cli.
