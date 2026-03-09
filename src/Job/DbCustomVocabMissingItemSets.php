@@ -49,15 +49,15 @@ class DbCustomVocabMissingItemSets extends AbstractCheck
 
     protected function checkTableExists(string $table): bool
     {
-        $table = $this->connection->quote($table);
-        $sql = <<<'SQL'
+        $dbname = $this->connection->getDatabase();
+        $sql = <<<SQL
             SELECT *
             FROM information_schema.TABLES
             WHERE table_schema = "$dbname"
-                AND table_name = $table
+                AND table_name = ?
             LIMIT 1;
             SQL;
-        return (bool) $this->connection->executeQuery($sql)->fetchOne();
+        return (bool) $this->connection->executeQuery($sql, [$table])->fetchOne();
     }
 
     /**
@@ -75,7 +75,7 @@ class DbCustomVocabMissingItemSets extends AbstractCheck
             WHERE `custom_vocab`.`item_set_id` IS NOT NULL
                 AND `custom_vocab`.`terms` IS NULL
                 AND `custom_vocab`.`uris` IS NULL
-                AND `item_set`.`id` = NULL
+                AND `item_set`.`id` IS NULL
             ;
             SQL;
         $result = $this->connection->executeQuery($sqlList)->fetchAllKeyValue();
@@ -100,7 +100,7 @@ class DbCustomVocabMissingItemSets extends AbstractCheck
                 WHERE `custom_vocab`.`item_set_id` IS NOT NULL
                     AND `custom_vocab`.`terms` IS NULL
                     AND `custom_vocab`.`uris` IS NULL
-                    AND `item_set`.`id` = NULL
+                    AND `item_set`.`id` IS NULL
                 ;
                 SQL;
             $this->connection->executeStatement($sql);
@@ -117,7 +117,7 @@ class DbCustomVocabMissingItemSets extends AbstractCheck
                 WHERE `custom_vocab`.`item_set_id` IS NOT NULL
                     AND `custom_vocab`.`terms` IS NULL
                     AND `custom_vocab`.`uris` IS NULL
-                    AND `item_set`.`id` = NULL
+                    AND `item_set`.`id` IS NULL
                 ;
                 SQL;
             $this->connection->executeStatement($sql);

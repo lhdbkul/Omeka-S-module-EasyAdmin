@@ -63,7 +63,7 @@ class DbJob extends AbstractCheck
                 WHERE id != :jobid
                     AND status IN ("starting", "stopping");
                 SQL;
-            $stopped = $this->connection->executeQuery($sql, ['jobid' => $this->job->getId()])->rowCount();
+            $stopped = $this->connection->executeStatement($sql, ['jobid' => $this->job->getId()]);
 
             $sql = <<<'SQL'
                 UPDATE job
@@ -71,7 +71,7 @@ class DbJob extends AbstractCheck
                 WHERE id != :jobid
                     AND status IN ("in_progress");
                 SQL;
-            $error = $this->connection->executeQuery($sql, ['jobid' => $this->job->getId()])->rowCount();
+            $error = $this->connection->executeStatement($sql, ['jobid' => $this->job->getId()]);
 
             $this->logger->notice(
                 'Dead jobs were cleaned: {count_stopped} marked "stopped" and {count_error} marked "error" on a total of {count_jobs}.', // @translate

@@ -170,8 +170,7 @@ class DbLog extends AbstractCheck
                 $stmt->bindValue(':length', $maximumLength);
             }
 
-            $stmt->executeStatement();
-            $count = $stmt->rowCount();
+            $count = $stmt->executeStatement();
             $size = $this->connection->executeQuery($sqlSize)->fetchOne();
 
             $this->logger->notice(
