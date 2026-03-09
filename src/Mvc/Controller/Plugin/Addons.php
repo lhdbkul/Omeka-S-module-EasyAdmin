@@ -1222,6 +1222,26 @@ class Addons extends AbstractPlugin
             return false;
         }
 
+        // Restrict to trusted hosts to prevent SSRF.
+        $host = strtolower((string) parse_url($source, PHP_URL_HOST));
+        $trustedHosts = [
+            'github.com',
+            'gitlab.com',
+            'omeka.org',
+            'api.github.com',
+            'codeload.github.com',
+        ];
+        $isTrusted = false;
+        foreach ($trustedHosts as $trusted) {
+            if ($host === $trusted || str_ends_with($host, '.' . $trusted)) {
+                $isTrusted = true;
+                break;
+            }
+        }
+        if (!$isTrusted) {
+            return false;
+        }
+
         // Limit download size to 200 MB to prevent disk exhaustion.
         $maxSize = 200 * 1024 * 1024;
 
