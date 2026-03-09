@@ -215,10 +215,23 @@ trait TraitEasyDir
             return false;
         }
 
+        // Resolve symlinks and ".." to prevent path traversal.
+        $realDirPath = realpath(rtrim($dirPath, '/'));
+        if (!$realDirPath) {
+            // Directory does not exist yet; resolve parent.
+            $parentDir = realpath(dirname(rtrim($dirPath, '/')));
+            if (!$parentDir) {
+                $errorMessage = 'Local path is not valid.'; // @translate
+                return false;
+            }
+            $realDirPath = $parentDir . '/' . basename(rtrim($dirPath, '/'));
+        }
+        $realDirPath = rtrim($realDirPath, '/') . '/';
+
         if (empty($this->allowAnyPath)) {
-            $basePath = rtrim($this->basePath, '/') . '/';
-            if ($dirPath === $basePath
-                || mb_strpos($dirPath, $basePath) !== 0
+            $basePath = rtrim(realpath($this->basePath) ?: $this->basePath, '/') . '/';
+            if ($realDirPath === $basePath
+                || mb_strpos($realDirPath, $basePath) !== 0
             ) {
                 $errorMessage = 'Local path should be a sub-directory of /files.'; // @translate
                 return false;

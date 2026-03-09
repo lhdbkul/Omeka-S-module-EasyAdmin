@@ -1298,6 +1298,9 @@ class Addons extends AbstractPlugin
                     $entryName = $zip->getNameIndex($i);
                     if ($entryName === false
                         || strpos($entryName, '..') !== false
+                        || strpos($entryName, '/') === 0
+                        || strpos($entryName, '\\') === 0
+                        || preg_match('/^[a-zA-Z]:/', $entryName)
                     ) {
                         $zip->close();
                         return false;

@@ -601,12 +601,22 @@ class FileManagerController extends AbstractActionController
         }
 
         // Userdata directories: only the owner can delete files.
+        // Shared directories: only admins can delete files.
         if ($this->isUserDataDirectory($dirPath)) {
             $user = $this->identity();
             $dirUserId = $this->getUserIdFromPath($dirPath);
             if (!$user || $dirUserId !== $user->getId()) {
                 if ($showMessages) {
                     $this->messenger()->addError('You can only delete files in your own directory.'); // @translate
+                }
+                return false;
+            }
+        } else {
+            $user = $this->identity();
+            $acl = $this->getServiceLocator()->get('Omeka\Acl');
+            if (!$user || !$acl->isAdminRole($user->getRole())) {
+                if ($showMessages) {
+                    $this->messenger()->addError('Only administrators can delete files in shared directories.'); // @translate
                 }
                 return false;
             }
