@@ -30,21 +30,25 @@ class ThemeController extends AbstractActionController
         $omekaThemes = $catalogueAddons['omekatheme'] ?? [];
         $webThemes = $catalogueAddons['theme'] ?? [];
 
-        // Also scan local themes directory.
-        $themesDir = OMEKA_PATH . '/themes';
+        // Scan both local and composer-addons theme directories.
         $localThemes = [];
-        if (is_dir($themesDir)) {
+        foreach ($this->getThemesDirs() as $themesDir) {
             $dirs = array_diff(
                 scandir($themesDir) ?: [],
                 ['.', '..']
             );
             foreach ($dirs as $dir) {
+                // Local themes/ takes precedence.
+                if (isset($localThemes[$dir])) {
+                    continue;
+                }
                 $iniFile = $themesDir . '/' . $dir
                     . '/config/theme.ini';
                 if (file_exists($iniFile)) {
                     $ini = parse_ini_file($iniFile);
                     $localThemes[$dir] = [
                         'dir' => $dir,
+                        'path' => $themesDir . '/' . $dir,
                         'name' => $ini['name'] ?? $dir,
                         'version' => $ini['version'] ?? '',
                         'description' => $ini['description'] ?? '',
@@ -54,10 +58,10 @@ class ThemeController extends AbstractActionController
                     ];
                 }
             }
-            uasort($localThemes, function ($a, $b) {
-                return strcasecmp($a['name'], $b['name']);
-            });
         }
+        uasort($localThemes, function ($a, $b) {
+            return strcasecmp($a['name'], $b['name']);
+        });
 
         $state = $this->params()->fromQuery('state');
 
@@ -241,9 +245,11 @@ class ThemeController extends AbstractActionController
         $addon = $addons->dataFromNamespace($id, 'theme')
             ?: $addons->dataFromNamespace($id);
 
-        $themesDir = OMEKA_PATH . '/themes';
-        $iniFile = $themesDir . '/' . $id . '/config/theme.ini';
-        $ini = file_exists($iniFile)
+        $themePath = $this->resolveThemePath($id);
+        $iniFile = $themePath
+            ? $themePath . '/config/theme.ini'
+            : null;
+        $ini = $iniFile && file_exists($iniFile)
             ? (parse_ini_file($iniFile) ?: [])
             : [];
 
@@ -382,15 +388,15 @@ class ThemeController extends AbstractActionController
             )];
         } else {
             $report = [];
-            $themesDir = OMEKA_PATH . '/themes';
-            $dirs = array_diff(
-                scandir($themesDir) ?: [],
-                ['.', '..']
-            );
-            foreach ($dirs as $dir) {
-                if (!is_dir($themesDir . '/' . $dir)) {
-                    continue;
+            $dirs = [];
+            foreach ($this->getThemesDirs() as $themesDir) {
+                foreach (array_diff(scandir($themesDir) ?: [], ['.', '..']) as $dir) {
+                    if (!isset($dirs[$dir]) && is_dir($themesDir . '/' . $dir)) {
+                        $dirs[$dir] = true;
+                    }
                 }
+            }
+            foreach (array_keys($dirs) as $dir) {
                 $addon = $addons->dataFromNamespace($dir, 'theme')
                     ?: $addons->dataFromNamespace($dir);
                 if (!$addon) {
@@ -431,6 +437,33 @@ class ThemeController extends AbstractActionController
             'easy-admin/admin/theme/integrity-report'
         );
         return $view;
+    }
+
+    /**
+     * Get all theme directories (local takes precedence).
+     *
+     * @return string[]
+     */
+    protected function getThemesDirs(): array
+    {
+        return array_filter([
+            OMEKA_PATH . '/themes',
+            OMEKA_PATH . '/composer-addons/themes',
+        ], 'is_dir');
+    }
+
+    /**
+     * Resolve a theme id to its filesystem path.
+     */
+    protected function resolveThemePath(string $themeId): ?string
+    {
+        foreach ($this->getThemesDirs() as $themesDir) {
+            $path = $themesDir . '/' . $themeId;
+            if (is_dir($path)) {
+                return $path;
+            }
+        }
+        return null;
     }
 
     protected function handlePost($addons): \Laminas\Http\Response

@@ -236,11 +236,26 @@ class Addons extends AbstractPlugin
      */
     public function dirExists($addon): bool
     {
-        $destination = OMEKA_PATH . $this->data[$addon['type']]['destination'];
-        $existings = $this->listDirsInDir($destination);
-        $existings = array_map('strtolower', $existings);
-        return in_array(strtolower($addon['dir']), $existings)
-            || in_array(strtolower($addon['basename']), $existings);
+        $subDir = $this->data[$addon['type']]['destination'];
+        $dirs = [OMEKA_PATH . $subDir];
+        $composerDir = OMEKA_PATH . '/composer-addons' . $subDir;
+        if (is_dir($composerDir)) {
+            $dirs[] = $composerDir;
+        }
+        $dirLower = strtolower($addon['dir']);
+        $baseLower = strtolower($addon['basename']);
+        foreach ($dirs as $destination) {
+            $existings = array_map(
+                'strtolower',
+                $this->listDirsInDir($destination)
+            );
+            if (in_array($dirLower, $existings)
+                || in_array($baseLower, $existings)
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -64,9 +64,15 @@ class ThemeTemplate extends AbstractCheck
             return;
         }
 
-        $this->checkDirectory(OMEKA_PATH . '/themes/', $isFix);
-        if ($this->job->getStatus() === \Omeka\Entity\Job::STATUS_ERROR) {
-            return;
+        $themesDirs = array_filter([
+            OMEKA_PATH . '/themes',
+            OMEKA_PATH . '/composer-addons/themes',
+        ], 'is_dir');
+        foreach ($themesDirs as $themesDir) {
+            $this->checkDirectory($themesDir, $isFix);
+            if ($this->job->getStatus() === \Omeka\Entity\Job::STATUS_ERROR) {
+                return;
+            }
         }
 
         $this->totalProcessed = 0;
@@ -115,27 +121,32 @@ class ThemeTemplate extends AbstractCheck
 
     protected function checkThemeTemplates(array $modules, bool $isFix = false): self
     {
-        $themes = glob(OMEKA_PATH . '/themes/*', GLOB_ONLYDIR);
-        foreach ($themes as $themePath) {
-            $theme = basename($themePath);
-            foreach ($modules as $module) switch ($module) {
-                case 'Reference':
-                    // Move all block layouts to block templates except "reference" and "reference-tree".
-                    $filepaths = glob(OMEKA_PATH . "/themes/$theme/view/common/block-layout/reference*");
-                    $filepaths = array_filter($filepaths, fn ($v) => !in_array(basename($v), ['reference.phtml', 'reference-tree.phtml']));
-                    $this->processThemeTemplates($module, $theme, $filepaths, $isFix);
-                    break;
-                default:
-                    $this->logger->warnr(
-                        'The module {module} is not managed.', // @translate
-                        ['module' => $module]
-                    );
+        $themesDirs = array_filter([
+            OMEKA_PATH . '/themes',
+            OMEKA_PATH . '/composer-addons/themes',
+        ], 'is_dir');
+        foreach ($themesDirs as $themesDir) {
+            $themes = glob($themesDir . '/*', GLOB_ONLYDIR);
+            foreach ($themes as $themePath) {
+                $theme = basename($themePath);
+                foreach ($modules as $module) switch ($module) {
+                    case 'Reference':
+                        $filepaths = glob($themePath . '/view/common/block-layout/reference*');
+                        $filepaths = array_filter($filepaths, fn ($v) => !in_array(basename($v), ['reference.phtml', 'reference-tree.phtml']));
+                        $this->processThemeTemplates($module, $theme, $themePath, $filepaths, $isFix);
+                        break;
+                    default:
+                        $this->logger->warn(
+                            'The module {module} is not managed.', // @translate
+                            ['module' => $module]
+                        );
+                }
             }
         }
         return $this;
     }
 
-    protected function processThemeTemplates(string $module, string $theme, array $filepaths, bool $isFix): self
+    protected function processThemeTemplates(string $module, string $theme, string $themePath, array $filepaths, bool $isFix): self
     {
         $start = mb_strlen(OMEKA_PATH . '/');
 
@@ -155,8 +166,8 @@ class ThemeTemplate extends AbstractCheck
 
             $source = $filepath;
             $destination = strtr($filepath, [
-                OMEKA_PATH . "/themes/$theme/view/common/block-layout/"
-                    => OMEKA_PATH . "/themes/$theme/view/common/block-template/",
+                $themePath . '/view/common/block-layout/'
+                    => $themePath . '/view/common/block-template/',
             ]);
             $destinationDir = pathinfo($destination, PATHINFO_DIRNAME);
 

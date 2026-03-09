@@ -101,9 +101,11 @@ echo $this->form()->openTag($manageForm);
         $invalidOmeka = $constraint
             && !\Composer\Semver\Semver::satisfies($omekaVersion, $constraint);
 
-        $thumbFile = OMEKA_PATH . '/themes/' . $themeId . '/theme.jpg';
+        $themePath = $theme['path'] ?? (OMEKA_PATH . '/themes/' . $themeId);
+        $thumbFile = $themePath . '/theme.jpg';
+        // Derive the web-relative path from the filesystem path.
         $thumbUrl = file_exists($thumbFile)
-            ? $this->basePath('themes/' . $themeId . '/theme.jpg')
+            ? $this->basePath(substr($themePath, strlen(OMEKA_PATH) + 1) . '/theme.jpg')
             : null;
     ?>
         <tr>

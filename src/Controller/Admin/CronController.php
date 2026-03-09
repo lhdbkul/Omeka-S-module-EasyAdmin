@@ -190,7 +190,7 @@ class CronController extends AbstractActionController
         $serverUrl = $this->viewHelpers()->get('ServerUrl');
         $basePath = $this->viewHelpers()->get('BasePath');
 
-        $scriptPath = realpath(OMEKA_PATH . '/modules/EasyAdmin/data/scripts/task.php');
+        $scriptPath = realpath(dirname(__DIR__, 3) . '/data/scripts/task.php');
 
         // Suggest daily execution by default.
         return sprintf(
