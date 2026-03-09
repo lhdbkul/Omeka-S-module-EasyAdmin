@@ -15,6 +15,11 @@ class DbValueClean extends AbstractCheck
 
     public function perform(): void
     {
+        parent::perform();
+        if ($this->job->getStatus() === \Omeka\Entity\Job::STATUS_ERROR) {
+            return;
+        }
+
         $availableActions = [
             'trim',
             'null_empty_value',
@@ -35,11 +40,6 @@ class DbValueClean extends AbstractCheck
             $this->logger->warn(
                 'No valid action defined.' // @translate
             );
-            return;
-        }
-
-        parent::perform();
-        if ($this->job->getStatus() === \Omeka\Entity\Job::STATUS_ERROR) {
             return;
         }
 
@@ -192,9 +192,9 @@ class DbValueClean extends AbstractCheck
             $query = <<<SQL
                 UPDATE `value` AS `v`
                 SET
-                    `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[\\\\s\\\\h\\\\v[:blank:][:space:]]+|[\\\\s\\\\h\\\\v[:blank:][:space:]]+$", ""), ""),
-                    `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[\\\\s\\\\h\\\\v[:blank:][:space:]]+|[\\\\s\\\\h\\\\v[:blank:][:space:]]+$", ""), ""),
-                    `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[\\\\s\\\\h\\\\v[:blank:][:space:]]+|[\\\\s\\\\h\\\\v[:blank:][:space:]]+$", ""), "")
+                    `v`.`value` = NULLIF(REGEXP_REPLACE(`v`.`value`, "^[[:space:]]+|[[:space:]]+$", ""), ""),
+                    `v`.`lang` = NULLIF(REGEXP_REPLACE(`v`.`lang`, "^[[:space:]]+|[[:space:]]+$", ""), ""),
+                    `v`.`uri` = NULLIF(REGEXP_REPLACE(`v`.`uri`, "^[[:space:]]+|[[:space:]]+$", ""), "")
                 $sqlWhere
                 SQL;
         } else {

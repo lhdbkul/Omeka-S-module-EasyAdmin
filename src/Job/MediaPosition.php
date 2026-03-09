@@ -31,7 +31,7 @@ class MediaPosition extends AbstractCheck
 
         $sql = 'SELECT COUNT(id) FROM item;';
         $totalToProcess = $this->connection->executeQuery($sql)->fetchOne();
-        if (empty($totalResources)) {
+        if (empty($totalToProcess)) {
             $this->logger->notice(
                 'No item to process.' // @translate
             );

@@ -166,7 +166,7 @@ class DbUtf8Encode extends AbstractCheck
             $criteria = clone $baseCriteria;
             $criteria->setFirstResult($offset);
             $entities = $this->repository->matching($criteria);
-            if (!$entities->count() || $offset >= $entities->count()) {
+            if (!$entities->count() || $offset >= $totalToProcess) {
                 break;
             }
 

@@ -1075,6 +1075,7 @@ class Module extends AbstractModule
                 <h4>$translatedSites</h4>
                 $htmlSites
             </div>
+            <style>.sidebar .meta-group.item-sites .o-icon-external{float:right}</style>
             HTML . "\n";
         return $html;
     }

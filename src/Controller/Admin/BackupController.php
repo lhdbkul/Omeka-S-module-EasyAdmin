@@ -83,14 +83,20 @@ class BackupController extends AbstractActionController
             'skip_data_tables' => is_array($skipDataTables) ? $skipDataTables : [],
         ]);
 
-        $this->messenger()->addSuccess(
-            'Database backup started. Check job logs for progress.' // @translate
+        $urlPlugin = $this->url();
+        $message = new \Common\Stdlib\PsrMessage(
+            'Database backup started in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+            [
+                'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                'job_id' => $job->getId(),
+                'link_end' => '</a>',
+                'link_log' => class_exists('Log\Module', false)
+                    ? sprintf('<a href="%1$s">', $urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]]))
+                    : sprintf('<a href="%1$s" target="_blank">', $urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()])),
+            ]
         );
-
-        $this->messenger()->addSuccess(new \Common\Stdlib\PsrMessage(
-            'Job #{job_id} started.', // @translate
-            ['job_id' => $job->getId()]
-        ));
+        $message->setEscapeHtml(false);
+        $this->messenger()->addSuccess($message);
 
         return $this->redirect()->toRoute(null, ['action' => 'index'], true);
     }
@@ -125,14 +131,20 @@ class BackupController extends AbstractActionController
             'compression' => $compression,
         ]);
 
-        $this->messenger()->addSuccess(
-            'Files backup started. Check job logs for progress.' // @translate
+        $urlPlugin = $this->url();
+        $message = new \Common\Stdlib\PsrMessage(
+            'Files backup started in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+            [
+                'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                'job_id' => $job->getId(),
+                'link_end' => '</a>',
+                'link_log' => class_exists('Log\Module', false)
+                    ? sprintf('<a href="%1$s">', $urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]]))
+                    : sprintf('<a href="%1$s" target="_blank">', $urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()])),
+            ]
         );
-
-        $this->messenger()->addSuccess(new \Common\Stdlib\PsrMessage(
-            'Job #{job_id} started.', // @translate
-            ['job_id' => $job->getId()]
-        ));
+        $message->setEscapeHtml(false);
+        $this->messenger()->addSuccess($message);
 
         return $this->redirect()->toRoute(null, ['action' => 'index'], true);
     }

@@ -21,7 +21,7 @@ $skipPathLength = mb_strpos($dirPath, OMEKA_PATH) === 0 ? mb_strlen(OMEKA_PATH) 
 $form->setButtonLabel('Confirm delete'); // @translate
 ?>
 
-<?php if ($this->wrapSidebar): ?>
+<?php if ($wrapSidebar): ?>
 <div id="delete" class="sidebar">
     <?= $hyperlink('', '#', ['class' => 'sidebar-close o-icon-close', 'title' => $translate('Close')]) ?>
 <?php endif; ?>

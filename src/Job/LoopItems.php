@@ -18,6 +18,6 @@ class LoopItems extends DbLoopResources
         $this->easyMeta = $services->get('Common\EasyMeta');
         $this->entityManager = $services->get('Omeka\EntityManager');
 
-        $this->processLoop('items');
+        $this->processLoop('items', []);
     }
 }

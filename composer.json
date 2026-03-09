@@ -45,7 +45,6 @@
             "php": "7.4"
         },
         "allow-plugins": {
-            "composer/installers": true,
             "sempia/external-assets": true
         }
     },

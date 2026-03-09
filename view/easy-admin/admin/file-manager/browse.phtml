@@ -21,18 +21,18 @@
 $plugins = $this->getHelperPluginManager();
 $url = $plugins->get('url');
 $escape = $plugins->get('escapeHtml');
+$htmlAttr = $plugins->get('htmlAttributes');
 $assetUrl = $plugins->get('assetUrl');
 $translate = $plugins->get('translate');
 $hyperlink = $plugins->get('hyperlink');
 $escapeAttr = $plugins->get('escapeHtmlAttr');
-$htmlAttr = $plugins->get('htmlAttributes');
 
 $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
 $this->headScript()
     ->appendFile($assetUrl('js/file-manager.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
 
-// Add upload scripts only for writable directories.
+// Add upload scripts only for writeable directories.
 if ($uploadData):
     $this->headLink()->appendStylesheet($assetUrl('css/bulk-upload.css', 'EasyAdmin'));
     $this->headScript()
@@ -102,7 +102,7 @@ $formatSize = function ($bytes) {
 </ul>
 <?php endif; ?>
 
-<?php // Upload section (only for writable directories) ?>
+<?php // Upload section (only for writeable directories) ?>
 <?php if ($uploadData): ?>
 <div id="bulk-upload" class="block media-field-wrapper">
     <div class="media-bulk-upload" data-main-index="__index__" <?= $htmlAttr($uploadData) ?>>
@@ -151,7 +151,7 @@ $formatSize = function ($bytes) {
 <form method="post" id="file-list-form" class="block disable-unsaved-warning">
     <input type="hidden" name="dir_path" value="<?= $escapeAttr($dirPath) ?>">
 
-    <?php // Batch actions (only for writable directories) ?>
+    <?php // Batch actions (only for writeable directories) ?>
     <?php if ($canDelete): ?>
     <div class="batch-actions">
         <button type="button" class="button batch-delete-btn" disabled>

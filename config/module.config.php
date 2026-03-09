@@ -263,13 +263,13 @@ return [
                 'resource' => 'EasyAdmin\Controller\Admin\Backup',
             ],
             [
-                'label' => 'Manage modules', // @translate
+                'label' => 'Modules', // @translate
                 'route' => 'admin/easy-admin/default',
                 'controller' => 'module',
                 'resource' => 'EasyAdmin\Controller\Admin\Module',
             ],
             [
-                'label' => 'Manage themes', // @translate
+                'label' => 'Themes', // @translate
                 'route' => 'admin/easy-admin/default',
                 'controller' => 'theme',
                 'resource' => 'EasyAdmin\Controller\Admin\Theme',

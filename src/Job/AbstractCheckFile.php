@@ -451,7 +451,7 @@ abstract class AbstractCheckFile extends AbstractCheck
         } catch (\Exception $e) {
             $this->logger->err(
                 'Directory or file not readable: {error}', // @translate
-                ['exception' => $e->getMessage()]
+                ['error' => $e->getMessage()]
             );
             $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
         }

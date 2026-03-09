@@ -13,7 +13,8 @@ class MvcListeners extends AbstractListenerAggregate
     {
         $this->listeners[] = $events->attach(
             MvcEvent::EVENT_ROUTE,
-            [$this, 'redirectToMaintenance']
+            [$this, 'redirectToMaintenance'],
+            -100
         );
     }
 
@@ -25,6 +26,9 @@ class MvcListeners extends AbstractListenerAggregate
     public function redirectToMaintenance(MvcEvent $event)
     {
         $routeMatch = $event->getRouteMatch();
+        if (!$routeMatch) {
+            return;
+        }
         $matchedRouteName = $routeMatch->getMatchedRouteName();
         if (in_array($matchedRouteName, [
             'maintenance',

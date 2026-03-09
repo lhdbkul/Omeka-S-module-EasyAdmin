@@ -112,7 +112,7 @@ class DbLoopResources extends AbstractJob
                 [
                     'limit' => self::BULK_LIMIT,
                     'offset' => $offset,
-                ],
+                ] + $query,
                 ['returnScalar' => 'id'])
                 ->getContent();
             if (empty($resourceIds)) {

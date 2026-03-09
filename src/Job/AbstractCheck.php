@@ -179,7 +179,7 @@ abstract class AbstractCheck extends AbstractJob
             $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
             $this->logger->err(
                 'Unable to open output: {error}.', // @translate
-                ['error' => error_get_last()['message']]
+                ['error' => error_get_last()['message'] ?? 'unknown error']
             );
             return $this;
         }
@@ -188,10 +188,10 @@ abstract class AbstractCheck extends AbstractJob
         fwrite($this->handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         if ($this->options['enclosure'] === 0) {
-            $this->options['enclosure'] = chr(0);
+            $this->options['enclosure'] = "\0";
         }
         if ($this->options['escape'] === 0) {
-            $this->options['escape'] = chr(0);
+            $this->options['escape'] = "\0";
         }
 
         $row = [];
@@ -322,7 +322,7 @@ abstract class AbstractCheck extends AbstractJob
                     $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
                     $this->logger->err(
                         'Error when saving "{filename}" (temp file: "{tempfile}"): {error}', // @translate
-                        ['filename' => $filename, 'tempfile' => $filePath, 'error' => error_get_last()['message']]
+                        ['filename' => $filename, 'tempfile' => $filePath, 'error' => error_get_last()['message'] ?? 'unknown error']
                     );
                     return $this;
                 }
@@ -391,7 +391,7 @@ abstract class AbstractCheck extends AbstractJob
         if (!$result) {
             $this->logger->err(
                 'The directory "{path}" is not writeable: {error}.', // @translate
-                ['path' => $dirPath, 'error' => error_get_last()['message']]
+                ['path' => $dirPath, 'error' => error_get_last()['message'] ?? 'unknown error']
             );
             return null;
         }

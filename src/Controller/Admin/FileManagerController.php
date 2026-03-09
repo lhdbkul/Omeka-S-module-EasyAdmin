@@ -107,7 +107,7 @@ class FileManagerController extends AbstractActionController
         $page = (int) $this->params()->fromQuery('page', 1);
         $perPage = self::PER_PAGE;
 
-        // Upload configuration (only for writable directories).
+        // Upload configuration (only for writeable directories).
         $uploadData = null;
         if ($dirPath && $canWriteInDir) {
             $uploadData = $this->prepareUploadData($settings);
@@ -139,7 +139,7 @@ class FileManagerController extends AbstractActionController
             $totalFiles = $result['total'];
             $totalPages = (int) ceil($totalFiles / $perPage);
 
-            // Delete form (only for writable, non-protected directories).
+            // Delete form (only for writeable, non-protected directories).
             if ($canWriteInDir) {
                 $formDelete = $this->getForm(ConfirmForm::class);
                 $formDelete
@@ -535,7 +535,7 @@ class FileManagerController extends AbstractActionController
         $errorMessage = null;
         $dirPath = $this->getAndCheckDirPath($dirPath, $errorMessage, true);
         if (!$dirPath) {
-            $this->messenger()->addError($errorMessage ?: 'You must set a writable directory to delete files.'); // @translate
+            $this->messenger()->addError($errorMessage ?: 'You must set a writeable directory to delete files.'); // @translate
             return $this->redirect()->toRoute(null, ['action' => 'browse'], ['query' => $query], true);
         }
 

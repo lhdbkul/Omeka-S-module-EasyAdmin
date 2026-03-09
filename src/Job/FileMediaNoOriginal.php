@@ -77,7 +77,7 @@ class FileMediaNoOriginal extends AbstractCheckFile
                 // ->setFirstResult($offset)
                 ->andWhere($expr->gt('id', $lastId));
             $medias = $this->mediaRepository->matching($criteria);
-            if (!$medias->count() || $offset >= $medias->count()) {
+            if (!$medias->count() || $totalProcessed >= $totalToProcess) {
                 break;
             }
 

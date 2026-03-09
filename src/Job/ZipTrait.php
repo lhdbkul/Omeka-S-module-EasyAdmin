@@ -278,7 +278,7 @@ trait ZipTrait
             . ' --recurse-paths '
             . ($compression < 0 ? '' : " -$compression")
             . ($excluded ? ' --exclude ' . implode(' ', $excluded) : '')
-            . escapeshellarg($destination) . ' ' . escapeshellarg('.');
+            . ' ' . escapeshellarg($destination) . ' ' . escapeshellarg('.');
 
         $resultZip = $this->cli->execute($cmd);
         if ($resultZip === false) {

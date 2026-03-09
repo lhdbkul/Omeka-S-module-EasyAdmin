@@ -154,6 +154,7 @@ class DatabaseBackup extends AbstractJob
             return;
         }
 
+        $filename = basename($filepath);
         $size = filesize($filepath);
         $store = $this->getServiceLocator()->get('Omeka\File\Store');
         $storagePath = 'backup/' . $filename;
@@ -175,7 +176,7 @@ class DatabaseBackup extends AbstractJob
      * without loading data into memory.
      */
     protected function backupWithMysqldump(
-        string $filepath,
+        string &$filepath,
         bool $compress,
         bool $includeStructure,
         bool $includeData,
@@ -265,7 +266,7 @@ class DatabaseBackup extends AbstractJob
      * Uses shell pipes for streaming efficiency.
      */
     protected function backupWithMysqldumpSplit(
-        string $filepath,
+        string &$filepath,
         bool $compress,
         bool $includeStructure,
         bool $includeViews,
@@ -817,7 +818,7 @@ class DatabaseBackup extends AbstractJob
         if (file_exists($dirPath)) {
             if (!is_dir($dirPath) || !is_writeable($dirPath)) {
                 $this->logger->err(
-                    'The backup directory is not writable: {path}', // @translate
+                    'The backup directory is not writeable: {path}', // @translate
                     ['path' => $dirPath]
                 );
                 return false;

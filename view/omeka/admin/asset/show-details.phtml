@@ -13,9 +13,13 @@ $escape = $this->plugin('escapeHtml');
     <div class="value"><?php echo $escape($resource->mediaType()); ?></div>
 </div>
 
+<?php
+$basePath = OMEKA_PATH . '/files/asset/';
+$size = @filesize($basePath . $resource->filename());
+?>
 <div class="meta-group">
     <h4><?= $translate('Size') ?></h4>
-    <div class="value"><?= @filesize($resource->assetUrl()) ?: $translate('[unknown]') ?></div>
+    <div class="value"><?= $size ? sprintf('%s KB', number_format($size / 1024, 1)) : $translate('[unknown]') ?></div>
 </div>
 
 <?php

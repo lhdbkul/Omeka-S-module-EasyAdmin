@@ -100,7 +100,7 @@ class DbResourceInvalid extends AbstractCheck
 
         $this->logger->notice(
             'There are {count} resources with invalid resource type that cannot be fixed automatically: {json}.', // @translate
-            ['count' => count($result), 'json' => json_encode($newList, 448)]
+            ['count' => count($newList), 'json' => json_encode($newList, 448)]
         );
 
         return false;
