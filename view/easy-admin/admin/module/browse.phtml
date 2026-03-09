@@ -348,9 +348,10 @@ $('#selection-filter').on('change', function() {
     var $checks = $('.addon-checklist input[type="checkbox"]');
     $checks.prop('checked', false);
     if (name && selections[name]) {
-        var dirs = selections[name];
+        var dirs = selections[name].map(function(d) { return d.replace(/\s/g, ''); });
         $checks.each(function() {
-            if (dirs.indexOf($(this).data('addon-dir')) !== -1) {
+            var dir = ($(this).data('addon-dir') || '').replace(/\s/g, '');
+            if (dirs.indexOf(dir) !== -1) {
                 $(this).prop('checked', true);
             }
         });
