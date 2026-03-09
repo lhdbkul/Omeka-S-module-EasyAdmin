@@ -54,6 +54,7 @@ return [
             Form\ConfigForm::class => Form\ConfigForm::class,
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,
             Form\AddonManageForm::class => Form\AddonManageForm::class,
+            Form\ModuleStateForm::class => Form\ModuleStateForm::class,
         ],
         'factories' => [
             Form\AddonsForm::class => Service\Form\AddonsFormFactory::class,

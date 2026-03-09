@@ -97,15 +97,15 @@
         list-style: none;
     }
 
-    /* Batch actions */
-    .batch-actions {
+    /* File manager: batch actions */
+    .file-manager .batch-actions {
         display: flex;
         align-items: center;
         gap: 10px;
         margin-bottom: 10px;
     }
 
-    .selected-count {
+    .file-manager .selected-count {
         color: #666;
         font-size: 0.9em;
     }
@@ -187,6 +187,55 @@
     }
     .chosen-sortable-ghost {
         opacity: 0.4;
+    }
+
+    /* Addon browse: version column */
+    .themes.browse td.col-version,
+    .modules.browse td.col-version {
+        white-space: nowrap;
+    }
+
+    /* Addon browse: update available */
+    .col-version.has-update {
+        color: green;
+        background-color: #cdffcd;
+    }
+
+    /* Addon browse: invalid omeka version */
+    .col-version.invalid-omeka {
+        color: #c62828;
+        background-color: #fce4ec;
+    }
+
+    /* Addon browse: author and description */
+    .addon-author {
+        color: #666;
+        font-size: .85em;
+        font-style: italic;
+    }
+    .addon-description {
+        display: block;
+        color: #666;
+        font-size: .85em;
+    }
+
+    /* Addon browse: multi-line cells with tablesaw */
+    .col-state .tablesaw-cell-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .modules.browse td:first-child .tablesaw-cell-content,
+    .themes.browse td:first-child .tablesaw-cell-content {
+        flex-wrap: wrap;
+        align-items: baseline;
+    }
+    .addon-description {
+        width: 100%;
+        order: 10;
+    }
+    .modules.browse td:first-child .actions,
+    .themes.browse td:first-child .actions {
+        margin-left: auto;
     }
 
     /* Sidebar improvements */

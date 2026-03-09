@@ -5,33 +5,36 @@
  * @var array $catalogueModules
  * @var \EasyAdmin\Form\AddonManageForm $manageForm
  * @var \EasyAdmin\Form\AddonsForm $installForm
+ * @var callable $stateForm
  * @var string|null $filterState
  * @var \Omeka\Module\Manager $moduleManager
  */
 
+use Omeka\Module\Manager;
+
 $plugins = $this->getHelperPluginManager();
-$escape = $plugins->get('escapeHtml');
 $url = $plugins->get('url');
-$translate = $plugins->get('translate');
+$escape = $plugins->get('escapeHtml');
 $assetUrl = $plugins->get('assetUrl');
+$translate = $plugins->get('translate');
+$hyperlink = $plugins->get('hyperlink');
 
 $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
-
-$this->htmlElement('body')->appendAttribute('class', 'easy-admin easy-admin-module');
-
-$states = [
-    'active' => $translate('Active'),
-    'not_active' => $translate('Not active'),
-    'not_installed' => $translate('Not installed'),
-    'needs_upgrade' => $translate('Needs upgrade'),
-    'not_found' => $translate('Not found'),
-    'invalid_module' => $translate('Invalid module'),
-    'invalid_ini' => $translate('Invalid INI'),
-    'invalid_omeka_version' => $translate('Invalid Omeka S version'),
-];
+$this->htmlElement('body')->appendAttribute('class', 'modules browse easy-admin');
 
 $composerAddonsPath = OMEKA_PATH . '/composer-addons/modules';
+
+$states = [
+    Manager::STATE_ACTIVE => $translate('Active'),
+    Manager::STATE_NOT_ACTIVE => $translate('Not active'),
+    Manager::STATE_NOT_INSTALLED => $translate('Not installed'),
+    Manager::STATE_NEEDS_UPGRADE => $translate('Needs upgrade'),
+    Manager::STATE_NOT_FOUND => $translate('Not found'),
+    Manager::STATE_INVALID_MODULE => $translate('Invalid module'),
+    Manager::STATE_INVALID_INI => $translate('Invalid INI'),
+    Manager::STATE_INVALID_OMEKA_VERSION => $translate('Invalid Omeka S version'),
+];
 ?>
 
 <?= $this->pageTitle($translate('Manage modules'), 1, $translate('Easy Admin')) ?>
@@ -40,157 +43,256 @@ $composerAddonsPath = OMEKA_PATH . '/composer-addons/modules';
     <?= $this->navigation('Laminas\Navigation\EasyAdmin')->menu() ?>
 </nav>
 
+<?php if (!is_writeable(OMEKA_PATH . '/modules')): ?>
+<div class="messages error">
+    <p><?= $escape(sprintf($translate('The directory "%s" is not writeable. Module installation, update and removal are disabled.'), 'modules/')) ?></p>
+</div>
+<?php endif ?>
+
 <div id="page-actions">
-    <a href="#install-section" class="button"><?= $escape($translate('Install new module')) ?></a>
-    <form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'integrity']) ?>">
-        <?= $this->csrf('integrity') ?>
-        <button type="submit" class="button"><?= $escape($translate('Check all integrity')) ?></button>
-    </form>
+    <a class="button sidebar-content" data-sidebar-selector="#sidebar-install"><?= $escape($translate('Install new module')) ?></a>
 </div>
 
-<?php // State filters. ?>
-<div class="browse-controls">
-    <ul class="filter">
-        <li><a href="<?= $url('admin/easy-admin/default', ['controller' => 'module']) ?>"<?= $filterState === null ? ' class="active"' : '' ?>><?= $escape($translate('All')) ?></a></li>
+<br/>
+
+<form method="get" class="state-filter">
+    <select name="state" aria-label="<?= $translate('Filter') ?>">
+        <option value=""><?= $translate('All modules') ?></option>
         <?php foreach (['active', 'not_active', 'not_installed', 'needs_upgrade'] as $s): ?>
-        <li><a href="<?= $url('admin/easy-admin/default', ['controller' => 'module'], ['query' => ['state' => $s]]) ?>"<?= $filterState === $s ? ' class="active"' : '' ?>><?= $escape($states[$s]) ?></a></li>
+        <option value="<?= $escape($s) ?>"<?= $filterState === $s ? ' selected' : '' ?>><?= $escape($states[$s] ?? $s) ?></option>
         <?php endforeach ?>
-    </ul>
+        <option value="error"<?= $filterState === 'error' ? ' selected' : '' ?>><?= $escape($translate('Error')) ?></option>
+    </select>
+</form>
+
+<?php if ($installedModules): ?>
+
+<?php
+$manageForm
+    ->prepare()
+    ->setAttribute('action', $url('admin/easy-admin/default', ['controller' => 'module']))
+    ->setAttribute('method', 'post')
+    ->setAttribute('id', 'batch-form')
+    ->setAttribute('class', 'disable-unsaved-warning');
+
+echo $this->form()->openTag($manageForm);
+?>
+
+<div class="batch-inputs">
+    <select class="batch-actions-select" name="bulk_action" aria-label="<?= $translate('Batch actions') ?>">
+        <option value="default"><?= $translate('Batch actions') ?></option>
+        <option value="activate" disabled="disabled"><?= $escape($translate('Activate selected')) ?></option>
+        <option value="deactivate" disabled="disabled"><?= $escape($translate('Deactivate selected')) ?></option>
+        <option value="update" disabled="disabled"><?= $escape($translate('Update selected')) ?></option>
+        <option value="remove" disabled="disabled"><?= $escape($translate('Remove selected')) ?></option>
+    </select>
+    <div class="batch-actions">
+        <button type="button" class="default active" disabled="disabled"><?= $translate('Go') ?></button>
+        <button type="submit" class="activate" name="batch_submit" value="activate" style="display:none"><?= $translate('Go') ?></button>
+        <button type="submit" class="deactivate" name="batch_submit" value="deactivate" style="display:none"><?= $translate('Go') ?></button>
+        <button type="submit" class="update" name="batch_submit" value="update" style="display:none"><?= $translate('Go') ?></button>
+        <a class="delete button sidebar-content remove" data-sidebar-selector="#sidebar-remove-selected" style="display:none"><?= $translate('Go') ?></a>
+    </div>
 </div>
 
-<?php // Installed modules table. ?>
-<form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module']) ?>">
-    <?= $this->csrf('module_manage') ?>
+<table class="tablesaw batch-edit" data-tablesaw-mode="stack">
+    <thead>
+        <tr>
+            <th>
+                <input type="checkbox" class="select-all" aria-label="<?= $translate('Select all') ?>">
+                <?= $translate('Module') ?>
+            </th>
+            <th><?= $translate('Version') ?></th>
+            <th><?= $translate('State') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($installedModules as $moduleId => $module):
+        $state = $module->getState();
+        $errorStates = [
+            Manager::STATE_NOT_FOUND,
+            Manager::STATE_INVALID_MODULE,
+            Manager::STATE_INVALID_INI,
+            Manager::STATE_INVALID_OMEKA_VERSION,
+        ];
+        if ($filterState === 'error' && !in_array($state, $errorStates)) {
+            continue;
+        } elseif ($filterState && $filterState !== 'error' && $state !== $filterState) {
+            continue;
+        }
+        $isComposer = is_dir($composerAddonsPath . '/' . $moduleId);
+        $ini = $module->getIni();
+        $version = $ini['version'] ?? '';
+        $name = $module->getName() ?: $moduleId;
 
-    <table class="tablesaw" data-tablesaw-mode="stack">
-        <thead>
-            <tr>
-                <th class="check"><input type="checkbox" class="select-all"></th>
-                <th><?= $escape($translate('Module')) ?></th>
-                <th><?= $escape($translate('Version')) ?></th>
-                <th><?= $escape($translate('State')) ?></th>
-                <th><?= $escape($translate('Source')) ?></th>
-                <th><?= $escape($translate('Actions')) ?></th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($installedModules as $moduleId => $module):
-            $state = $module->getState();
-            if ($filterState && $state !== $filterState) {
-                continue;
+        $catalogueVersion = null;
+        foreach ($catalogueModules as $cm) {
+            if (($cm['dir'] ?? '') === $moduleId) {
+                $catalogueVersion = $cm['version'] ?? null;
+                break;
             }
-            $isComposer = is_dir($composerAddonsPath . '/' . $moduleId);
-            $ini = $module->getIni();
-            $version = $ini['version'] ?? '';
-            $name = $module->getName();
+        }
+        $hasUpdate = $catalogueVersion
+            && $version
+            && version_compare($version, $catalogueVersion, '<');
+    ?>
+        <tr>
+            <td>
+                <?php if (!$isComposer): ?>
+                <input type="checkbox" name="modules[]" value="<?= $escape($moduleId) ?>" aria-label="<?= $escape(sprintf($translate('Select %s'), $name)) ?>">
+                <?php endif ?>
 
-            // Check for update in catalogue.
-            $catalogueVersion = null;
-            foreach ($catalogueModules as $cm) {
-                if (($cm['dir'] ?? '') === $moduleId) {
-                    $catalogueVersion = $cm['version'] ?? null;
-                    break;
-                }
-            }
-            $hasUpdate = $catalogueVersion
-                && $version
-                && version_compare($version, $catalogueVersion, '<');
-        ?>
-            <tr class="module <?= $escape($state) ?><?= $isComposer ? ' composer-managed' : '' ?>">
-                <td class="check">
+                <?php if ($moduleLink = $module->getIni('module_link')): ?>
+                <?= $hyperlink($name, $moduleLink, ['target' => '_blank']) ?>
+                <?php else: ?>
+                <strong><?= $escape($name) ?></strong>
+                <?php endif ?>
+
+                <?php if ($author = $module->getIni('author')): ?>
+                <span class="addon-author"> — <?= $escape($author) ?></span>
+                <?php endif ?>
+                <?php if ($description = $module->getIni('description')): ?>
+                <span class="addon-description"><?= $escape($description) ?></span>
+                <?php endif ?>
+
+                <ul class="actions">
                     <?php if (!$isComposer): ?>
-                    <input type="checkbox" name="modules[]" value="<?= $escape($moduleId) ?>">
-                    <?php endif ?>
-                </td>
-                <td>
-                    <strong><?= $escape($name) ?></strong>
-                    <?php if ($isComposer): ?>
-                        <span class="badge composer" title="<?= $escape($translate('Managed by Composer. Use `composer update` to update.')) ?>">Composer</span>
-                    <?php endif ?>
-                </td>
-                <td>
-                    <?= $escape($version) ?>
-                    <?php if ($hasUpdate): ?>
-                        <span class="badge update"><?= $escape(sprintf($translate('→ %s'), $catalogueVersion)) ?></span>
-                    <?php endif ?>
-                </td>
-                <td><span class="state <?= $escape($state) ?>"><?= $escape($states[$state] ?? $state) ?></span></td>
-                <td><?= $isComposer ? 'Composer' : $translate('Local') ?></td>
-                <td class="actions">
-                    <?php if (!$isComposer): ?>
-                        <?php if ($state === 'not_active'): ?>
-                        <form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'activate'], ['query' => ['id' => $moduleId]]) ?>" style="display:inline">
-                            <?= $this->csrf('module_activate') ?>
-                            <input type="hidden" name="id" value="<?= $escape($moduleId) ?>">
-                            <button type="submit" class="button-small"><?= $escape($translate('Activate')) ?></button>
-                        </form>
-                        <?php elseif ($state === 'active'): ?>
-                        <form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'deactivate'], ['query' => ['id' => $moduleId]]) ?>" style="display:inline">
-                            <?= $this->csrf('module_deactivate') ?>
-                            <input type="hidden" name="id" value="<?= $escape($moduleId) ?>">
-                            <button type="submit" class="button-small"><?= $escape($translate('Deactivate')) ?></button>
-                        </form>
+
+                        <?php if (Manager::STATE_NOT_ACTIVE === $state): ?>
+                        <li>
+                            <?php $form = $stateForm('activate', $moduleId); $form->prepare(); echo $this->form($form); ?>
+                        </li>
                         <?php endif ?>
 
-                        <?php if ($state === 'needs_upgrade'): ?>
-                        <form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'upgrade'], ['query' => ['id' => $moduleId]]) ?>" style="display:inline">
-                            <?= $this->csrf('module_upgrade') ?>
-                            <input type="hidden" name="id" value="<?= $escape($moduleId) ?>">
-                            <button type="submit" class="button-small"><?= $escape($translate('Upgrade DB')) ?></button>
-                        </form>
+                        <?php if (Manager::STATE_ACTIVE === $state): ?>
+                        <li>
+                            <?php $form = $stateForm('deactivate', $moduleId); $form->prepare(); echo $this->form($form); ?>
+                        </li>
+                        <?php endif ?>
+
+                        <?php if (Manager::STATE_NEEDS_UPGRADE === $state): ?>
+                        <li>
+                            <?php $form = $stateForm('upgrade', $moduleId); $form->prepare(); echo $this->form($form); ?>
+                        </li>
                         <?php endif ?>
 
                         <?php if ($hasUpdate): ?>
-                        <a href="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'update-confirm'], ['query' => ['id' => $moduleId]]) ?>" class="button-small sidebar-content"><?= $escape($translate('Update')) ?></a>
+                        <li><?= $hyperlink('', '#', [
+                            'data-sidebar-selector' => '#sidebar',
+                            'data-sidebar-content-url' => $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'update-confirm'], ['query' => ['id' => $moduleId]]),
+                            'class' => 'o-icon-install sidebar-content',
+                            'title' => $translate('Update files'),
+                        ]) ?></li>
                         <?php endif ?>
 
-                        <a href="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'remove-confirm'], ['query' => ['id' => $moduleId]]) ?>" class="button-small sidebar-content o-icon-delete"><?= $escape($translate('Remove')) ?></a>
-                    <?php else: ?>
-                        <em><?= $escape($translate('Managed by Composer')) ?></em>
+                        <?php if (in_array($state, [
+                            Manager::STATE_ACTIVE,
+                            Manager::STATE_NOT_ACTIVE,
+                            Manager::STATE_NOT_INSTALLED,
+                            Manager::STATE_INVALID_MODULE,
+                            Manager::STATE_INVALID_INI,
+                            Manager::STATE_INVALID_OMEKA_VERSION,
+                        ])): ?>
+                        <li><?= $hyperlink('', '#', [
+                            'data-sidebar-selector' => '#sidebar',
+                            'data-sidebar-content-url' => $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'remove-confirm'], ['query' => ['id' => $moduleId]]),
+                            'class' => 'o-icon-delete sidebar-content',
+                            'title' => $translate('Remove'),
+                        ]) ?></li>
+                        <?php endif ?>
+
                     <?php endif ?>
-                </td>
-            </tr>
-        <?php endforeach ?>
-        </tbody>
-    </table>
 
-    <?php // Bulk actions. ?>
-    <div class="batch-actions">
-        <select name="bulk_action">
-            <option value=""><?= $escape($translate('Bulk action…')) ?></option>
-            <option value="activate"><?= $escape($translate('Activate')) ?></option>
-            <option value="deactivate"><?= $escape($translate('Deactivate')) ?></option>
-            <option value="update"><?= $escape($translate('Update')) ?></option>
-            <option value="remove"><?= $escape($translate('Remove')) ?></option>
-        </select>
-        <label>
-            <input type="checkbox" name="auto_upgrade" value="1">
-            <?= $escape($translate('Auto-upgrade database')) ?>
-        </label>
-        <button type="submit" class="button"><?= $escape($translate('Apply')) ?></button>
-    </div>
-</form>
+                    <?php if ($isComposer): ?>
+                    <li><span class="o-icon-lock" aria-label="Composer" title="<?= $escape($translate('Managed by Composer')) ?>"></span></li>
+                    <?php endif ?>
 
-<?php // Install from catalogue. ?>
-<div id="install-section">
-    <h2><?= $escape($translate('Install new module from catalogue')) ?></h2>
-    <?php
-    $installForm->prepare();
-    echo $this->form()->openTag($installForm);
-    ?>
-    <div class="field">
-        <label for="module_url"><?= $escape($translate('Select a module')) ?></label>
-        <select name="module_url" id="module_url" class="chosen-select">
-            <option value=""><?= $escape($translate('Select below…')) ?></option>
-            <?php foreach ($catalogueModules as $catUrl => $catModule):
-                $label = $catModule['name'];
-                $label .= !empty($catModule['version']) ? ' [v' . $catModule['version'] . ']' : '';
-                $label .= !empty($catModule['installed']) ? ' *' : '';
-            ?>
-            <option value="<?= $escape($catUrl) ?>"<?= !empty($catModule['installed']) ? ' disabled' : '' ?>><?= $escape($label) ?></option>
-            <?php endforeach ?>
-        </select>
-    </div>
-    <button type="submit" formaction="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'install']) ?>" class="button"><?= $escape($translate('Install')) ?></button>
-    <?= $this->form()->closeTag($installForm) ?>
+                    <li><?= $hyperlink('', '#', [
+                        'data-sidebar-selector' => '#sidebar',
+                        'data-sidebar-content-url' => $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'show-details'], ['query' => ['id' => $moduleId]]),
+                        'class' => 'o-icon-more sidebar-content',
+                        'title' => $translate('Details'),
+                    ]) ?></li>
+                </ul>
+            </td>
+            <td class="col-version<?= $hasUpdate ? ' has-update' : '' ?>">
+                <?= $escape($version) ?>
+                <?php if ($hasUpdate): ?>
+                <?= sprintf($translate('→ %s'), $escape($catalogueVersion)) ?>
+                <?php endif ?>
+            </td>
+            <td class="col-state">
+                <span><?= $escape($states[$state] ?? $state) ?></span>
+                <?php if ($state === Manager::STATE_INVALID_MODULE): ?>
+                <span class="error"><?= $translate('Error: invalid Module.php') ?></span>
+                <?php elseif ($state === Manager::STATE_INVALID_INI): ?>
+                <span class="error"><?= $translate('Error: invalid module.ini') ?></span>
+                <?php elseif ($state === Manager::STATE_INVALID_OMEKA_VERSION): ?>
+                <span class="error"><?= sprintf($translate('Requires Omeka S %s'), $module->getIni('omeka_version_constraint')) ?></span>
+                <?php elseif ($state === Manager::STATE_NOT_FOUND): ?>
+                <span class="error"><?= $translate('Not in filesystem') ?></span>
+                <?php endif ?>
+            </td>
+        </tr>
+    <?php endforeach ?>
+    </tbody>
+</table>
+
+<?= $this->form()->closeTag($manageForm) ?>
+
+<div id="sidebar" class="sidebar">
+    <?= $hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]) ?>
+    <div class="sidebar-content"></div>
 </div>
+
+<?php else: ?>
+<div class="no-resources">
+    <p><?= $translate('No modules found.') ?></p>
+</div>
+<?php endif ?>
+
+<div id="sidebar-install" class="sidebar">
+    <?= $hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]) ?>
+    <div class="sidebar-content">
+        <h3><?= $escape($translate('Install new module from catalogue')) ?></h3>
+        <p class="explanation">
+            <?= sprintf($translate('For more information, see pages of known %1$smodules%2$s or %3$sOmeka.org%2$s.'),
+                '<a href="https://daniel-km.github.io/UpgradeToOmekaS/omeka_s_modules.html" rel="noopener" target="_blank">', '</a>',
+                '<a href="https://omeka.org/s/modules/" rel="noopener" target="_blank">') ?>
+            <?= $translate('Modules with an asterisk are already downloaded.') ?>
+        </p>
+        <?php
+        $installForm->prepare()
+            ->setAttribute('action', $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'install']))
+            ->setAttribute('method', 'post');
+        echo $this->form()->openTag($installForm);
+        ?>
+        <div class="field">
+            <label for="module_url"><?= $escape($translate('Select a module')) ?></label>
+            <select name="module_url" id="module_url" class="chosen-select">
+                <option value=""><?= $escape($translate('Select below…')) ?></option>
+                <?php foreach ($catalogueModules as $catUrl => $catModule):
+                    $label = $catModule['name'];
+                    $label .= !empty($catModule['version']) ? ' [v' . $catModule['version'] . ']' : '';
+                    $label .= !empty($catModule['installed']) ? ' *' : '';
+                ?>
+                <option value="<?= $escape($catUrl) ?>"<?= !empty($catModule['installed']) ? ' disabled' : '' ?>><?= $escape($label) ?></option>
+                <?php endforeach ?>
+            </select>
+        </div>
+        <button type="submit" class="button"><?= $escape($translate('Install')) ?></button>
+        <?= $this->form()->closeTag($installForm) ?>
+    </div>
+</div>
+
+<script>
+$('.state-filter select').change(function() {
+    $(this).closest('form').submit();
+});
+</script>

@@ -5,6 +5,7 @@ namespace EasyAdmin\Controller\Admin;
 use Common\Stdlib\PsrMessage;
 use EasyAdmin\Form\AddonManageForm;
 use EasyAdmin\Form\AddonsForm;
+use EasyAdmin\Form\ModuleStateForm;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
 use Omeka\Module\Manager as OmekaModuleManager;
@@ -29,7 +30,7 @@ class ModuleController extends AbstractActionController
         $this->basePath = $basePath;
     }
 
-    public function browseAction()
+    public function indexAction()
     {
         /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
         $addons = $this->easyAdminAddons();
@@ -64,11 +65,24 @@ class ModuleController extends AbstractActionController
         // Filter by state if requested.
         $state = $this->params()->fromQuery('state');
 
+        // Form factory for inline state-change forms.
+        $stateForm = function (string $action, string $moduleId) {
+            $form = $this->getForm(ModuleStateForm::class);
+            $form->setAttribute('action', $this->url()->fromRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module', 'action' => $action],
+                ['query' => ['id' => $moduleId]]
+            ));
+            $form->get('id')->setValue($moduleId);
+            return $form;
+        };
+
         $view = new ViewModel([
             'installedModules' => $installedModules,
             'catalogueModules' => $allModules,
             'manageForm' => $manageForm,
             'installForm' => $installForm,
+            'stateForm' => $stateForm,
             'filterState' => $state,
             'moduleManager' => $this->moduleManager,
         ]);
@@ -103,9 +117,17 @@ class ModuleController extends AbstractActionController
 
         $integrity = $addons->checkIntegrity($addon);
 
+        $form = $this->getForm(ModuleStateForm::class);
+        $form->setAttribute('action', $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module', 'action' => 'update']
+        ));
+        $form->get('id')->setValue($addon['dir'] ?? '');
+
         $view = new ViewModel([
             'addon' => $addon,
             'integrity' => $integrity,
+            'form' => $form,
         ]);
         $view->setTerminal(true);
         $view->setTemplate(
@@ -133,16 +155,97 @@ class ModuleController extends AbstractActionController
             ? $addons->checkIntegrity($addon)
             : ['status' => 'unknown'];
 
+        $form = $this->getForm(ModuleStateForm::class);
+        $form->setAttribute('action', $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module', 'action' => 'remove']
+        ));
+        $form->get('id')->setValue($id);
+
         $view = new ViewModel([
             'addon' => $addon,
             'addonDir' => $id,
             'integrity' => $integrity,
+            'form' => $form,
         ]);
         $view->setTerminal(true);
         $view->setTemplate(
             'easy-admin/admin/module/remove-confirm'
         );
         return $view;
+    }
+
+    public function showDetailsAction()
+    {
+        $id = $this->params()->fromQuery('id');
+        $module = $id
+            ? $this->moduleManager->getModule($id) : null;
+
+        /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
+        $addons = $this->easyAdminAddons();
+        $addon = $id
+            ? ($addons->dataFromNamespace($id, 'module')
+                ?: $addons->dataFromNamespace($id))
+            : null;
+
+        $integrity = null;
+        if ($addon) {
+            $integrity = $addons->checkIntegrity($addon);
+        }
+
+        $view = new ViewModel([
+            'moduleId' => $id,
+            'module' => $module,
+            'addon' => $addon,
+            'integrity' => $integrity,
+        ]);
+        $view->setTerminal(true);
+        $view->setTemplate(
+            'easy-admin/admin/module/show-details'
+        );
+        return $view;
+    }
+
+    public function installModuleAction()
+    {
+        if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        $id = $this->params()->fromPost('id')
+            ?: $this->params()->fromQuery('id');
+        $module = $this->moduleManager->getModule($id);
+        if (!$module) {
+            $this->messenger()->addError(new PsrMessage(
+                'Module "{name}" not found.', // @translate
+                ['name' => $id]
+            ));
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        try {
+            $this->moduleManager->install($module);
+            $this->messenger()->addSuccess(new PsrMessage(
+                'Module "{name}" installed and activated.', // @translate
+                ['name' => $id]
+            ));
+        } catch (\Exception $e) {
+            $this->messenger()->addError(new PsrMessage(
+                'Error installing "{name}": {error}', // @translate
+                ['name' => $id, 'error' => $e->getMessage()]
+            ));
+        }
+
+        return $this->redirect()->toRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module']
+        );
     }
 
     public function updateAction()
@@ -342,8 +445,7 @@ class ModuleController extends AbstractActionController
             ));
         } catch (\Exception $e) {
             $this->messenger()->addError(new PsrMessage(
-                'Error deactivating "{name}":'
-                    . ' {error}', // @translate
+                'Error deactivating "{name}": {error}', // @translate
                 ['name' => $id, 'error' => $e->getMessage()]
             ));
         }

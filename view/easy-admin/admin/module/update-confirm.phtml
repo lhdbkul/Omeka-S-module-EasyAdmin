@@ -3,12 +3,13 @@
  * @var \Laminas\View\Renderer\PhpRenderer $this
  * @var array $addon
  * @var array $integrity
+ * @var \EasyAdmin\Form\ModuleStateForm $form
  */
 
 $plugins = $this->getHelperPluginManager();
 $escape = $plugins->get('escapeHtml');
-$url = $plugins->get('url');
 $translate = $plugins->get('translate');
+$formElement = $plugins->get('formElement');
 ?>
 
 <h3><?= $escape(sprintf($translate('Update module "%s"'), $addon['name'] ?? '')) ?></h3>
@@ -38,13 +39,23 @@ $translate = $plugins->get('translate');
 <p><?= $escape(sprintf($translate('Current version: %s'), $addon['installed_version'] ?? '?')) ?></p>
 <p><?= $escape(sprintf($translate('New version: %s'), $addon['version'] ?? '?')) ?></p>
 
-<form method="post" action="<?= $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'update']) ?>">
-    <?= $this->csrf('module_update') ?>
-    <input type="hidden" name="id" value="<?= $escape($addon['dir'] ?? '') ?>">
-    <label>
-        <input type="checkbox" name="auto_upgrade" value="1" checked>
-        <?= $escape($translate('Run database migrations automatically')) ?>
-    </label>
-    <br><br>
-    <button type="submit" class="button"><?= $escape($translate('Confirm update')) ?></button>
-</form>
+<?php
+$form->add([
+    'name' => 'auto_upgrade',
+    'type' => \Laminas\Form\Element\Checkbox::class,
+    'attributes' => [
+        'id' => 'auto_upgrade',
+        'value' => '1',
+    ],
+]);
+$form->prepare();
+echo $this->form()->openTag($form);
+echo $formElement($form->get('id'));
+?>
+<label>
+    <?= $formElement($form->get('auto_upgrade')) ?>
+    <?= $escape($translate('Run database migrations automatically')) ?>
+</label>
+<br><br>
+<button type="submit" class="button"><?= $escape($translate('Confirm update')) ?></button>
+<?= $this->form()->closeTag($form) ?>

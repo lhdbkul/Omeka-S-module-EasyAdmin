@@ -48,6 +48,7 @@ class ThemeController extends AbstractActionController
                         'dir' => $dir,
                         'name' => $ini['name'] ?? $dir,
                         'version' => $ini['version'] ?? '',
+                        'description' => $ini['description'] ?? '',
                     ];
                 }
             }

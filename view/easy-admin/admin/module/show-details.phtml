@@ -1,0 +1,119 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var string $moduleId
+ * @var \Omeka\Module\Module|null $module
+ * @var array|null $addon
+ * @var array|null $integrity
+ */
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$translate = $plugins->get('translate');
+
+$ini = $module ? $module->getIni() : [];
+$name = $ini['name'] ?? $moduleId;
+$state = $module ? $module->getState() : null;
+$composerAddonsPath = OMEKA_PATH . '/composer-addons/modules';
+$isComposer = is_dir($composerAddonsPath . '/' . $moduleId);
+?>
+
+<h3><?= $escape($name) ?></h3>
+
+<?php if (!empty($ini['version'])): ?>
+<div class="meta-group">
+    <h4><?= $translate('Installed version') ?></h4>
+    <div class="value"><?= $escape($ini['version']) ?></div>
+</div>
+<?php endif ?>
+
+<?php if ($state): ?>
+<div class="meta-group">
+    <h4><?= $translate('State') ?></h4>
+    <div class="value"><?= $escape($state) ?></div>
+</div>
+<?php endif ?>
+
+<?php if (!empty($ini['author'])): ?>
+<div class="meta-group">
+    <h4><?= $translate('Author') ?></h4>
+    <div class="value"><?= $escape($ini['author']) ?></div>
+</div>
+<?php endif ?>
+
+<?php if (!empty($ini['description'])): ?>
+<div class="meta-group">
+    <h4><?= $translate('Description') ?></h4>
+    <div class="value"><?= $escape($ini['description']) ?></div>
+</div>
+<?php endif ?>
+
+<?php if (!empty($ini['module_link'])): ?>
+<div class="meta-group">
+    <h4><?= $translate('Link') ?></h4>
+    <div class="value"><a href="<?= $escape($ini['module_link']) ?>" target="_blank"><?= $escape($ini['module_link']) ?></a></div>
+</div>
+<?php endif ?>
+
+<?php if (!empty($ini['omeka_version_constraint'])): ?>
+<div class="meta-group">
+    <h4><?= $translate('Omeka S version required') ?></h4>
+    <div class="value"><?= $escape($ini['omeka_version_constraint']) ?></div>
+</div>
+<?php endif ?>
+
+<div class="meta-group">
+    <h4><?= $translate('Source') ?></h4>
+    <div class="value"><?= $isComposer ? 'Composer' : $translate('Local') ?></div>
+</div>
+
+<?php if ($addon && !empty($addon['version'])): ?>
+<div class="meta-group">
+    <h4><?= $translate('Catalogue version') ?></h4>
+    <div class="value"><?= $escape($addon['version']) ?></div>
+</div>
+<?php endif ?>
+
+<?php if ($addon && !empty($addon['dependencies'])): ?>
+<div class="meta-group">
+    <h4><?= $translate('Dependencies') ?></h4>
+    <div class="value"><?= $escape(implode(', ', $addon['dependencies'])) ?></div>
+</div>
+<?php endif ?>
+
+<?php if ($integrity): ?>
+<div class="meta-group">
+    <h4><?= $translate('Integrity') ?></h4>
+    <?php if ($integrity['status'] === 'clean'): ?>
+    <div class="value success"><?= $translate('All files match the reference checksums.') ?></div>
+    <?php elseif ($integrity['status'] === 'modified'): ?>
+    <div class="value error"><?= $translate('Some files have been modified.') ?></div>
+    <?php if (!empty($integrity['modified'])): ?>
+    <h4><?= $translate('Modified') ?></h4>
+    <ul>
+        <?php foreach ($integrity['modified'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+    <?php if (!empty($integrity['added'])): ?>
+    <h4><?= $translate('Added') ?></h4>
+    <ul>
+        <?php foreach ($integrity['added'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+    <?php if (!empty($integrity['deleted'])): ?>
+    <h4><?= $translate('Deleted') ?></h4>
+    <ul>
+        <?php foreach ($integrity['deleted'] as $file): ?>
+        <li><?= $escape($file) ?></li>
+        <?php endforeach ?>
+    </ul>
+    <?php endif ?>
+    <?php else: ?>
+    <div class="value"><?= $translate('No reference checksums available.') ?></div>
+    <?php endif ?>
+</div>
+<?php endif ?>
