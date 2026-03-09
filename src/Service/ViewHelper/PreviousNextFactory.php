@@ -3,7 +3,7 @@
 namespace EasyAdmin\Service\ViewHelper;
 
 use EasyAdmin\View\Helper\PreviousNext;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class PreviousNextFactory implements FactoryInterface

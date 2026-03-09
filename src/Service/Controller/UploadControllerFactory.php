@@ -3,7 +3,7 @@
 namespace EasyAdmin\Service\Controller;
 
 use EasyAdmin\Controller\UploadController;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class UploadControllerFactory implements FactoryInterface

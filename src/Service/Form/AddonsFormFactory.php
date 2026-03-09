@@ -3,7 +3,7 @@
 namespace EasyAdmin\Service\Form;
 
 use EasyAdmin\Form\AddonsForm;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class AddonsFormFactory implements FactoryInterface

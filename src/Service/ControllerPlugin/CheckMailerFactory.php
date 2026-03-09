@@ -3,7 +3,7 @@
 namespace EasyAdmin\Service\ControllerPlugin;
 
 use EasyAdmin\Mvc\Controller\Plugin\CheckMailer;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
 class CheckMailerFactory implements FactoryInterface
