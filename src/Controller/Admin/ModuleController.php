@@ -77,6 +77,37 @@ class ModuleController extends AbstractActionController
             return $form;
         };
 
+        // Get curated selections.
+        $selections = $addons->getSelections();
+
+        // Build the selection form.
+        $selectionForm = null;
+        if ($selections) {
+            $selectionForm = $this->getForm(ModuleStateForm::class);
+            $selectionForm->setAttribute('action', $this->url()->fromRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module', 'action' => 'install-selection']
+            ));
+            $selectionForm->setAttribute('method', 'post');
+            $selectionForm->remove('id');
+            $selectionForm->add([
+                'name' => 'selection',
+                'type' => \Laminas\Form\Element\Select::class,
+                'options' => [
+                    'label' => 'Selection', // @translate
+                    'value_options' => array_combine(
+                        array_keys($selections),
+                        array_keys($selections)
+                    ),
+                    'empty_option' => 'Select below…', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'selection',
+                    'class' => 'chosen-select',
+                ],
+            ]);
+        }
+
         $view = new ViewModel([
             'installedModules' => $installedModules,
             'catalogueModules' => $allModules,
@@ -85,9 +116,96 @@ class ModuleController extends AbstractActionController
             'stateForm' => $stateForm,
             'filterState' => $state,
             'moduleManager' => $this->moduleManager,
+            'selectionForm' => $selectionForm,
         ]);
         $view->setTemplate('easy-admin/admin/module/browse');
         return $view;
+    }
+
+    public function installSelectionAction()
+    {
+        if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        $selection = $this->params()->fromPost('selection');
+        if (!$selection) {
+            $this->messenger()->addError(
+                'No selection specified.' // @translate
+            );
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
+        $addons = $this->easyAdminAddons();
+        $selections = $addons->getSelections();
+        $selectionAddons = $selections[$selection] ?? [];
+        if (!$selectionAddons) {
+            $this->messenger()->addError(
+                'The selection is empty or unknown.' // @translate
+            );
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        // Use background job for big selections.
+        $strategy = count($selectionAddons) > 3
+            ? null
+            : $this->api()->read('vocabularies', 1)
+                ->getContent()->getServiceLocator()
+                ->get(\Omeka\Job\DispatchStrategy\Synchronous::class);
+        $job = $this->jobDispatcher()->dispatch(
+            \EasyAdmin\Job\ManageAddons::class,
+            ['selection' => $selection],
+            $strategy
+        );
+        $urlPlugin = $this->url();
+        $message = new PsrMessage(
+            'Processing install of selection "{selection}" in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+            [
+                'selection' => $selection,
+                'link_job' => sprintf(
+                    '<a href="%s">',
+                    htmlspecialchars($urlPlugin->fromRoute(
+                        'admin/id',
+                        ['controller' => 'job', 'id' => $job->getId()]
+                    ))
+                ),
+                'job_id' => $job->getId(),
+                'link_end' => '</a>',
+                'link_log' => class_exists('Log\Module', false)
+                    ? sprintf(
+                        '<a href="%1$s">',
+                        $urlPlugin->fromRoute(
+                            'admin/default',
+                            ['controller' => 'log'],
+                            ['query' => ['job_id' => $job->getId()]]
+                        )
+                    )
+                    : sprintf(
+                        '<a href="%1$s" target="_blank">',
+                        $urlPlugin->fromRoute(
+                            'admin/id',
+                            ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()]
+                        )
+                    ),
+            ]
+        );
+        $message->setEscapeHtml(false);
+        $this->messenger()->addSuccess($message);
+
+        return $this->redirect()->toRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module']
+        );
     }
 
     public function updateConfirmAction()

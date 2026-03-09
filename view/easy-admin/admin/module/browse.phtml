@@ -8,6 +8,7 @@
  * @var callable $stateForm
  * @var string|null $filterState
  * @var \Omeka\Module\Manager $moduleManager
+ * @var \EasyAdmin\Form\ModuleStateForm|null $selectionForm
  */
 
 use Omeka\Module\Manager;
@@ -50,6 +51,9 @@ $states = [
 <?php endif ?>
 
 <div id="page-actions">
+    <?php if ($selectionForm): ?>
+    <a class="button sidebar-content" data-sidebar-selector="#sidebar-selection"><?= $escape($translate('Install a selection')) ?></a>
+    <?php endif ?>
     <a class="button sidebar-content" data-sidebar-selector="#sidebar-install"><?= $escape($translate('Install new module')) ?></a>
 </div>
 
@@ -290,6 +294,28 @@ echo $this->form()->openTag($manageForm);
         <?= $this->form()->closeTag($installForm) ?>
     </div>
 </div>
+
+<?php if ($selectionForm): ?>
+<div id="sidebar-selection" class="sidebar">
+    <?= $hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+    ]) ?>
+    <div class="sidebar-content">
+        <h3><?= $escape($translate('Install a curated selection')) ?></h3>
+        <p><?= $escape($translate('Install a preconfigured set of modules and themes in one step.')) ?></p>
+        <?php
+        $selectionForm->prepare();
+        echo $this->form()->openTag($selectionForm);
+        ?>
+        <div class="field">
+            <?= $this->formElement($selectionForm->get('selection')) ?>
+        </div>
+        <button type="submit" class="button"><?= $escape($translate('Install')) ?></button>
+        <?= $this->form()->closeTag($selectionForm) ?>
+    </div>
+</div>
+<?php endif ?>
 
 <script>
 $('.state-filter select').change(function() {
