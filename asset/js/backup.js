@@ -24,6 +24,9 @@
                     .then(function(html) {
                         content.innerHTML = html;
                         Omeka.openSidebar(jQuery(sidebar));
+                    })
+                    .catch(function(error) {
+                        console.error('Failed to load sidebar content:', error);
                     });
             });
         });

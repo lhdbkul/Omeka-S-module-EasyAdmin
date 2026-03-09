@@ -395,9 +395,9 @@
         function humanFileSize(number) {
             if (number < 1000) {
                 return number + ' bytes';
-            } else if (number > 1000 && number < 1000000) {
+            } else if (number >= 1000 && number < 1000000) {
                 return (number / 1000).toFixed(0) + ' KB';
-            } else if (number > 1000000) {
+            } else if (number >= 1000000) {
                 return (number / 1000000).toFixed(0) + ' MB';
             }
         }
@@ -526,10 +526,10 @@
          * @todo Manage prepended/appended issues at the same time.
          */
         function fixJson(json) {
-            if (json.substring(0, 1) === '<' && json.indexOf('>')) {
+            if (json.substring(0, 1) === '<' && json.indexOf('>') !== -1) {
                 console.log(json.substring(0, json.lastIndexOf('>') + 1));
                 return json.substring(json.lastIndexOf('>') + 1);
-            } else if (json.indexOf('<') && json.slice(-1) === '>') {
+            } else if (json.indexOf('<') !== -1 && json.slice(-1) === '>') {
                 console.log(json.substring(json.indexOf('<')));
                 return json.substring(0, json.indexOf('<'));
             }

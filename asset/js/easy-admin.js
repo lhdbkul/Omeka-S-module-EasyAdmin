@@ -8,7 +8,7 @@ $(document).ready(function() {
             .filter((index, el) =>  tasksWarning.includes($(el).val()))
             .each(function () {
                 $(this).prop('disabled', !$(this).prop('disabled'));
-                $(this).closest('label').css('opacity: ' + ($(this).prop('disabled') ? '0.5' : '1'));
+                $(this).closest('label').css('opacity', $(this).prop('disabled') ? '0.5' : '1');
                 $(this).closest('label').toggle();
             });
     };
