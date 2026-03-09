@@ -523,3 +523,14 @@ if (version_compare($oldVersion, '3.4.38', '<')) {
     $settings->set('cron', $newCronSettings);
     $settings->set('cron_last', $settings->get('easyadmin_cron_last'));
 }
+
+if (version_compare($oldVersion, '3.4.43', '<')) {
+    // Convert easyadmin_display_exception from boolean to radio string.
+    $displayException = (bool) $settings->get('easyadmin_display_exception');
+    $settings->set('easyadmin_display_exception', $displayException ? 'admin' : '');
+
+    $message = new PsrMessage(
+        'It is now possible to update modules and themes directly in admin board.' // @translate
+    );
+    $messenger->addSuccess($message);
+}

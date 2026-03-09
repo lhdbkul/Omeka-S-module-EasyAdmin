@@ -30,7 +30,9 @@
 namespace EasyAdmin;
 
 if (!class_exists('Common\TraitModule', false)) {
-    require_once dirname(__DIR__) . '/Common/TraitModule.php';
+    require_once file_exists(dirname(__DIR__) . '/Common/src/TraitModule.php')
+        ? dirname(__DIR__) . '/Common/src/TraitModule.php'
+        : dirname(__DIR__) . '/Common/TraitModule.php';
 }
 
 use Common\Stdlib\PsrMessage;
@@ -55,10 +57,6 @@ class Module extends AbstractModule
     use TraitModule;
 
     const NAMESPACE = __NAMESPACE__;
-
-    protected $dependencies = [
-        'Common',
-    ];
 
     public function init(ModuleManager $moduleManager): void
     {
@@ -153,12 +151,18 @@ class Module extends AbstractModule
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
 
+        $errors = [];
+
         $js = __DIR__ . '/asset/vendor/flow.js/flow.min.js';
         if (!file_exists($js)) {
             $message = new PsrMessage(
                 'The libraries should be installed. See module’s installation documentation.' // @translate
             );
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
+            $errors[] = (string) $message->setTranslator($translator);
+        }
+
+        if ($errors) {
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException(implode("\n", $errors));
         }
 
         $this->installDirs();
