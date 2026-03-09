@@ -230,7 +230,7 @@ convert_large() {
         fi
     fi
 
-    convert "$in" -resize "${LARGE_SIZE}x${LARGE_SIZE}>" "$out" 2>/dev/null
+    convert "$in" -auto-orient -resize "${LARGE_SIZE}x${LARGE_SIZE}>" "$out" 2>/dev/null
 }
 
 convert_medium() {
@@ -243,7 +243,7 @@ convert_medium() {
         fi
     fi
 
-    convert "$in" -resize "${MEDIUM_SIZE}x${MEDIUM_SIZE}>" "$out" 2>/dev/null
+    convert "$in" -auto-orient -resize "${MEDIUM_SIZE}x${MEDIUM_SIZE}>" "$out" 2>/dev/null
 }
 
 convert_square() {
@@ -260,6 +260,7 @@ convert_square() {
 
     # ImageMagick fallback (resize first, then crop)
     convert "$in" \
+        -auto-orient \
         -resize "${SQUARE_SIZE}x${SQUARE_SIZE}^" \
         -gravity center \
         -extent "${SQUARE_SIZE}x${SQUARE_SIZE}" \

@@ -322,7 +322,7 @@ function processFile(string $img, array $cfg): bool
 
                 'convert '
                     . escapeshellarg($thumbSrc)
-                    . " -resize {$thumbSize}x{$thumbSize}> "
+                    . " -auto-orient -resize {$thumbSize}x{$thumbSize}> "
                     . escapeshellarg($large_out),
 
                 $cfg['use_vips']
@@ -347,7 +347,7 @@ function processFile(string $img, array $cfg): bool
 
                 'convert '
                     . escapeshellarg($thumbSrc)
-                    . " -resize {$thumbSize}x{$thumbSize}> "
+                    . " -auto-orient -resize {$thumbSize}x{$thumbSize}> "
                     . escapeshellarg($medium_out),
 
                 $cfg['use_vips']
@@ -381,6 +381,7 @@ function processFile(string $img, array $cfg): bool
             $convertCmd =
             'convert '
                 . escapeshellarg($thumbSrc)
+                . ' -auto-orient'
                 . " -resize {$thumbSize}x{$thumbSize}^"
                 . ' -gravity center'
                 . " -extent {$thumbSize}x{$thumbSize} "
