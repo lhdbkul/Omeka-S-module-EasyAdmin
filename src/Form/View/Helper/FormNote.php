@@ -25,7 +25,7 @@ class FormNote extends AbstractHelper
      * @param string $position
      * @return string|FormNote
      */
-    public function __invoke(ElementInterface $element = null, $labelContent = null, $position = null)
+    public function __invoke(?ElementInterface $element = null, $labelContent = null, $position = null)
     {
         if (!$element) {
             return $this;
