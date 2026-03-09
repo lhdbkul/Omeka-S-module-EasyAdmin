@@ -339,7 +339,7 @@ return [
             'easyadmin_allow_empty_files' => false,
             'easyadmin_addon_notify_version_inactive' => true,
             'easyadmin_addon_notify_version_dev' => false,
-            'easyadmin_display_exception' => false,
+            'easyadmin_display_exception' => '',
             // Assets: additional allowed media types and extensions.
             'easyadmin_asset_media_types' => [
                 // 'application/pdf',

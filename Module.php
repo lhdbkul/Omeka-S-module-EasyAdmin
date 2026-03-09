@@ -81,8 +81,13 @@ class Module extends AbstractModule
 
         /** @var \Omeka\Settings\Settings $settings */
         $settings = $this->getServiceLocator()->get('Omeka\Settings');
-        if ($settings->get('easyadmin_display_exception')) {
-            ini_set('display_errors', '1');
+        $displayException = $settings->get('easyadmin_display_exception');
+        if ($displayException) {
+            /** @var \Omeka\Mvc\Status $status */
+            $status = $this->getServiceLocator()->get('Omeka\Status');
+            if ($displayException === 'all' || $status->isAdminRequest()) {
+                ini_set('display_errors', '1');
+            }
         }
 
         /** @var \Omeka\Permissions\Acl $acl */
