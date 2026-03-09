@@ -368,6 +368,7 @@ TODO
 - [x] Dump database: see adminer.
 - [x] Find a way to increase duration of csrf when there are very a large number of files to upload, instead of skipping csrf.
 - [ ] Add a module setting for the csrf lifetime for bulk uploads and for main resource edit page.
+- [ ] check and remove orphan resource rows (rows in table `resource` without a matching row in `item`, `item_set` or `media`, which can happen after a crash or an incomplete deletion)
 
 
 Warning
