@@ -65,7 +65,6 @@ return [
     ],
     'controllers' => [
         'invokables' => [
-            'EasyAdmin\Controller\Admin\Addons' => Controller\Admin\AddonsController::class,
             'EasyAdmin\Controller\Admin\CheckAndFix' => Controller\Admin\CheckAndFixController::class,
             'EasyAdmin\Controller\Admin\Cron' => Controller\Admin\CronController::class,
             'Omeka\Controller\Admin\Maintenance' => Controller\Admin\MaintenanceController::class,
@@ -218,12 +217,6 @@ return [
                         'class' => 'o-icon- fa-archive',
                     ],
                     [
-                        'label' => 'Install addons', // @translate
-                        'route' => 'admin/easy-admin/default',
-                        'controller' => 'addons',
-                        'class' => 'o-icon- fa-puzzle-piece',
-                    ],
-                    [
                         'label' => 'Manage modules', // @translate
                         'route' => 'admin/easy-admin/default',
                         'controller' => 'module',
@@ -268,11 +261,6 @@ return [
                 'route' => 'admin/easy-admin/backup',
                 'action' => 'index',
                 'resource' => 'EasyAdmin\Controller\Admin\Backup',
-            ],
-            [
-                'label' => 'Install addons', // @translate
-                'route' => 'admin/easy-admin/default',
-                'controller' => 'addons',
             ],
             [
                 'label' => 'Manage modules', // @translate
