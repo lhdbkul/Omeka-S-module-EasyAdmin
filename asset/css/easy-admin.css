@@ -189,6 +189,11 @@
         opacity: 0.4;
     }
 
+    /* Modules browse */
+    #page-actions .refresh-form {
+        display: inline-block;
+    }
+
     /* Addon browse: version column */
     .themes.browse td.col-version,
     .modules.browse td.col-version {

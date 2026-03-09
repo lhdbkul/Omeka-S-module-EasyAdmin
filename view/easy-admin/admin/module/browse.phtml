@@ -9,6 +9,7 @@
  * @var string|null $filterState
  * @var \Omeka\Module\Manager $moduleManager
  * @var \EasyAdmin\Form\ModuleStateForm|null $selectionForm
+ * @var \EasyAdmin\Form\ModuleStateForm $refreshForm
  */
 
 use Omeka\Module\Manager;
@@ -51,6 +52,9 @@ $states = [
 <?php endif ?>
 
 <div id="page-actions">
+    <?php $refreshForm->prepare(); echo $this->form()->openTag($refreshForm->setAttribute('class', 'refresh-form')); ?>
+    <button type="submit" class="button"><?= $escape($translate('Refresh catalogue')) ?></button>
+    <?= $this->form()->closeTag($refreshForm) ?>
     <?php if ($selectionForm): ?>
     <a class="button sidebar-content" data-sidebar-selector="#sidebar-selection"><?= $escape($translate('Install a selection')) ?></a>
     <?php endif ?>

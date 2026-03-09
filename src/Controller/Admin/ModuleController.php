@@ -108,6 +108,14 @@ class ModuleController extends AbstractActionController
             ]);
         }
 
+        // Build the refresh form (CSRF only).
+        $refreshForm = $this->getForm(ModuleStateForm::class);
+        $refreshForm->setAttribute('action', $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module', 'action' => 'refresh-catalogue']
+        ));
+        $refreshForm->setAttribute('method', 'post');
+
         $view = new ViewModel([
             'installedModules' => $installedModules,
             'catalogueModules' => $allModules,
@@ -117,9 +125,34 @@ class ModuleController extends AbstractActionController
             'filterState' => $state,
             'moduleManager' => $this->moduleManager,
             'selectionForm' => $selectionForm,
+            'refreshForm' => $refreshForm,
         ]);
         $view->setTemplate('easy-admin/admin/module/browse');
         return $view;
+    }
+
+    public function refreshCatalogueAction()
+    {
+        if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
+        $addons = $this->easyAdminAddons();
+        $addons->getAddons(true);
+        $addons->getSelections(true);
+
+        $this->messenger()->addSuccess(
+            'The catalogue of addons and selections has been refreshed.' // @translate
+        );
+
+        return $this->redirect()->toRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module']
+        );
     }
 
     public function installSelectionAction()
