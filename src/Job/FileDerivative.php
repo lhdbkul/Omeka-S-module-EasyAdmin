@@ -51,6 +51,13 @@ class FileDerivative extends AbstractCheck
 
         $types = array_keys($this->config['thumbnails']['types']);
 
+        $ingestersRebuild = $this->getArg('ingesters_rebuild');
+        if (!is_array($ingestersRebuild) || !$ingestersRebuild) {
+            $ingestersRebuild = ['has_original', 'iiif', 'iiif_presentation', 'oembed', 'url', 'youtube'];
+        }
+        $rebuildLocal = in_array('has_original', $ingestersRebuild, true);
+        $ingestersNoOriginal = array_values(array_diff($ingestersRebuild, ['has_original']));
+
         // TODO Add a check job or merge with files check.
         // $fix = true;
 
@@ -111,24 +118,27 @@ class FileDerivative extends AbstractCheck
 
         $totalResources = $this->api->search('media', ['limit' => 0])->getTotalResults();
 
-        // Only process media with original files.
-        // TODO Manage creation of thumbnails for media without original (youtube…) via omeka ingesters.
         $criteria
             ->andWhere($expr->eq('hasOriginal', 1))
             ->orderBy(['id' => 'ASC'])
             ->setMaxResults(self::SQL_LIMIT);
 
-        $collection = $this->mediaRepository->matching($criteria);
-        $totalToProcess = $collection->count();
+        $collection = $rebuildLocal ? $this->mediaRepository->matching($criteria) : null;
+        $totalToProcess = $collection ? $collection->count() : 0;
 
         if (empty($totalToProcess)) {
-            $this->logger->info(
-                'No media to process for creation of derivative files (on a total of {total} medias). You may check your query.', // @translate
-                ['total' => $totalResources]
-            );
-            return;
+            if ($rebuildLocal) {
+                $this->logger->info(
+                    'No media to process for creation of derivative files (on a total of {total} medias). You may check your query.', // @translate
+                    ['total' => $totalResources]
+                );
+            }
+            if (!$ingestersNoOriginal) {
+                return;
+            }
         }
 
+        if ($rebuildLocal && $totalToProcess) {
         $this->logger->info(
             'Processing creation of derivative files of {total_process} medias (on a total of {total} medias).', // @translate
             ['total_process' => $totalToProcess, 'total' => $totalResources]
@@ -330,8 +340,232 @@ class FileDerivative extends AbstractCheck
                 ['count' => $totalProcessed, 'total' => $totalToProcess, 'skipped' => $totalToProcess - $totalProcessed, 'succeed' => $totalSucceed, 'failed' => $totalFailed]
             );
         }
+        }
+
+        if ($ingestersNoOriginal) {
+            $this->processMediaWithoutOriginal(
+                $ingestersNoOriginal,
+                $basePath,
+                $types,
+                $skipExisting,
+                $itemSets,
+                $mediaIds
+            );
+        }
 
         $this->finalizeOutput();
+    }
+
+    /**
+     * Rebuild thumbnails for media without original file (IIIF,
+     * IiifPresentation, oEmbed, YouTube).
+     */
+    protected function processMediaWithoutOriginal(
+        array $ingesters,
+        string $basePath,
+        array $types,
+        bool $skipExisting,
+        array $itemSets,
+        $mediaIds
+    ): void {
+        $criteria = Criteria::create();
+        $expr = $criteria->expr();
+        $criteria
+            ->where($expr->in('ingester', $ingesters))
+            ->andWhere($expr->eq('hasOriginal', 0));
+
+        if ($itemSets) {
+            $dql = <<<'DQL'
+                SELECT item.id
+                FROM Omeka\Entity\Item item
+                JOIN item.itemSets item_set
+                WHERE item_set.id IN (:item_set_ids)
+                DQL;
+            $query = $this->entityManager->createQuery($dql);
+            $query->setParameter('item_set_ids', $itemSets, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
+            $itemIds = array_map('intval', array_column($query->getArrayResult(), 'id'));
+            $criteria->andWhere($expr->in('item', $itemIds));
+        }
+
+        if ($mediaIds) {
+            $range = $this->exprRange('id', $mediaIds);
+            if ($range) {
+                $criteria->andWhere($expr->orX(...$range));
+            }
+        }
+
+        $criteria
+            ->orderBy(['id' => 'ASC'])
+            ->setMaxResults(self::SQL_LIMIT);
+
+        $collection = $this->mediaRepository->matching($criteria);
+        $totalToProcess = $collection->count();
+
+        if (!$totalToProcess) {
+            $this->logger->info(
+                'No media without original to process for ingesters: {ingesters}.', // @translate
+                ['ingesters' => implode(', ', $ingesters)]
+            );
+            return;
+        }
+
+        $this->logger->info(
+            'Processing {total} media without original for ingesters: {ingesters}.', // @translate
+            ['total' => $totalToProcess, 'ingesters' => implode(', ', $ingesters)]
+        );
+
+        $downloader = $this->getServiceLocator()->get('Omeka\File\Downloader');
+
+        $offset = 0;
+        $succeed = 0;
+        $failed = 0;
+        $existing = 0;
+
+        while (true) {
+            $criteria->setFirstResult($offset);
+            $medias = $this->mediaRepository->matching($criteria);
+            if (!$medias->count()) {
+                break;
+            }
+
+            foreach ($medias as $media) {
+                if ($this->shouldStop()) {
+                    break 2;
+                }
+
+                $storageId = $media->getStorageId();
+                if (!$storageId) {
+                    ++$failed;
+                    continue;
+                }
+
+                if ($skipExisting && $media->hasThumbnails()) {
+                    $allExist = true;
+                    foreach ($types as $type) {
+                        if (!file_exists($basePath . '/' . $type . '/' . $storageId . '.jpg')) {
+                            $allExist = false;
+                            break;
+                        }
+                    }
+                    if ($allExist) {
+                        ++$existing;
+                        continue;
+                    }
+                }
+
+                $thumbnailUrl = $this->getThumbnailUrlForMedia($media);
+                if (!$thumbnailUrl) {
+                    $this->logger->notice(
+                        'Media #{media_id} ({ingester}): no thumbnail URL derivable.', // @translate
+                        ['media_id' => $media->getId(), 'ingester' => $media->getIngester()]
+                    );
+                    ++$failed;
+                    continue;
+                }
+
+                $tempFile = $downloader->download($thumbnailUrl);
+                if (!$tempFile) {
+                    $this->logger->notice(
+                        'Media #{media_id} ({ingester}): download failed for {url}.', // @translate
+                        ['media_id' => $media->getId(), 'ingester' => $media->getIngester(), 'url' => $thumbnailUrl]
+                    );
+                    ++$failed;
+                    continue;
+                }
+
+                $tempFile->setStorageId($storageId);
+                $result = $tempFile->storeThumbnails();
+                @unlink($tempFile->getTempPath());
+
+                $media->setHasThumbnails((bool) $result);
+                $this->entityManager->persist($media);
+
+                if ($result) {
+                    ++$succeed;
+                    $this->logger->info(
+                        'Media #{media_id} ({ingester}): thumbnails rebuilt.', // @translate
+                        ['media_id' => $media->getId(), 'ingester' => $media->getIngester()]
+                    );
+                } else {
+                    ++$failed;
+                }
+            }
+
+            unset($medias);
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+
+            $offset += self::SQL_LIMIT;
+        }
+
+        $this->logger->info(
+            'End rebuild for media without original: {succeed} succeed, {existing} skipped, {failed} failed.', // @translate
+            ['succeed' => $succeed, 'existing' => $existing, 'failed' => $failed]
+        );
+    }
+
+    /**
+     * Derive the thumbnail URL for a media based on its ingester.
+     */
+    protected function getThumbnailUrlForMedia(\Omeka\Entity\Media $media): ?string
+    {
+        $ingester = $media->getIngester();
+        $data = $media->getData() ?: [];
+        switch ($ingester) {
+            case 'youtube':
+                $id = $data['id'] ?? null;
+                return $id ? sprintf('https://img.youtube.com/vi/%s/0.jpg', rawurlencode($id)) : null;
+            case 'iiif_presentation':
+                $context = (string) ($data['@context'] ?? '');
+                if (strpos($context, 'presentation/3') !== false) {
+                    return $data['thumbnail'][0]['id'] ?? null;
+                }
+                return $data['thumbnail']['@id'] ?? ($data['thumbnail'][0]['id'] ?? null);
+            case 'oembed':
+                return $data['thumbnail_url'] ?? null;
+            case 'url':
+                return $media->getSource() ?: null;
+            case 'iiif':
+                return $this->getIiifImageUrlFromInfo($media->getSource());
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Fetch IIIF Image info.json and compute a full-image URL for each API
+     * version.
+     */
+    protected function getIiifImageUrlFromInfo(?string $infoUrl): ?string
+    {
+        if (!$infoUrl) {
+            return null;
+        }
+        try {
+            /** @var \Laminas\Http\Client $client */
+            $client = $this->getServiceLocator()->get('Omeka\HttpClient');
+            $response = $client->resetParameters()->setUri($infoUrl)->send();
+            if (!$response->isSuccess()) {
+                return null;
+            }
+            $iiif = json_decode($response->getBody(), true);
+        } catch (\Throwable $e) {
+            return null;
+        }
+        if (!is_array($iiif)) {
+            return null;
+        }
+        $context = $iiif['@context'] ?? '';
+        if ($context === 'http://iiif.io/api/image/3/context.json') {
+            $id = $iiif['id'] ?? null;
+            return $id ? rtrim($id, '/') . '/full/max/0/default.jpg' : null;
+        }
+        if ($context === 'http://iiif.io/api/image/2/context.json') {
+            $id = $iiif['@id'] ?? null;
+            return $id ? rtrim($id, '/') . '/full/full/0/default.jpg' : null;
+        }
+        $id = $iiif['@id'] ?? null;
+        return $id ? rtrim($id, '/') . '/full/full/0/native.jpg' : null;
     }
 
     /**

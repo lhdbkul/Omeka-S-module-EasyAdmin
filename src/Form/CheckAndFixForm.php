@@ -74,6 +74,10 @@ class CheckAndFixForm extends Form
             ->add([
                 'name' => 'media_types',
                 'required' => false,
+            ])
+            ->add([
+                'name' => 'ingesters_rebuild',
+                'required' => false,
             ]);
 
         $inputFilter->get('files_database')
@@ -449,6 +453,26 @@ class CheckAndFixForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'files_derivative-original_without_thumbnails',
+                ],
+            ])
+            ->add([
+                'name' => 'ingesters_rebuild',
+                'type' => Element\MultiCheckbox::class,
+                'options' => [
+                    'label' => 'Types of media to rebuild', // @translate
+                    'info' => 'Uncheck "Local originals" to rebuild only remote sources. Local originals covers any media with a stored original file (file, upload, url, bulkimport, etc.). Remote thumbnails are refetched from the source for each selected ingester.', // @translate
+                    'value_options' => [
+                        'has_original' => 'Local originals (any ingester)', // @translate
+                        'iiif' => 'IIIF Image', // @translate
+                        'iiif_presentation' => 'IIIF Presentation', // @translate
+                        'oembed' => 'oEmbed', // @translate
+                        'url' => 'URL (refetch from source)', // @translate
+                        'youtube' => 'YouTube', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'files_derivative-ingesters_rebuild',
+                    'value' => ['has_original', 'iiif', 'iiif_presentation', 'oembed', 'url', 'youtube'],
                 ],
             ])
         ;
