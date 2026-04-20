@@ -252,11 +252,10 @@ if (version_compare($oldVersion, '3.4.14', '<')) {
 
 if (version_compare($oldVersion, '3.4.15', '<')) {
     if (!$this->checkDestinationDir($basePath . '/backup')) {
-        $message = new \Omeka\Stdlib\Message(
-            'The directory "{dir}" is not writeable.', // @translate
+        $messenger->addWarning(new PsrMessage(
+            'The directory "{dir}" is not writeable. The backup feature is disabled until permissions are fixed.', // @translate
             ['dir' => $basePath . '/backup']
-        );
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
+        ));
     }
 
     $message = new PsrMessage(
@@ -286,11 +285,10 @@ if (version_compare($oldVersion, '3.4.18', '<')) {
     $settings->set('easyadmin_addon_notify_version_dev', false);
 
     if (!$this->checkDestinationDir($localPath)) {
-        $message = new PsrMessage(
-            'The directory "{dir}" is not writeable.', // @translate
+        $messenger->addWarning(new PsrMessage(
+            'The directory "{dir}" is not writeable. Bulk import features are disabled until permissions are fixed.', // @translate
             ['dir' => $localPath]
-        );
-        throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
+        ));
     }
 
     $message = new PsrMessage(
