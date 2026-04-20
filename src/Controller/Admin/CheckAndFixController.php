@@ -235,7 +235,7 @@ class CheckAndFixController extends AbstractActionController
         if (in_array('doctrine', $options['type'])) {
             // Get the entity manager without factory.
             /** @var \Doctrine\ORM\EntityManager $entityManager */
-            $services = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator();
+            $services = $this->getEvent()->getApplication()->getServiceManager();
             $entityManager = $services->get('Omeka\EntityManager');
             $cache = $entityManager->getConfiguration()->getMetadataCache();
             if ($cache) {
@@ -327,7 +327,7 @@ class CheckAndFixController extends AbstractActionController
 
         // Get the installer without factory.
         /** @var \Omeka\Installation\Installer $installer */
-        $services = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator();
+        $services = $this->getEvent()->getApplication()->getServiceManager();
         $installer = $services->get('Omeka\Installer');
         $result = $installer->preInstall();
         if ($result) {
@@ -352,7 +352,7 @@ class CheckAndFixController extends AbstractActionController
         $checkMailer = $this->checkMailer();
 
         // Get the services (needed for mailer).
-        $services = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator();
+        $services = $this->getEvent()->getApplication()->getServiceManager();
         $settings = $services->get('Omeka\Settings');
 
         // Get and display configuration summary.

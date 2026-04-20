@@ -613,7 +613,7 @@ class FileManagerController extends AbstractActionController
             }
         } else {
             $user = $this->identity();
-            $acl = $this->getServiceLocator()->get('Omeka\Acl');
+            $acl = $this->getEvent()->getApplication()->getServiceManager()->get('Omeka\Acl');
             if (!$user || !$acl->isAdminRole($user->getRole())) {
                 if ($showMessages) {
                     $this->messenger()->addError('Only administrators can delete files in shared directories.'); // @translate
