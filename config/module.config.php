@@ -33,8 +33,6 @@ return [
     ],
     'view_helpers' => [
         'invokables' => [
-            /** Deprecated: use form group. */
-            'formNote' => Form\View\Helper\FormNote::class,
             'lastBrowsePage' => View\Helper\LastBrowsePage::class,
         ],
         'factories' => [
@@ -42,15 +40,9 @@ return [
             'previousNext' => Service\ViewHelper\PreviousNextFactory::class,
             'previousResource' => Service\ViewHelper\PreviousResourceFactory::class,
         ],
-        'delegators' => [
-            'Laminas\Form\View\Helper\FormElement' => [
-                __NAMESPACE__ => Service\Delegator\FormElementDelegatorFactory::class,
-            ],
-        ],
     ],
     'form_elements' => [
         'invokables' => [
-            Form\Element\Note::class => Form\Element\Note::class,
             Form\ConfigForm::class => Form\ConfigForm::class,
             Form\SettingsFieldset::class => Form\SettingsFieldset::class,
             Form\AddonManageForm::class => Form\AddonManageForm::class,
