@@ -61,11 +61,11 @@ class Addons extends AbstractPlugin
             'destination' => '/themes',
         ],
         'module' => [
-            'source' => 'https://raw.githubusercontent.com/Daniel-KM/UpgradeToOmekaS/master/_data/omeka_s_modules.csv',
+            'source' => 'https://raw.githubusercontent.com/Daniel-KM/UpgradeToOmekaS/master/_data/omeka_s_modules.json',
             'destination' => '/modules',
         ],
         'theme' => [
-            'source' => 'https://raw.githubusercontent.com/Daniel-KM/UpgradeToOmekaS/master/_data/omeka_s_themes.csv',
+            'source' => 'https://raw.githubusercontent.com/Daniel-KM/UpgradeToOmekaS/master/_data/omeka_s_themes.json',
             'destination' => '/themes',
         ],
     ];
@@ -944,7 +944,6 @@ class Addons extends AbstractPlugin
         switch ($type) {
             case 'module':
             case 'theme':
-                return $this->extractAddonList($content, $type);
             case 'omekamodule':
             case 'omekatheme':
                 return $this->extractAddonListFromOmeka($content, $type);
@@ -997,67 +996,6 @@ class Addons extends AbstractPlugin
     }
 
     /**
-     * Helper to parse a csv file to get urls and names of addons.
-     *
-     * @param string $csv
-     * @param string $type
-     */
-    protected function extractAddonList($csv, $type): array
-    {
-        $list = [];
-
-        $addons = array_map('str_getcsv', explode(PHP_EOL, $csv));
-        $headers = array_flip($addons[0]);
-
-        foreach ($addons as $key => $row) {
-            if ($key == 0 || empty($row) || !isset($row[$headers['Url']])) {
-                continue;
-            }
-
-            $url = $row[$headers['Url']];
-            $name = $row[$headers['Name']];
-            $version = $row[$headers['Last version']];
-            $addonName = preg_replace('~[^A-Za-z0-9]~', '', $name);
-            $dirname = $row[$headers['Directory name']] ?: $addonName;
-            $server = strtolower(parse_url($url, PHP_URL_HOST));
-            $dependencies = empty($headers['Dependencies']) || empty($row[$headers['Dependencies']])
-                ? []
-                : array_filter(array_map('trim', explode(',', $row[$headers['Dependencies']])));
-
-            $zip = $row[$headers['Last released zip']];
-            // Warning: the url with master may not have dependencies.
-            if (!$zip) {
-                switch ($server) {
-                    case 'github.com':
-                        $zip = $url . '/archive/master.zip';
-                        break;
-                    case 'gitlab.com':
-                        $zip = $url . '/repository/archive.zip';
-                        break;
-                    default:
-                        $zip = $url . '/master.zip';
-                        break;
-                }
-            }
-
-            $addon = [];
-            $addon['type'] = $type;
-            $addon['server'] = $server;
-            $addon['name'] = $name;
-            $addon['basename'] = basename($url);
-            $addon['dir'] = $dirname;
-            $addon['version'] = $version;
-            $addon['url'] = $url;
-            $addon['zip'] = $zip;
-            $addon['dependencies'] = $dependencies;
-
-            $list[$url] = $addon;
-        }
-
-        return $list;
-    }
-
-    /**
      * Helper to parse html to get urls and names of addons.
      *
      * @todo Manage dependencies for addon from omeka.org.
@@ -1098,8 +1036,8 @@ class Addons extends AbstractPlugin
             $versions = array_reverse($versions, true);
 
             $addon = [];
-            $addon['type'] = strtr($type, ['omeka' => '']);
-            $addon['server'] = 'omeka.org';
+            $addon['type'] = in_array($type, ['module', 'omekamodule'], true) ? 'module' : 'theme';
+            $addon['server'] = strpos($type, 'omeka') === 0 ? 'omeka.org' : 'github';
             $addon['name'] = $name;
             $addon['basename'] = $data['dirname'];
             $addon['dir'] = $data['dirname'];
