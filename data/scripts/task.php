@@ -222,7 +222,7 @@ $entityManager = $services->get('Omeka\EntityManager');
 $hasDatabaseError = false;
 try {
     $user = $entityManager->find(\Omeka\Entity\User::class, $userId);
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     $message = $e->getMessage();
     if (mb_strpos($message, 'could not find driver') !== false) {
         $message = new Message(
@@ -384,7 +384,7 @@ try {
         $job->setPid(null);
         $entityManager->flush();
     }
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     echo $translator->translate(new Message('Task "%1$s" has an error: %2$s', $taskName, $e->getMessage())) . PHP_EOL; // @translate
     $logger->err($e);
     exit();

@@ -456,7 +456,7 @@ class DatabaseBackup extends AbstractJob
 
             $close();
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $close();
             @unlink($filepath);
             $this->logger->err(

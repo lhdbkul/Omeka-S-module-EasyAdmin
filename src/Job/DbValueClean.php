@@ -402,7 +402,7 @@ class DbValueClean extends AbstractCheck
                     $sqlWhere2
                 SQL;
             $count = $this->connection->executeStatement($sqlDelete, $bind, $types);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->err(
                 'Error during deduplication: {error}', // @translate
                 ['error' => $e->getMessage()]

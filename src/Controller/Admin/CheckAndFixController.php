@@ -412,7 +412,7 @@ class CheckAndFixController extends AbstractActionController
                 'Test email successfully sent to {email}.', // @translate
                 ['email' => $recipient]
             ));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $messenger->addError(new PsrMessage(
                 'Failed to send test email: {error}', // @translate
                 ['error' => $e->getMessage()]

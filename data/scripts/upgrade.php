@@ -333,7 +333,7 @@ if (version_compare($oldVersion, '3.4.22', '<')) {
     );
     try {
         $addons->getAddons(true);
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
         // Addons may fail behind a proxy without internet access.
         $container = new \Laminas\Session\Container('EasyAdmin');
         unset($container->addons);

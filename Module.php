@@ -918,7 +918,7 @@ class Module extends AbstractModule
         } else {
             try {
                 $resource = $services->get('Omeka\ApiManager')->read($resourceType, ['id' => $id], ['initialize' => false, 'finalize' => false])->getContent();
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 return;
             }
         }
@@ -1490,7 +1490,7 @@ class Module extends AbstractModule
         $thumbnailer->setOptions([]);
         try {
             $newFilePath = $thumbnailer->create('default', 800);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $message = new PsrMessage(
                 'An error occurred when optimizing asset "{asset_filename}" (#{asset_id}): {error}', // @translate
                 ['asset_filename' => $asset->getName(), 'asset_id' => $asset->getId(), 'error' => $e->getMessage()]

@@ -166,7 +166,7 @@ class UploadController extends AbstractActionController
                         ->setTerminal(true);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger()->err($e);
             return (new JsonModel())
                 ->setTerminal(true);

@@ -95,7 +95,7 @@ class CronTasks extends AbstractJob
             try {
                 $this->executeTask($taskId, $taskSettings);
                 $executedCount++;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $errorCount++;
                 $this->logger->err(
                     'Error executing task "{task}": {error}', // @translate

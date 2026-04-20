@@ -36,7 +36,7 @@ class DbResourceIncomplete extends AbstractCheck
             $this->connection->executeQuery('SELECT id FROM value_annotation')->fetchOne();
             $joinValueAnnotation = 'LEFT JOIN `value_annotation` ON `value_annotation`.`id` = `resource`.`id`';
             $whereValueAnnotation = 'AND `value_annotation`.`id` IS NULL';
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $joinValueAnnotation = '';
             $whereValueAnnotation = '';
         }
@@ -46,7 +46,7 @@ class DbResourceIncomplete extends AbstractCheck
             $this->connection->executeQuery('SELECT id FROM annotation')->fetchOne();
             $joinAnnotation = 'LEFT JOIN `annotation` ON `annotation`.`id` = `resource`.`id`';
             $whereAnnotation = 'AND `annotation`.`id` IS NULL';
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $joinAnnotation = '';
             $whereAnnotation = '';
         }
@@ -65,7 +65,7 @@ class DbResourceIncomplete extends AbstractCheck
                         AND `annotation_body`.`id` IS NULL
                         AND `annotation_target`.`id` IS NULL
                     SQL;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // Nothing to do.
             }
         }

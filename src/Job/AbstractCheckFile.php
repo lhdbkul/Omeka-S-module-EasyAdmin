@@ -448,7 +448,7 @@ abstract class AbstractCheckFile extends AbstractCheck
 
                 yield $absolute ? $filePath : mb_substr($filePath, $dirLength);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->err(
                 'Directory or file not readable: {error}', // @translate
                 ['error' => $e->getMessage()]

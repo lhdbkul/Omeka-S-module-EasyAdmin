@@ -37,7 +37,7 @@ trait ZipTrait
                 return false;
             }
             $this->zipGenerator = trim($commandPath);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return false;
         }
 

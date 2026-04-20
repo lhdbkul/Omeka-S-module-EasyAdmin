@@ -309,7 +309,7 @@ abstract class AbstractCheck extends AbstractJob
             if (!file_exists($filePath)) {
                 try {
                     $result = @touch($filePath);
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
                     $this->logger->err(
                         'Error when saving "{filename}" (temp file: "{tempfile}"): {exception}', // @translate

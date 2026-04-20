@@ -273,7 +273,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" installed and activated.', // @translate
                 ['name' => $id]
             ));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->addModuleErrorMessage($e, $id);
             return $this->redirectToBrowse('not_installed');
         }
@@ -310,7 +310,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" uninstalled.', // @translate
                 ['name' => $id]
             ));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->messenger()->addError(new PsrMessage(
                 'Error uninstalling "{name}": {error}', // @translate
                 ['name' => $id, 'error' => $e->getMessage()]
@@ -407,7 +407,7 @@ class ModuleController extends AbstractActionController
                                 ['name' => $addon['name']]
                             )
                         );
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         $this->messenger()->addError(
                             new PsrMessage(
                                 'Error upgrading database for "{name}": {error}', // @translate
@@ -499,7 +499,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" activated.', // @translate
                 ['name' => $id]
             ));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->addModuleErrorMessage($e, $id);
             return $this->redirectToBrowse('not_active');
         }
@@ -530,7 +530,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" deactivated.', // @translate
                 ['name' => $id]
             ));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->addModuleErrorMessage($e, $id);
             return $this->redirectToBrowse('active');
         }
@@ -561,7 +561,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" upgraded.', // @translate
                 ['name' => $id]
             ));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->addModuleErrorMessage($e, $id);
             return $this->redirectToBrowse('needs_upgrade');
         }
@@ -827,7 +827,7 @@ class ModuleController extends AbstractActionController
                                 $this->moduleManager->activate(
                                     $module
                                 );
-                            } catch (\Exception $e) {
+                            } catch (\Throwable $e) {
                                 $this->messenger()->addError(
                                     $e->getMessage()
                                 );
@@ -844,7 +844,7 @@ class ModuleController extends AbstractActionController
                                 $this->moduleManager->deactivate(
                                     $module
                                 );
-                            } catch (\Exception $e) {
+                            } catch (\Throwable $e) {
                                 $this->messenger()->addError(
                                     $e->getMessage()
                                 );

@@ -366,7 +366,7 @@ trait PreviousNextResourceTrait
 
         try {
             return $this->getView()->api()->read('media', $mediaId)->getContent();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }
@@ -386,7 +386,7 @@ trait PreviousNextResourceTrait
 
         try {
             return $this->getView()->api()->read('media', $mediaId)->getContent();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }

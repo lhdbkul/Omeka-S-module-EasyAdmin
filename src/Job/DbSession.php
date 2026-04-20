@@ -52,7 +52,7 @@ class DbSession extends AbstractCheck
         if (!$result->fetchOne()) {
             try {
                 $this->connectionDbal->executeStatement("ALTER TABLE `$table` ADD INDEX `$column` (`$column`);");
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->warn(
                     'Unable to add index "{column}" in table "{table}" to improve performance: {msg}', // @translate
                     ['column' => $column, 'table' => $table, 'msg' => $e->getMessage()]
@@ -69,7 +69,7 @@ class DbSession extends AbstractCheck
                 ['time' => $time - $seconds],
                 ['time' => \Doctrine\DBAL\ParameterType::INTEGER]
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
             $this->logger->err(
                 'Unable to delete last sessions: {msg}', // @translate

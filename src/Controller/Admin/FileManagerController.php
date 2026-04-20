@@ -431,7 +431,7 @@ class FileManagerController extends AbstractActionController
                     foreach ($users as $userRepr) {
                         $userNames[$userRepr->id()] = $userRepr->name();
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     // Silently continue without names.
                 }
             }

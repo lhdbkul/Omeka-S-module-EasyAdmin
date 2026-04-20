@@ -579,7 +579,7 @@ class DbResourceTitle extends AbstractCheck
                         ];
                         $this->writeRow($row);
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $this->logger->err(
                         'Error updating resource #{resource_id}: {error}', // @translate
                         ['resource_id' => $resourceId, 'error' => $e->getMessage()]

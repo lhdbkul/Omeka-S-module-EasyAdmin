@@ -209,7 +209,7 @@ class ManageAddons extends AbstractJob
                     'Database upgraded for {name}.', // @translate
                     ['name' => $moduleId]
                 );
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->err(
                     'DB upgrade failed for {name}: {error}', // @translate
                     [
