@@ -178,11 +178,24 @@ echo $this->form()->openTag($manageForm);
                 <ul class="actions">
                     <?php if (!$isComposer): ?>
 
+                        <?php if (Manager::STATE_NOT_INSTALLED === $state): ?>
+                        <li>
+                            <button type="submit" name="state_action_id" value="install-module:<?= $escape($moduleId) ?>"
+                                formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'install-module'], ['query' => ['id' => $moduleId]])) ?>"
+                                class="o-icon-install button"><?= $translate('Install') ?></button>
+                        </li>
+                        <?php endif ?>
+
                         <?php if (Manager::STATE_NOT_ACTIVE === $state): ?>
                         <li>
                             <button type="submit" name="state_action_id" value="activate:<?= $escape($moduleId) ?>"
                                 formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'activate'], ['query' => ['id' => $moduleId]])) ?>"
                                 class="o-icon-activate button"><?= $translate('Activate') ?></button>
+                        </li>
+                        <li>
+                            <button type="submit" name="state_action_id" value="uninstall:<?= $escape($moduleId) ?>"
+                                formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'uninstall'], ['query' => ['id' => $moduleId]])) ?>"
+                                class="o-icon-uninstall button"><?= $translate('Uninstall') ?></button>
                         </li>
                         <?php endif ?>
 

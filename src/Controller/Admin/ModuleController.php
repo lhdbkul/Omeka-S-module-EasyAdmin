@@ -292,6 +292,48 @@ class ModuleController extends AbstractActionController
         );
     }
 
+    public function uninstallAction()
+    {
+        if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        $id = $this->params()->fromPost('id')
+            ?: $this->params()->fromQuery('id');
+        $module = $this->moduleManager->getModule($id);
+        if (!$module) {
+            $this->messenger()->addError(new PsrMessage(
+                'Module "{name}" not found.', // @translate
+                ['name' => $id]
+            ));
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'module']
+            );
+        }
+
+        try {
+            $this->moduleManager->uninstall($module);
+            $this->messenger()->addSuccess(new PsrMessage(
+                'Module "{name}" uninstalled.', // @translate
+                ['name' => $id]
+            ));
+        } catch (\Exception $e) {
+            $this->messenger()->addError(new PsrMessage(
+                'Error uninstalling "{name}": {error}', // @translate
+                ['name' => $id, 'error' => $e->getMessage()]
+            ));
+        }
+
+        return $this->redirect()->toRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module']
+        );
+    }
+
     public function updateAction()
     {
         if (!$this->getRequest()->isPost()) {
