@@ -1018,9 +1018,12 @@ class Addons extends AbstractPlugin
             }
 
             $version = $data['latest_version'];
-            $url = 'https://github.com/' . $data['owner'] . '/' . $data['repo'];
-            // Warning: the url with master may not have dependencies.
-            $zip = $data['versions'][$version]['download_url'] ?? $url . '/archive/master.zip';
+            $host = $data['host'] ?? 'github.com';
+            $url = 'https://' . $host . '/' . $data['owner'] . '/' . $data['repo'];
+            // Fallback when no download_url: use host-specific archive URL. The
+            // url with the default branch may not include dependencies.
+            $zip = $data['versions'][$version]['download_url']
+                ?? $this->fallbackArchiveUrl($host, $url, $data['repo'], $version);
 
             // Build a sorted list of versions with their omeka compatibility
             // constraint (descending, latest first).
@@ -1051,6 +1054,25 @@ class Addons extends AbstractPlugin
         }
 
         return $list;
+    }
+
+    /**
+     * Build an archive URL for the default branch when no release zip is
+     * available. Handles github, gitlab, and a sensible default.
+     */
+    protected function fallbackArchiveUrl(string $host, string $url, string $repo, string $version = 'master'): string
+    {
+        $branch = $version ?: 'master';
+        switch (strtolower($host)) {
+            case 'github.com':
+                return $url . '/archive/refs/heads/' . $branch . '.zip';
+            case 'gitlab.com':
+            default:
+                if (strpos($host, 'gitlab') !== false) {
+                    return $url . '/-/archive/' . $branch . '/' . $repo . '-' . $branch . '.zip';
+                }
+                return $url . '/archive/' . $branch . '.zip';
+        }
     }
 
     /**
