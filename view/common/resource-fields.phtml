@@ -30,12 +30,19 @@ if (isset($resource)) {
     // Set the logged in user's default template when adding a resource.
     $resourceTemplateSelect->setValue($this->userSetting('default_resource_template'));
 }
+$valuesJson = null;
+if (!empty($postedValues)) {
+    $valuesJson = $postedValues;
+} elseif (isset($resource)) {
+    $valuesJson = $resource->values();
+}
 ?>
 
 <fieldset id="resource-values"
     class="section active"
     aria-labelledby="resource-values-label"
-    data-resource-id="<?= $escapeAttr(isset($resource) ? $resource->id() : '') ?>">
+    data-resource-id="<?= $escapeAttr(isset($resource) ? $resource->id() : '') ?>"
+    data-values-json="<?= $valuesJson === null ? '' : $escapeAttr(json_encode($valuesJson)) ?>">
     <div class="non-properties">
         <?php if ($resourceTemplateSelect->getValueOptions()): ?>
         <?php echo $this->formRow($resourceTemplateSelect); ?>
