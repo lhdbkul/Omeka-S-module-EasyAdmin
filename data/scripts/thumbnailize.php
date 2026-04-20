@@ -5,7 +5,14 @@ declare(strict_types=1);
 /**
  * Thumbnail generation script using VIPS or ImageMagick.
  *
- * @copyright Daniel Berthereau 2025
+ * Best practice: run this script as the web server user so that created files
+ * are immediately owned by the right user:
+ *   sudo -u www-data php thumbnailize.php [OPTIONS]
+ * If running as root, use --owner to set the correct ownership on all created
+ * and existing files:
+ *   php thumbnailize.php --owner=www-data:www-data [OPTIONS]
+ *
+ * @copyright Daniel Berthereau 2025-2026
  * @license Cecill 2.1
  *
  * Copied:
@@ -43,7 +50,11 @@ $START_FROM = 0;
 $SKIP_LARGE = false;
 $SKIP_MEDIUM = false;
 $SKIP_SQUARE = false;
+$OWNER = '';
 $ERRORS = 0;
+
+// Ensure new files are world-readable (644/755).
+umask(0022);
 
 /***************************************************
  * PARSE CLI OPTIONS
@@ -51,7 +62,7 @@ $ERRORS = 0;
 $options = getopt('', [
     'all', 'missing', 'parallel:', 'dry-run', 'log-file:', 'no-progress',
     'pdf-dpi:', 'crop-mode:', 'main-dir:', 'start-from:', 'skip-large',
-    'skip-medium', 'skip-square', 'help',
+    'skip-medium', 'skip-square', 'owner:', 'help',
 ]);
 
 if (isset($options['help'])) {
@@ -69,6 +80,7 @@ if (isset($options['help'])) {
     echo "--skip-large         Do not generate large thumbnails\n";
     echo "--skip-medium        Do not generate medium thumbnails\n";
     echo "--skip-square        Do not generate square thumbnails\n";
+    echo "--owner USER:GROUP   chown created files (e.g. www-data:www-data)\n";
     exit(0);
 }
 
@@ -115,6 +127,21 @@ if (isset($options['skip-medium'])) {
 if (isset($options['skip-square'])) {
     $SKIP_SQUARE = true;
 }
+if (isset($options['owner'])) {
+    $OWNER = $options['owner'];
+}
+
+// Skip chown when current user already matches the requested owner.
+if ($OWNER !== '' && function_exists('posix_geteuid')) {
+    $curUser = posix_getpwuid(posix_geteuid())['name'] ?? '';
+    $curGroup = posix_getgrgid(posix_getegid())['name'] ?? '';
+    $parts = explode(':', $OWNER, 2);
+    $reqUser = $parts[0];
+    $reqGroup = $parts[1] ?? $curGroup;
+    if ($reqUser === $curUser && $reqGroup === $curGroup) {
+        $OWNER = '';
+    }
+}
 
 /***************************************************
  * CHECK DEPENDENCIES
@@ -144,9 +171,14 @@ if ($PARALLEL > 1) {
 /***************************************************
  * SETUP
  ***************************************************/
-@mkdir($LARGE_DIR, 0777, true);
-@mkdir($MEDIUM_DIR, 0777, true);
-@mkdir($SQUARE_DIR, 0777, true);
+@mkdir($LARGE_DIR, 0775, true);
+@mkdir($MEDIUM_DIR, 0775, true);
+@mkdir($SQUARE_DIR, 0775, true);
+if ($OWNER) {
+    fixOwner($LARGE_DIR, $OWNER);
+    fixOwner($MEDIUM_DIR, $OWNER);
+    fixOwner($SQUARE_DIR, $OWNER);
+}
 touch($LOG_FILE);
 
 $files = glob("$ORIGINAL_DIR/*.{jpg,jpeg,png,webp,tif,tiff,pdf,JPG,JPEG,PNG,WEBP,TIF,TIFF,PDF}", GLOB_BRACE);
@@ -166,6 +198,21 @@ $total = count($files);
 function logMsg(string $msg, string $file): void
 {
     file_put_contents($file, $msg . "\n", FILE_APPEND);
+}
+
+/**
+ * Apply chown on a path when --owner is set.
+ */
+function fixOwner(string $path, string $owner): void
+{
+    if ($owner === '' || !file_exists($path)) {
+        return;
+    }
+    $parts = explode(':', $owner, 2);
+    @chown($path, $parts[0]);
+    if (isset($parts[1])) {
+        @chgrp($path, $parts[1]);
+    }
 }
 
 function progressBar(int $count, int $total, int $errors = 0): void
@@ -257,6 +304,9 @@ function processFile(string $img, array $cfg): bool
             $allExist = false;
         }
         if ($allExist) {
+            fixOwner($large_out, $cfg['owner']);
+            fixOwner($medium_out, $cfg['owner']);
+            fixOwner($squareOut, $cfg['owner']);
             logMsg("[skip]   $base", $cfg['log_file']);
             return false;
         }
@@ -330,6 +380,8 @@ function processFile(string $img, array $cfg): bool
             if (!$ok) {
                 logMsg("[error]  $base: large thumbnail failed", $cfg['log_file']);
                 $hasError = true;
+            } else {
+                fixOwner($large_out, $cfg['owner']);
             }
         }
 
@@ -355,6 +407,8 @@ function processFile(string $img, array $cfg): bool
             if (!$ok) {
                 logMsg("[error]  $base: medium thumbnail failed", $cfg['log_file']);
                 $hasError = true;
+            } else {
+                fixOwner($medium_out, $cfg['owner']);
             }
         }
 
@@ -391,6 +445,8 @@ function processFile(string $img, array $cfg): bool
             if (!$ok) {
                 logMsg("[error]  $base: square thumbnail failed", $cfg['log_file']);
                 $hasError = true;
+            } else {
+                fixOwner($squareOut, $cfg['owner']);
             }
         }
     }
@@ -421,6 +477,7 @@ $config = [
     'skip_large' => $SKIP_LARGE,
     'skip_medium' => $SKIP_MEDIUM,
     'skip_square' => $SKIP_SQUARE,
+    'owner' => $OWNER,
 ];
 
 /***************************************************

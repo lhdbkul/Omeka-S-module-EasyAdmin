@@ -4,7 +4,14 @@
 ############################################
 # Thumbnail generation script using VIPS or ImageMagick.
 #
-# Copyright Daniel Berthereau 2025
+# Best practice: run this script as the web server user so that created files
+# are immediately owned by the right user:
+#   sudo -u www-data bash thumbnailize.sh [OPTIONS]
+# If running as root, use --owner to set the correct ownership on all created
+# and existing files:
+#   bash thumbnailize.sh --owner www-data:www-data [OPTIONS]
+#
+# Copyright Daniel Berthereau 2025-2026
 # Licence Cecill 2.1
 #
 # Copied:
@@ -13,6 +20,9 @@
 ############################################
 
 set -euo pipefail
+
+# Ensure new files are world-readable (644 for files, 755 for dirs).
+umask 0022
 
 ############################################
 # DEFAULT CONFIGURATION
@@ -38,6 +48,7 @@ START_FROM=0
 SKIP_LARGE=false
 SKIP_MEDIUM=false
 SKIP_SQUARE=false
+OWNER=""
 ERRORS=0
 
 # Incremented files to manage progress and errors during parallel processes.
@@ -89,6 +100,7 @@ Options:
   --skip-large         Do not generate large thumbnails
   --skip-medium        Do not generate medium thumbnails
   --skip-square        Do not generate square thumbnails
+  --owner USER:GROUP   chown created files (e.g. www-data:www-data)
   --help               Show help
 
 Examples:
@@ -140,6 +152,7 @@ while [[ $# -gt 0 ]]; do
         --skip-large) SKIP_LARGE=true ;;
         --skip-medium) SKIP_MEDIUM=true ;;
         --skip-square) SKIP_SQUARE=true ;;
+        --owner) OWNER="$2"; shift ;;
         --help) usage; exit 0 ;;
         *) echo "Unknown option: $1"; usage; exit 1 ;;
     esac
@@ -155,8 +168,29 @@ SQUARE_DIR="$MAIN_DIR/square"
 ############################################
 # PREP
 ############################################
+# Skip chown when current user already matches the requested owner.
+if [[ -n "$OWNER" ]]; then
+    CUR_USER=$(id -un)
+    CUR_GROUP=$(id -gn)
+    REQ_USER="${OWNER%%:*}"
+    REQ_GROUP="${OWNER#*:}"
+    [[ "$REQ_GROUP" == "$OWNER" ]] && REQ_GROUP="$CUR_GROUP"
+    if [[ "$REQ_USER" == "$CUR_USER" && "$REQ_GROUP" == "$CUR_GROUP" ]]; then
+        OWNER=""
+    fi
+fi
+
 mkdir -p "$LARGE_DIR" "$MEDIUM_DIR" "$SQUARE_DIR"
+if [[ -n "$OWNER" ]]; then
+    chown "$OWNER" "$LARGE_DIR" "$MEDIUM_DIR" "$SQUARE_DIR"
+fi
 touch "$LOG_FILE"
+
+# Apply owner to a file if --owner is set.
+fix_owner() {
+    [[ -n "$OWNER" && -f "$1" ]] && chown "$OWNER" "$1"
+    return 0
+}
 shopt -s nullglob
 
 file_list=$(mktemp /tmp/thumb_files_XXXXXX.txt)
@@ -301,6 +335,9 @@ process_file() {
             all_exist=false
         fi
         if [[ "$all_exist" == true ]]; then
+            fix_owner "$large_out"
+            fix_owner "$medium_out"
+            fix_owner "$square_out"
             echo "[skip]   $base" >> "$LOG_FILE"
             echo 1 >> "$TMPCOUNT"
             return 0
@@ -357,13 +394,19 @@ process_file() {
     if [[ "$DRYRUN" == false ]]; then
         if ! convert_large "$thumbnail_input" "$large_out"; then
             echo "[error]  $base: large conversion failed" >> "$LOG_FILE"
+        else
+            fix_owner "$large_out"
         fi
         if ! convert_medium "$thumbnail_input" "$medium_out"; then
             echo "[error]  $base: medium conversion failed" >> "$LOG_FILE"
+        else
+            fix_owner "$medium_out"
         fi
         if ! convert_square "$thumbnail_input" "$square_out"; then
             echo "[error]  $base: square conversion failed" >> "$LOG_FILE"
             echo 1 >> "$TMPERROR"
+        else
+            fix_owner "$square_out"
         fi
     fi
 
@@ -377,10 +420,11 @@ process_file() {
 # EXPORT FOR PARALLEL
 ############################################
 export -f process_file detect_type progress_bar \
-       convert_large convert_medium convert_square
+       convert_large convert_medium convert_square fix_owner
 export MODE DRYRUN LOG_FILE LARGE_DIR MEDIUM_DIR SQUARE_DIR \
        LARGE_SIZE MEDIUM_SIZE SQUARE_SIZE PDF_DPI CROP_MODE \
-       TMPCOUNT TMPERROR USE_VIPS SKIP_LARGE SKIP_MEDIUM SKIP_SQUARE
+       TMPCOUNT TMPERROR USE_VIPS SKIP_LARGE SKIP_MEDIUM SKIP_SQUARE \
+       OWNER
 
 ############################################
 # EXECUTION
@@ -397,6 +441,7 @@ echo "Using VIPS: $USE_VIPS"
 echo "Skip large: $SKIP_LARGE"
 echo "Skip medium: $SKIP_MEDIUM"
 echo "Skip square: $SKIP_SQUARE"
+echo "Owner: ${OWNER:-<inherit>}"
 echo "Total files found: $TOTAL_ALL"
 if [[ "$START_FROM" -gt 0 ]]; then
     echo "Starting from file: $START_FROM"
