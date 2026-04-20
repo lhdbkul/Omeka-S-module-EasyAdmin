@@ -937,20 +937,25 @@ class Module extends AbstractModule
                 $htmlSites = $this->prepareSitesResource($resource);
                 if ($resourceType === 'item_sets' && count($resource->sites())) {
                     $translated = $translate('Sites');
-                    $htmlRegex = <<<REGEX
-                        <div class="meta-group[\w _-]*">\s*<h4>$translated</h4>.*</div>\s*<div class="meta-group
-                        REGEX;
-                    $html = preg_replace('~' . $htmlRegex . '~s', $htmlSites . '<div class="meta-group', $html, 1);
+                    $needle = '<h4>' . $translated . '</h4>';
+                    $hPos = strpos($html, $needle);
+                    if ($hPos !== false) {
+                        $start = strrpos(substr($html, 0, $hPos), '<div class="meta-group');
+                        $next = strpos($html, '<div class="meta-group', $hPos);
+                        if ($start !== false && $next !== false) {
+                            $html = substr($html, 0, $start) . $htmlSites . substr($html, $next);
+                        }
+                    }
                 } else {
                     $translated = $resourceType === 'item_sets' ? $translate('Items') : $translate('Created');
-                    $htmlPost = <<<REGEX
-                        <div class="meta-group">
-                                <h4>$translated</h4>
-                        REGEX;
-                    $htmlRegex = <<<REGEX
-                        <div class="meta-group">\s*<h4>$translated</h4>
-                        REGEX;
-                    $html = preg_replace('~' . $htmlRegex . '~s', $htmlSites . $htmlPost, $html, 1);
+                    $needle = '<h4>' . $translated . '</h4>';
+                    $hPos = strpos($html, $needle);
+                    if ($hPos !== false) {
+                        $start = strrpos(substr($html, 0, $hPos), '<div class="meta-group');
+                        if ($start !== false) {
+                            $html = substr($html, 0, $start) . $htmlSites . substr($html, $start);
+                        }
+                    }
                 }
             }
         }
