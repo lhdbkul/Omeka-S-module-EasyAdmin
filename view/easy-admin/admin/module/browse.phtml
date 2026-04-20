@@ -13,7 +13,10 @@
  * @var \EasyAdmin\Form\ModuleStateForm $refreshForm
  */
 
+use Composer\Semver\Semver;
 use Omeka\Module\Manager;
+
+$omekaVersion = \Omeka\Module::VERSION;
 
 $plugins = $this->getHelperPluginManager();
 $url = $plugins->get('url');
@@ -76,6 +79,7 @@ $states = [
         <?php foreach (['active', 'not_active', 'not_installed', 'needs_upgrade'] as $s): ?>
         <option value="<?= $escape($s) ?>"<?= $filterState === $s ? ' selected' : '' ?>><?= $escape($states[$s] ?? $s) ?></option>
         <?php endforeach ?>
+        <option value="update_available"<?= $filterState === 'update_available' ? ' selected' : '' ?>><?= $escape($translate('Update available')) ?></option>
         <option value="error"<?= $filterState === 'error' ? ' selected' : '' ?>><?= $escape($translate('Error')) ?></option>
     </select>
 </form>
@@ -130,26 +134,50 @@ echo $this->form()->openTag($manageForm);
             Manager::STATE_INVALID_INI,
             Manager::STATE_INVALID_OMEKA_VERSION,
         ];
-        if ($filterState === 'error' && !in_array($state, $errorStates)) {
-            continue;
-        } elseif ($filterState && $filterState !== 'error' && $state !== $filterState) {
-            continue;
-        }
         $isComposer = is_dir($composerAddonsPath . '/' . $moduleId);
         $ini = $module->getIni();
         $version = $ini['version'] ?? '';
         $name = $module->getName() ?: $moduleId;
 
         $catalogueVersion = null;
+        $catalogueVersionCompatible = null;
+        $hasVersionConstraints = false;
         foreach ($catalogueModules as $cm) {
-            if (($cm['dir'] ?? '') === $moduleId) {
-                $catalogueVersion = $cm['version'] ?? null;
-                break;
+            if (($cm['dir'] ?? '') !== $moduleId) {
+                continue;
             }
+            $catalogueVersion = $cm['version'] ?? null;
+            // Per-version compatibility info is only available for addons from
+            // omeka.org (json). The github/gitlab CSV list only carries the
+            // latest version.
+            if (!empty($cm['versions'])) {
+                $hasVersionConstraints = true;
+                foreach ($cm['versions'] as $v => $vData) {
+                    $constraint = $vData['omeka_version_constraint'] ?? '';
+                    $isCompatible = !mb_strlen((string) $constraint)
+                        || Semver::satisfies($omekaVersion, $constraint);
+                    if ($isCompatible) {
+                        $catalogueVersionCompatible = $v;
+                        break;
+                    }
+                }
+            }
+            break;
         }
         $hasUpdate = $catalogueVersion
             && $version
             && version_compare($version, $catalogueVersion, '<');
+        $hasCompatibleUpdate = $catalogueVersionCompatible
+            && $version
+            && version_compare($version, $catalogueVersionCompatible, '<');
+
+        if ($filterState === 'error' && !in_array($state, $errorStates)) {
+            continue;
+        } elseif ($filterState === 'update_available' && !$hasUpdate) {
+            continue;
+        } elseif ($filterState && !in_array($filterState, ['error', 'update_available'], true) && $state !== $filterState) {
+            continue;
+        }
     ?>
         <tr>
             <td>
@@ -256,8 +284,18 @@ echo $this->form()->openTag($manageForm);
             </td>
             <td class="col-version<?= $hasUpdate ? ' has-update' : '' ?>">
                 <?= $escape($version) ?>
-                <?php if ($hasUpdate): ?>
-                <?= sprintf($translate('→ %s'), $escape($catalogueVersion)) ?>
+                <?php if ($hasVersionConstraints): ?>
+                    <?php if ($hasCompatibleUpdate): ?>
+                    <span class="compatible-update" title="<?= $escape(sprintf($translate('Latest version compatible with Omeka S %s'), $omekaVersion)) ?>"> → <?= $escape($catalogueVersionCompatible) ?></span>
+                    <?php endif ?>
+                    <?php if ($catalogueVersion && $catalogueVersion !== $catalogueVersionCompatible): ?>
+                    <span class="latest-version" title="<?= $escape($translate('Latest version, not compatible with this Omeka S')) ?>"> (<?= sprintf($escape($translate('latest: %s')), $escape($catalogueVersion)) ?>)</span>
+                    <?php endif ?>
+                    <?php if (!$catalogueVersionCompatible && $hasUpdate): ?>
+                    <span class="incompatible" title="<?= $escape($translate('No compatible version available')) ?>"> → <?= $escape($catalogueVersion) ?> <?= $escape($translate('(incompatible)')) ?></span>
+                    <?php endif ?>
+                <?php elseif ($hasUpdate): ?>
+                <span class="unknown-compat" title="<?= $escape($translate('Compatibility unknown (github/gitlab list)')) ?>"> → <?= $escape($catalogueVersion) ?></span>
                 <?php endif ?>
             </td>
             <td class="col-state">

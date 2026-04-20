@@ -1066,6 +1066,19 @@ class Addons extends AbstractPlugin
             // Warning: the url with master may not have dependencies.
             $zip = $data['versions'][$version]['download_url'] ?? $url . '/archive/master.zip';
 
+            // Build a sorted list of versions with their omeka compatibility
+            // constraint (descending, latest first).
+            $versions = [];
+            foreach (($data['versions'] ?? []) as $v => $vData) {
+                $versions[$v] = [
+                    'version' => $v,
+                    'omeka_version_constraint' => $vData['omeka_version_constraint'] ?? '',
+                    'download_url' => $vData['download_url'] ?? '',
+                ];
+            }
+            uksort($versions, 'version_compare');
+            $versions = array_reverse($versions, true);
+
             $addon = [];
             $addon['type'] = strtr($type, ['omeka' => '']);
             $addon['server'] = 'omeka.org';
@@ -1073,6 +1086,7 @@ class Addons extends AbstractPlugin
             $addon['basename'] = $data['dirname'];
             $addon['dir'] = $data['dirname'];
             $addon['version'] = $data['latest_version'];
+            $addon['versions'] = $versions;
             $addon['url'] = $url;
             $addon['zip'] = $zip;
             $addon['dependencies'] = [];
