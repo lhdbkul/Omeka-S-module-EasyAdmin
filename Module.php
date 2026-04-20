@@ -917,7 +917,7 @@ class Module extends AbstractModule
             $resource = $vars->offsetGet('resource');
         } else {
             try {
-                $resource = $services->get('Omeka\ApiManager')->read($resourceType, ['id' => $id], ['initialize' => false, 'finalize' => false])->getContent();
+                $resource = $services->get('Omeka\ApiManager')->read($resourceType, ['id' => $id], [], ['initialize' => false])->getContent();
             } catch (\Throwable $e) {
                 return;
             }
