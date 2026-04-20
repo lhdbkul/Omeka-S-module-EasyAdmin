@@ -1354,14 +1354,10 @@ class Module extends AbstractModule
 
     public function handleAfterSaveItem(Event $event): void
     {
-        // Prepare thumbnailing only if needed.
-        $needThumbnailing = false;
-
-        /**
-         * @var \Omeka\Entity\Item $item
-         * @var \Omeka\Entity\Media $media
-         */
+        /** @var \Omeka\Entity\Item $item */
         $item = $event->getParam('response')->getContent();
+
+        $needThumbnailing = false;
         foreach ($item->getMedia() as $media) {
             if (!$media->hasThumbnails()
                 && $media->getMediaType()
@@ -1376,36 +1372,61 @@ class Module extends AbstractModule
             return;
         }
 
-        $services = $this->getServiceLocator();
-
-        // Create the thumbnails for the media ingested with "bulk_upload" via a
-        // job to avoid the 30 seconds issue with numerous files.
-        $args = [
-            'item_id' => $item->getId(),
-            'ingester' => 'bulk_upload',
-            'only_missing' => true,
-        ];
-        // When already in a background process (in particular bulk import), run
-        // synchronously without dispatching a new job. Using synchronous
-        // strategy causes Doctrine cascade issues with job owner, so create
-        // a "fake job" (not persisted).
-        // @todo Refactor to use a dedicated service class instead of fake job.
+        // In background (bulk import), run synchronously to avoid registering
+        // a shutdown that fires only at end of the long cli process.
         if ($this->isBackgroundProcess()) {
+            $services = $this->getServiceLocator();
             $job = new \Omeka\Entity\Job();
             $job->setPid(null);
             $job->setStatus(\Omeka\Entity\Job::STATUS_IN_PROGRESS);
             $job->setClass(\EasyAdmin\Job\FileDerivativeBulkUpload::class);
-            $job->setArgs($args);
+            $job->setArgs([
+                'item_id' => $item->getId(),
+                'ingester' => 'bulk_upload',
+                'only_missing' => true,
+            ]);
             $job->setOwner($services->get('Omeka\AuthenticationService')->getIdentity());
             $job->setStarted(new \DateTime('now'));
             $jobClass = new \EasyAdmin\Job\FileDerivativeBulkUpload($job, $services);
             $jobClass->perform();
+            return;
+        }
+
+        // Use deferred job to avoid to run one job by resource.
+        if ($services->has('Common\DeferredJobDispatch')) {
+            $services->get('Common\DeferredJobDispatch')->defer(
+                \EasyAdmin\Job\FileDerivativeBulkUpload::class,
+                'easyadmin_bulk_upload_derivatives',
+                ['item_id' => $item->getId()],
+                function (string $key, array $allParams) {
+                    // One job per unique item (job only supports a
+                    // single item_id).
+                    $seen = [];
+                    $dispatches = [];
+                    foreach ($allParams as $p) {
+                        $id = $p['item_id'];
+                        if (isset($seen[$id])) {
+                            continue;
+                        }
+                        $seen[$id] = true;
+                        $dispatches[] = [
+                            'item_id' => $id,
+                            'ingester' => 'bulk_upload',
+                            'only_missing' => true,
+                        ];
+                    }
+                    return $dispatches;
+                }
+            );
         } else {
-            // Dispatch as background job for web requests to avoid timeout.
-            $strategy = null;
-            /** @var \Omeka\Job\Dispatcher $dispatcher */
-            $dispatcher = $services->get(\Omeka\Job\Dispatcher::class);
-            $dispatcher->dispatch(\EasyAdmin\Job\FileDerivativeBulkUpload::class, $args, $strategy);
+            $services->get(\Omeka\Job\Dispatcher::class)->dispatch(
+                \EasyAdmin\Job\FileDerivativeBulkUpload::class,
+                [
+                    'item_id' => $item->getId(),
+                    'ingester' => 'bulk_upload',
+                    'only_missing' => true,
+                ]
+            );
         }
     }
 
