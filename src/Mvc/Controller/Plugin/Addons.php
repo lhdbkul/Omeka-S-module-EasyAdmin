@@ -144,7 +144,7 @@ class Addons extends AbstractPlugin
         }
 
         $this->selections = [];
-        $csv = @file_get_contents('https://raw.githubusercontent.com/Daniel-KM/UpgradeToOmekaS/refs/heads/master/_data/omeka_s_selections.csv');
+        $csv = $this->fileGetContents('https://raw.githubusercontent.com/Daniel-KM/UpgradeToOmekaS/refs/heads/master/_data/omeka_s_selections.csv');
         if ($csv) {
             // Get the column for name and modules.
             $headers = [];
@@ -958,24 +958,42 @@ class Addons extends AbstractPlugin
      */
     protected function fileGetContents($url): ?string
     {
-        $uri = new HttpUri($url);
-        $this->httpClient->reset();
-        $this->httpClient->setUri($uri);
+        // Use Laminas Http first: works even when allow_url_fopen is off. Short
+        // timeout to fail fast on unreachable servers.
+        $body = null;
         try {
+            $this->httpClient->reset();
+            $this->httpClient->setUri(new HttpUri($url));
+            $this->httpClient->setOptions([
+                'timeout' => 10,
+                'connecttimeout' => 5,
+            ]);
             $response = $this->httpClient->send();
-            $response = $response->isOk() ? $response->getBody() : null;
-        } catch (RuntimeException $e) {
-            $response = null;
+            if ($response->isOk()) {
+                $body = $response->getBody();
+            }
+        } catch (\Exception $e) {
+            $body = null;
         }
 
-        if (empty($response)) {
+        // Fallback to file_get_contents only if allow_url_fopen is enabled.
+        if (empty($body) && filter_var(ini_get('allow_url_fopen'), FILTER_VALIDATE_BOOLEAN)) {
+            $context = stream_context_create([
+                'http' => ['timeout' => 10, 'ignore_errors' => true],
+                'https' => ['timeout' => 10, 'ignore_errors' => true],
+            ]);
+            $body = @file_get_contents($url, false, $context) ?: null;
+        }
+
+        if (empty($body)) {
             $this->messenger->addError(new PsrMessage(
                 'Unable to fetch the url {url}.', // @translate
                 ['url' => $url]
             ));
+            return null;
         }
 
-        return $response;
+        return $body;
     }
 
     /**
