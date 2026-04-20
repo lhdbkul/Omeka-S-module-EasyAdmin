@@ -18,6 +18,64 @@ use Omeka\Module\Manager;
 
 $omekaVersion = \Omeka\Module::VERSION;
 
+// Fallback for non-semver constraints used by some modules (e.g. "1.0-2.0",
+// ">= 4.0", "4.0,<5", "4.0||5.0"). Returns null on parse failure.
+$checkConstraintFallback = function (string $version, string $constraint): ?bool {
+    $constraint = trim($constraint);
+    if ($constraint === '' || $constraint === '*') {
+        return true;
+    }
+    // OR split.
+    foreach (preg_split('~\s*\|\|\s*~', $constraint) as $orPart) {
+        $orPart = trim($orPart);
+        if ($orPart === '') {
+            continue;
+        }
+        // Range "A - B" or "A-B" (no operator on either side).
+        if (preg_match('~^(?<a>\d[\d.]*)\s*-\s*(?<b>\d[\d.]*)$~', $orPart, $m)) {
+            if (version_compare($version, $m['a'], '>=') && version_compare($version, $m['b'], '<=')) {
+                return true;
+            }
+            continue;
+        }
+        // AND clauses split by comma or whitespace.
+        $clauses = preg_split('~[\s,]+~', $orPart);
+        $allOk = true;
+        foreach ($clauses as $clause) {
+            if ($clause === '') {
+                continue;
+            }
+            if (!preg_match('~^(?<op>>=|<=|<>|!=|==|=|>|<|\^|~)?\s*(?<v>\d[\d.A-Za-z\-+]*)$~', $clause, $m)) {
+                return null;
+            }
+            $op = $m['op'] ?: '=';
+            $v = $m['v'];
+            if ($op === '^' || $op === '~') {
+                // Treat ^X.Y / ~X.Y as >=X.Y and <(major+1) for ^, <(minor+1)
+                // for ~.
+                $parts = explode('.', $v);
+                $major = (int) ($parts[0] ?? 0);
+                $minor = (int) ($parts[1] ?? 0);
+                $upper = $op === '^' ? ($major + 1) . '.0.0' : $major . '.' . ($minor + 1) . '.0';
+                if (!version_compare($version, $v, '>=') || !version_compare($version, $upper, '<')) {
+                    $allOk = false;
+                    break;
+                }
+                continue;
+            }
+            $cmpOp = $op === '=' ? '==' : $op;
+            if (!version_compare($version, $v, $cmpOp)) {
+                $allOk = false;
+                break;
+            }
+        }
+        if ($allOk) {
+            return true;
+        }
+    }
+    return false;
+};
+
 $plugins = $this->getHelperPluginManager();
 $url = $plugins->get('url');
 $escape = $plugins->get('escapeHtml');
@@ -153,9 +211,20 @@ echo $this->form()->openTag($manageForm);
             if (!empty($cm['versions'])) {
                 $hasVersionConstraints = true;
                 foreach ($cm['versions'] as $v => $vData) {
-                    $constraint = $vData['omeka_version_constraint'] ?? '';
-                    $isCompatible = !mb_strlen((string) $constraint)
-                        || Semver::satisfies($omekaVersion, $constraint);
+                    $constraint = (string) ($vData['omeka_version_constraint'] ?? '');
+                    if (!mb_strlen($constraint)) {
+                        $isCompatible = true;
+                    } else {
+                        try {
+                            $isCompatible = Semver::satisfies($omekaVersion, $constraint);
+                        } catch (\UnexpectedValueException $e) {
+                            // Many modules don't follow semver. Fallback to
+                            // version_compare-based parser; if it can't parse,
+                            // assume compatible to avoid hiding updates.
+                            $fallback = $checkConstraintFallback($omekaVersion, $constraint);
+                            $isCompatible = $fallback === null ? true : $fallback;
+                        }
+                    }
                     if ($isCompatible) {
                         $catalogueVersionCompatible = $v;
                         break;
