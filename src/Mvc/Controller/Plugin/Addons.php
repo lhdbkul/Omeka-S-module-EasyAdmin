@@ -414,6 +414,20 @@ class Addons extends AbstractPlugin
             . $addon['dir'] . '_' . time();
         @mkdir($tempDir, 0775, true);
 
+        // Pick the latest compatible version for current Omeka S.
+        $compatible = $this->pickCompatibleVersion($addon);
+        if ($compatible) {
+            $addon['version'] = $compatible['version'];
+            $addon['zip'] = $compatible['download_url'] ?: $addon['zip'];
+        } elseif (!empty($addon['versions'])) {
+            $this->messenger->addError(new PsrMessage(
+                'No version of "{name}" is compatible with this Omeka S.', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
+
         // Download new version.
         $zip = $addon['zip'] ?? '';
         if (!$zip) {
@@ -1057,6 +1071,91 @@ class Addons extends AbstractPlugin
     }
 
     /**
+     * Pick the latest version from $addon['versions'] compatible with the
+     * current Omeka S. Returns null if no compatible version, or if the addon
+     * has no versions metadata.
+     */
+    protected function pickCompatibleVersion(array $addon): ?array
+    {
+        if (empty($addon['versions']) || !is_array($addon['versions'])) {
+            return null;
+        }
+        $omekaVersion = \Omeka\Module::VERSION;
+        foreach ($addon['versions'] as $v => $vData) {
+            $constraint = (string) ($vData['omeka_version_constraint'] ?? '');
+            if (!mb_strlen($constraint)) {
+                return ['version' => $v] + $vData;
+            }
+            try {
+                if (\Composer\Semver\Semver::satisfies($omekaVersion, $constraint)) {
+                    return ['version' => $v] + $vData;
+                }
+            } catch (\UnexpectedValueException $e) {
+                if ($this->checkConstraintFallback($omekaVersion, $constraint) !== false) {
+                    return ['version' => $v] + $vData;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * version_compare-based fallback for non-semver constraints. Returns null
+     * when the constraint cannot be parsed.
+     */
+    protected function checkConstraintFallback(string $version, string $constraint): ?bool
+    {
+        $constraint = trim($constraint);
+        if ($constraint === '' || $constraint === '*') {
+            return true;
+        }
+        foreach (preg_split('~\s*\|\|\s*~', $constraint) as $orPart) {
+            $orPart = trim($orPart);
+            if ($orPart === '') {
+                continue;
+            }
+            if (preg_match('~^(?<a>\d[\d.]*)\s*-\s*(?<b>\d[\d.]*)$~', $orPart, $m)) {
+                if (version_compare($version, $m['a'], '>=') && version_compare($version, $m['b'], '<=')) {
+                    return true;
+                }
+                continue;
+            }
+            $clauses = preg_split('~[\s,]+~', $orPart);
+            $allOk = true;
+            foreach ($clauses as $clause) {
+                if ($clause === '') {
+                    continue;
+                }
+                if (!preg_match('~^(?<op>>=|<=|<>|!=|==|=|>|<|\^|~)?\s*(?<v>\d[\d.A-Za-z\-+]*)$~', $clause, $m)) {
+                    return null;
+                }
+                $op = $m['op'] ?: '=';
+                $v = $m['v'];
+                if ($op === '^' || $op === '~') {
+                    $parts = explode('.', $v);
+                    $major = (int) ($parts[0] ?? 0);
+                    $minor = (int) ($parts[1] ?? 0);
+                    $upper = $op === '^' ? ($major + 1) . '.0.0' : $major . '.' . ($minor + 1) . '.0';
+                    if (!version_compare($version, $v, '>=') || !version_compare($version, $upper, '<')) {
+                        $allOk = false;
+                        break;
+                    }
+                    continue;
+                }
+                $cmpOp = $op === '=' ? '==' : $op;
+                if (!version_compare($version, $v, $cmpOp)) {
+                    $allOk = false;
+                    break;
+                }
+            }
+            if ($allOk) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Build an archive URL for the default branch when no release zip is
      * available. Handles github, gitlab, and a sensible default.
      */
@@ -1143,6 +1242,20 @@ class Addons extends AbstractPlugin
         $tempDir = sys_get_temp_dir() . '/easyadmin_install_'
             . $addon['dir'] . '_' . time();
         @mkdir($tempDir, 0775, true);
+
+        // Pick the latest compatible version for current Omeka S.
+        $compatible = $this->pickCompatibleVersion($addon);
+        if ($compatible) {
+            $addon['version'] = $compatible['version'];
+            $addon['zip'] = $compatible['download_url'] ?: $addon['zip'];
+        } elseif (!empty($addon['versions'])) {
+            $this->messenger->addError(new PsrMessage(
+                'No version of "{name}" is compatible with this Omeka S.', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
 
         $zipFile = $tempDir . '/' . basename($addon['zip']);
         $result = $this->downloadFile($addon['zip'], $zipFile);
