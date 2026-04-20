@@ -371,7 +371,7 @@ class FileManagerController extends AbstractActionController
 
         // Add protected directories for browsing.
         $basePath = rtrim($this->basePath, '/');
-        foreach (self::PROTECTED_DIRECTORIES as $dir) {
+        foreach (self::$protectedDirectories as $dir) {
             $protectedPath = $basePath . '/' . $dir;
             if (is_dir($protectedPath) && is_readable($protectedPath)) {
                 $paths[] = $protectedPath;

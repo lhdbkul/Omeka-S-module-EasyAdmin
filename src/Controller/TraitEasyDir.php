@@ -10,7 +10,7 @@ trait TraitEasyDir
      * These directories contain original files and derivatives and can have
      * 100,000+ files. They are read-only: browsing allowed, but no upload/delete.
      */
-    protected const PROTECTED_DIRECTORIES = [
+    protected static $protectedDirectories = [
         'asset',
         'large',
         'medium',
@@ -44,7 +44,7 @@ trait TraitEasyDir
         $dirPath = rtrim($dirPath, '/') . '/';
         $basePath = rtrim($this->basePath, '/') . '/';
 
-        foreach (self::PROTECTED_DIRECTORIES as $dir) {
+        foreach (self::$protectedDirectories as $dir) {
             if (mb_strpos($dirPath, $basePath . $dir . '/') === 0
                 || $dirPath === $basePath . $dir . '/'
             ) {
