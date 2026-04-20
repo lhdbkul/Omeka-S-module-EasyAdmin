@@ -222,28 +222,21 @@ class Module extends AbstractModule
             }
         }
 
+        $disabled = [];
         if (!$result && !$this->checkDestinationDir($basePath . '/check')) {
-            $message = new PsrMessage(
-                'The directory "{dir}" is not writeable.', // @translate
-                ['dir' => $basePath]
-            );
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
+            $disabled[] = $basePath . '/check';
         }
-
         if (!$this->checkDestinationDir($basePath . '/backup')) {
-            $message = new PsrMessage(
-                'The directory "{dir}" is not writeable.', // @translate
-                ['dir' => $basePath]
-            );
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
+            $disabled[] = $basePath . '/backup';
         }
-
         if (!$this->checkDestinationDir($basePath . '/import')) {
-            $message = new PsrMessage(
-                'The directory "{dir}" is not writeable.', // @translate
-                ['dir' => $basePath]
-            );
-            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
+            $disabled[] = $basePath . '/import';
+        }
+        if ($disabled) {
+            $messenger->addWarning(new PsrMessage(
+                'These directories are not writeable: {dirs}. Related features (check, backup, bulk import) are disabled until permissions are fixed.', // @translate
+                ['dirs' => implode(', ', $disabled)]
+            ));
         }
 
         /** @var \Omeka\Module\Manager $moduleManager */

@@ -254,7 +254,7 @@ if (version_compare($oldVersion, '3.4.15', '<')) {
     if (!$this->checkDestinationDir($basePath . '/backup')) {
         $message = new \Omeka\Stdlib\Message(
             'The directory "{dir}" is not writeable.', // @translate
-            ['dir' => $basePath]
+            ['dir' => $basePath . '/backup']
         );
         throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
     }
