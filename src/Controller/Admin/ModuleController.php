@@ -253,10 +253,7 @@ class ModuleController extends AbstractActionController
     public function installModuleAction()
     {
         if (!$this->getRequest()->isPost()) {
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('not_installed');
         }
 
         $id = $this->params()->fromPost('id')
@@ -267,10 +264,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" not found.', // @translate
                 ['name' => $id]
             ));
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('not_installed');
         }
 
         try {
@@ -280,16 +274,11 @@ class ModuleController extends AbstractActionController
                 ['name' => $id]
             ));
         } catch (\Exception $e) {
-            $this->messenger()->addError(new PsrMessage(
-                'Error installing "{name}": {error}', // @translate
-                ['name' => $id, 'error' => $e->getMessage()]
-            ));
+            $this->addModuleErrorMessage($e, $id);
+            return $this->redirectToBrowse('not_installed');
         }
 
-        return $this->redirect()->toRoute(
-            'admin/easy-admin/default',
-            ['controller' => 'module']
-        );
+        return $this->redirectToBrowse('not_installed');
     }
 
     public function uninstallAction()
@@ -490,10 +479,7 @@ class ModuleController extends AbstractActionController
     public function activateAction()
     {
         if (!$this->getRequest()->isPost()) {
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('not_active');
         }
 
         $id = $this->params()->fromPost('id')
@@ -504,10 +490,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" not found.', // @translate
                 ['name' => $id]
             ));
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('not_active');
         }
 
         try {
@@ -517,25 +500,17 @@ class ModuleController extends AbstractActionController
                 ['name' => $id]
             ));
         } catch (\Exception $e) {
-            $this->messenger()->addError(new PsrMessage(
-                'Error activating "{name}": {error}', // @translate
-                ['name' => $id, 'error' => $e->getMessage()]
-            ));
+            $this->addModuleErrorMessage($e, $id);
+            return $this->redirectToBrowse('not_active');
         }
 
-        return $this->redirect()->toRoute(
-            'admin/easy-admin/default',
-            ['controller' => 'module']
-        );
+        return $this->redirectToBrowse('not_active');
     }
 
     public function deactivateAction()
     {
         if (!$this->getRequest()->isPost()) {
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('active');
         }
 
         $id = $this->params()->fromPost('id')
@@ -546,10 +521,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" not found.', // @translate
                 ['name' => $id]
             ));
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('active');
         }
 
         try {
@@ -559,25 +531,17 @@ class ModuleController extends AbstractActionController
                 ['name' => $id]
             ));
         } catch (\Exception $e) {
-            $this->messenger()->addError(new PsrMessage(
-                'Error deactivating "{name}": {error}', // @translate
-                ['name' => $id, 'error' => $e->getMessage()]
-            ));
+            $this->addModuleErrorMessage($e, $id);
+            return $this->redirectToBrowse('active');
         }
 
-        return $this->redirect()->toRoute(
-            'admin/easy-admin/default',
-            ['controller' => 'module']
-        );
+        return $this->redirectToBrowse('active');
     }
 
     public function upgradeAction()
     {
         if (!$this->getRequest()->isPost()) {
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('needs_upgrade');
         }
 
         $id = $this->params()->fromPost('id')
@@ -588,10 +552,7 @@ class ModuleController extends AbstractActionController
                 'Module "{name}" not found.', // @translate
                 ['name' => $id]
             ));
-            return $this->redirect()->toRoute(
-                'admin/easy-admin/default',
-                ['controller' => 'module']
-            );
+            return $this->redirectToBrowse('needs_upgrade');
         }
 
         try {
@@ -601,16 +562,11 @@ class ModuleController extends AbstractActionController
                 ['name' => $id]
             ));
         } catch (\Exception $e) {
-            $this->messenger()->addError(new PsrMessage(
-                'Error upgrading "{name}": {error}', // @translate
-                ['name' => $id, 'error' => $e->getMessage()]
-            ));
+            $this->addModuleErrorMessage($e, $id);
+            return $this->redirectToBrowse('needs_upgrade');
         }
 
-        return $this->redirect()->toRoute(
-            'admin/easy-admin/default',
-            ['controller' => 'module']
-        );
+        return $this->redirectToBrowse('needs_upgrade');
     }
 
     public function installAction()
@@ -764,6 +720,38 @@ class ModuleController extends AbstractActionController
             ['controller' => 'module', 'action' => 'integrity-report'],
             ['query' => ['report' => json_encode($report)]]
         );
+    }
+
+    protected function redirectToBrowse(?string $state = null): \Laminas\Http\Response
+    {
+        $options = $state
+            ? ['query' => ['state' => $state]]
+            : [];
+        return $this->redirect()->toRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module'],
+            $options
+        );
+    }
+
+    protected function addModuleErrorMessage(\Throwable $e, ?string $id = null): void
+    {
+        if (!ini_get('display_errors')) {
+            $message = new PsrMessage(
+                'To learn how to see more detailed information about this error, see the Omeka S User Manual page on {link}retrieving error messages{link_end}.', // @translate
+                ['link' => '<a href="https://omeka.org/s/docs/user-manual/errorLogging/">', 'link_end' => '</a>']
+            );
+            $message->setEscapeHtml(false);
+            $this->messenger()->addError($message);
+        }
+        $this->messenger()->addError(new PsrMessage(
+            '{name}{class}: {message}', // @translate
+            [
+                'name' => $id ? sprintf('%s — ', $id) : '',
+                'class' => get_class($e),
+                'message' => $e->getMessage(),
+            ]
+        ));
     }
 
     public function integrityReportAction()
