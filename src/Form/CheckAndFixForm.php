@@ -1046,7 +1046,7 @@ class CheckAndFixForm extends Form
                 'type' => Fieldset::class,
                 'name' => 'db_utf8_encode',
                 'options' => [
-                    'label' => 'Options for utf-8 encoding (experimental: do a backup first)', // @translate
+                    'label' => 'Records to process (experimental: back up before fixing)', // @translate
                 ],
                 'attributes' => [
                     'class' => 'db_utf8_encode_check db_utf8_encode_fix',
@@ -1070,6 +1070,7 @@ class CheckAndFixForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'db_utf8_encode-type_resources',
+                    'value' => ['all'],
                 ],
             ]);
 
