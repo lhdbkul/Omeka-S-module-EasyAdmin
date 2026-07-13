@@ -163,6 +163,19 @@
         display: inline;
     }
 
+    .file-manager .file-manager-parent {
+        margin: 0 0 8px;
+    }
+    .file-manager .file-manager-parent a.folder-up {
+        font-weight: bold;
+    }
+    .file-manager .file-manager-parent a.folder-up::before {
+        content: "\f062"; /* fa-arrow-up */
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        margin-right: 5px;
+    }
+
     /* No files message */
     .no-files {
         color: #666;

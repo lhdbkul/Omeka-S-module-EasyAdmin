@@ -5,6 +5,7 @@
  * @var string|null $localUrl
  * @var string|null $dirPath
  * @var array $dirPaths
+ * @var string|null $parentPath
  * @var bool $isProtected
  * @var bool $isUserData
  * @var bool $canWriteInDir
@@ -162,6 +163,16 @@ $formatSize = function ($bytes) {
         — <?= sprintf($translate('Page %d of %d'), $page, $totalPages) ?>
         <?php endif; ?>
     </div>
+
+    <?php if ($parentPath): ?>
+    <p class="file-manager-parent">
+        <?= $hyperlink(
+            $translate('Parent directory'),
+            $url(null, [], ['query' => ['dir_path' => $parentPath, 'display_dir' => (int) $displayDir]], true),
+            ['class' => 'folder-link folder-up']
+        ) ?>
+    </p>
+    <?php endif; ?>
 
     <?php if ($files): ?>
     <table class="tablesaw batch-edit" data-tablesaw-mode="stack">

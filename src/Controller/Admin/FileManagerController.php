@@ -154,11 +154,18 @@ class FileManagerController extends AbstractActionController
         // Directory list for dropdown.
         $dirPaths = $this->getAvailableDirectories($settings, $dirPath, $isAdmin, $canCreateItems, $userId);
 
+        // Link to the parent directory, but never above a directory configured
+        // in the settings (nor above the browsable protected/userdata roots).
+        $parentPath = $dirPath
+            ? $this->parentDirPath($dirPath, $settings, $isAdmin, $canCreateItems, $userId)
+            : null;
+
         return new ViewModel([
             'basePath' => $this->basePath,
             'localUrl' => $localUrl,
             'dirPath' => $dirPath,
             'dirPaths' => $dirPaths,
+            'parentPath' => $parentPath,
             'isProtected' => $isProtected,
             'isUserData' => $isUserData,
             'canWriteInDir' => $canWriteInDir,
@@ -326,6 +333,56 @@ class FileManagerController extends AbstractActionController
         }
 
         return ['files' => $files, 'total' => $total];
+    }
+
+    /**
+     * Parent of the current directory, bounded by the configured roots.
+     *
+     * Navigation may go up within a directory configured in the settings (or a
+     * browsable protected/userdata root), but never above it. Returns null when
+     * the current directory is itself a root.
+     */
+    protected function parentDirPath(string $dirPath, $settings, bool $isAdmin, bool $canCreateItems, ?int $userId): ?string
+    {
+        $real = realpath(rtrim($dirPath, '/'));
+        if (!$real) {
+            return null;
+        }
+        $parent = dirname($real);
+        if ($parent === $real) {
+            return null;
+        }
+
+        // Directories below which navigation must not go.
+        $roots = [];
+        $defaultPath = $settings->get('easyadmin_local_path');
+        if ($defaultPath) {
+            $roots[] = $defaultPath;
+        }
+        $extraPaths = $settings->get('easyadmin_local_paths', []);
+        if (is_array($extraPaths)) {
+            $roots = array_merge($roots, $extraPaths);
+        }
+        $basePath = rtrim($this->basePath, '/');
+        foreach (self::$protectedDirectories as $dir) {
+            $roots[] = $basePath . '/' . $dir;
+        }
+        if ($canCreateItems && $settings->get('easyadmin_user_directories')) {
+            $roots[] = $isAdmin
+                ? $this->getUserDataBasePath()
+                : ($userId ? $this->getUserDirPath($userId) : null);
+        }
+
+        foreach (array_filter($roots) as $root) {
+            $rootReal = realpath(rtrim($root, '/'));
+            if ($rootReal
+                && ($parent === $rootReal || strpos($parent . '/', $rootReal . '/') === 0)
+            ) {
+                return $this->checkDirPath($parent) ? $parent : null;
+            }
+        }
+
+        return null;
     }
 
     /**
