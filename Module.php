@@ -496,24 +496,32 @@ class Module extends AbstractModule
     public function handleCronExecute(Event $event): void
     {
         $taskId = $event->getParam('task_id');
+        $taskSettings = $event->getParam('task_settings') ?: [];
+
+        // New contract: real task id ("session", "backup_database",
+        // "backup_files") + an "option" in the task settings. Legacy contract:
+        // the flattened option id as the task id (kept for compatibility until
+        // settings are migrated). The sub-methods key on the option id.
+        $realIds = ['session', 'backup_database', 'backup_files'];
+        $option = $taskSettings['option'] ?? (in_array($taskId, $realIds, true) ? null : $taskId);
 
         // Handle session cleanup tasks.
-        if (strpos($taskId, 'session_') === 0) {
-            $this->executeSessionCleanup($taskId);
+        if ($taskId === 'session' || strpos($taskId, 'session_') === 0) {
+            $this->executeSessionCleanup((string) $option);
             $event->setParam('handled', true);
             return;
         }
 
         // Handle database backup tasks.
-        if (strpos($taskId, 'backup_db_') === 0) {
-            $this->executeBackupDatabase($taskId);
+        if ($taskId === 'backup_database' || strpos($taskId, 'backup_db_') === 0) {
+            $this->executeBackupDatabase((string) $option);
             $event->setParam('handled', true);
             return;
         }
 
         // Handle files backup tasks.
-        if (strpos($taskId, 'backup_files_') === 0) {
-            $this->executeBackupFiles($taskId);
+        if ($taskId === 'backup_files' || strpos($taskId, 'backup_files_') === 0) {
+            $this->executeBackupFiles((string) $option);
             $event->setParam('handled', true);
             return;
         }
