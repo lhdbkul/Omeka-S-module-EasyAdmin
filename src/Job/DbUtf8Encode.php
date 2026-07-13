@@ -12,6 +12,7 @@ class DbUtf8Encode extends AbstractCheck
         'value' => 'Value id', // @translate
         'term' => 'Term', // @translate
         'content' => 'Content', // @translate
+        'proposed' => 'Proposed content', // @translate
         'fixed' => 'Fixed', // @translate
     ];
 
@@ -251,6 +252,9 @@ class DbUtf8Encode extends AbstractCheck
                         return false;
                 }
                 $row['content'] = mb_substr(trim(strtr(is_string($string) ? $string : json_encode($string), ["\n" => ' ', "\r" => ' ', "\v" => ' ', "\t" => ' '])), 0, 1000);
+                // Preview of the corrected value, so the check reports what the
+                // fix would set without modifying anything.
+                $row['proposed'] = mb_substr(trim(strtr(is_string($iso) ? $iso : json_encode($iso), ["\n" => ' ', "\r" => ' ', "\v" => ' ', "\t" => ' '])), 0, 1000);
                 $row['fixed'] = $fix ? $yes : '';
 
                 if ($fix) {
