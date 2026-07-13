@@ -47,6 +47,27 @@
             })
             .catch(function () {
                 trigger.className = 'messages warning';
+                // Connection problem: flag the refresh button with a warning
+                // triangle and re-enable it so the user can retry.
+                var button = document.querySelector('.refresh-form button[type="submit"]');
+                if (!button) {
+                    return;
+                }
+                button.removeAttribute('disabled');
+                var title = trigger.getAttribute('data-error-title');
+                if (title) {
+                    button.title = title;
+                }
+                var icon = button.querySelector('.fa-spin');
+                if (icon) {
+                    icon.className = 'fas fa-exclamation-triangle';
+                } else {
+                    icon = document.createElement('span');
+                    icon.className = 'fas fa-exclamation-triangle';
+                    icon.style.marginRight = '.4em';
+                    icon.setAttribute('aria-hidden', 'true');
+                    button.insertBefore(icon, button.firstChild);
+                }
             });
     }
 

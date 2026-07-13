@@ -43,7 +43,7 @@ $catalogueThemes = array_merge($omekaThemes, $webThemes);
 
 <?php if ($cataloguePending): ?>
 <?php $this->headScript()->appendFile($assetUrl('js/addon-catalogue.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']); ?>
-<div class="messages info" id="catalogue-loading" data-catalogue-url="<?= $this->escapeHtmlAttr($catalogueUrl) ?>">
+<div class="messages info" id="catalogue-loading" data-catalogue-url="<?= $this->escapeHtmlAttr($catalogueUrl) ?>" data-error-title="<?= $this->escapeHtmlAttr($translate('The catalogue could not be loaded (connection problem). Click to retry.')) ?>">
     <p><?= $escape($translate('Loading the theme catalogue from omeka.org and github… Update detection and installation from catalogue will appear shortly. If it does not, refresh the catalogue.')) ?></p>
 </div>
 <?php elseif (!$catalogueThemes): ?>
@@ -59,10 +59,18 @@ $catalogueThemes = array_merge($omekaThemes, $webThemes);
 <?php endif ?>
 
 <div id="page-actions">
-    <?php $refreshForm->prepare(); echo $this->form()->openTag($refreshForm->setAttribute('class', 'refresh-form')); ?>
-    <button type="submit" class="button"<?= $cataloguePending ? ' disabled="disabled"' : '' ?>>
+    <?php
+    // Catalogue empty after a real fetch attempt means a connection problem
+    // (the server returns the page even when omeka.org/github are unreachable).
+    $catalogueFailed = !$cataloguePending && !$catalogueThemes;
+    $refreshForm->prepare();
+    echo $this->form()->openTag($refreshForm->setAttribute('class', 'refresh-form'));
+    ?>
+    <button type="submit" class="button"<?= $cataloguePending ? ' disabled="disabled"' : '' ?><?= $catalogueFailed ? ' title="' . $this->escapeHtmlAttr($translate('The catalogue could not be loaded (connection problem). Click to retry.')) . '"' : '' ?>>
         <?php if ($cataloguePending): ?>
         <span class="fas fa-sync fa-spin" aria-hidden="true" style="margin-right: .4em;"></span>
+        <?php elseif ($catalogueFailed): ?>
+        <span class="fas fa-exclamation-triangle" aria-hidden="true" style="margin-right: .4em;"></span>
         <?php endif ?>
         <?= $escape($translate('Refresh catalogue')) ?>
     </button>
