@@ -89,7 +89,7 @@ $(document).ready(function () {
             + '<div class="task-subject-head">'
             + '<span class="task-subject-name"></span> '
             + '<span class="task-subject-desc"></span>'
-            + '</div><div class="task-actions"></div></div>');
+            + '</div><div class="task-actions" data-subject="' + key + '"></div></div>');
         $block.find('.task-subject-name').text(meta.name);
         $block.find('.task-subject-desc').text(meta.description);
         var $actions = $block.find('.task-actions');
@@ -114,46 +114,79 @@ $(document).ready(function () {
             });
     };
 
+    var $sidebar = $('#cf-sidebar');
+    var $help = $sidebar.find('.task-help');
+    var $recap = $sidebar.find('.task-recap');
+    var $recapActions = $sidebar.find('.task-recap-actions');
+    var $recapOptions = $sidebar.find('.task-recap-options');
+    // Hidden home for the action groups and option panels when not displayed in
+    // the recap, so they remain findable globally (by value/subject) and the
+    // recap can be rebuilt at each selection without losing nodes.
+    var $stash = $('<div id="cf-stash" hidden></div>').appendTo($form);
+
     var showProcessTask = function (clicked) {
-        // Sections are separate radio groups, so keep a single active task.
         var current = clicked
             ? $(clicked)
             : $('input.fieldset-process:checked').first();
         var value = current.val();
 
+        // Stash everything currently in the recap, then rebuild it: nodes are
+        // never lost and stay findable by value/subject wherever they sit.
+        $stash.append($recapActions.children()).append($recapOptions.children());
         $('input.fieldset-process').prop('checked', false);
-        optionFieldsets().hide();
-        $entityField.hide();
         $('.check-and-fix .task-subject').removeClass('selected');
-        $('.check-and-fix .task-actions').hide();
+        optionFieldsets().hide();
+        $('.task-actions').hide();
+        $entityField.hide();
 
         if (!value) {
+            $recap.prop('hidden', true);
+            $help.prop('hidden', false);
             return;
         }
         current.prop('checked', true);
 
-        var $label = current.closest('label').first();
-        var $block = $label.closest('.task-subject');
-        $block.addClass('selected');
-        $block.find('.task-actions').show();
+        var meta = valueIndex[value];
+        if (meta && subjects[meta.subject]) {
+            $recap.find('.task-recap-name').text(subjects[meta.subject].name);
+            $recap.find('.task-recap-desc').text(subjects[meta.subject].description);
+            $('.task-subject[data-subject="' + meta.subject + '"]').addClass('selected');
+            // The action group lives in the block, the stash or the recap: find
+            // it by subject wherever it is, move it back into the recap.
+            $recapActions.append($('.task-actions[data-subject="' + meta.subject + '"]').show());
+        } else {
+            // Fallback task (added by a module): use the radio label.
+            $recap.find('.task-recap-name').text(current.closest('label').text().trim());
+            $recap.find('.task-recap-desc').text('');
+        }
 
-        // Move the option panel and the entity_types field under the action.
-        var $anchor = $label;
-        var $options = $('.check-and-fix fieldset.field-container').find('fieldset.' + value);
+        // Option panel(s) carry the value as a css class; find anywhere in
+        // form.
+        var $options = $form.find('fieldset.' + value);
         if ($options.length) {
-            $options.insertAfter($anchor).show();
-            $anchor = $options.last();
+            $recapOptions.append($options.show());
         }
         if (entityTypesTasks.includes(value)) {
-            $entityField.insertAfter($anchor).show();
+            $recapOptions.append($entityField.show());
         }
+
+        $help.prop('hidden', true);
+        $recap.prop('hidden', false);
     };
 
-    // Click a subject header: select it, preselecting its first action.
+    // Click a subject header: select it, preselecting its first action. The
+    // first action radio is found by value (it may sit in the recap or stash).
+    var firstActionValue = function (key) {
+        var actions = (subjects[key] && subjects[key].actions) || {};
+        return Object.keys(actions)[0];
+    };
     var selectSubject = function () {
-        var $first = $(this).closest('.task-subject').find('input.fieldset-process').first();
-        if ($first.length) {
-            showProcessTask($first[0]);
+        var key = $(this).closest('.task-subject').attr('data-subject');
+        var value = firstActionValue(key);
+        // The radio may be in the block, the recap or the stash: find by value.
+        var $radio = $form.find('input.fieldset-process[value="' + value + '"]').first();
+        if ($radio.length) {
+            showProcessTask($radio[0]);
         }
     };
 
@@ -179,6 +212,11 @@ $(document).ready(function () {
     optionFieldsets().hide();
     $('.check-and-fix .task-actions').hide();
     addFilter();
+
+    // Reserve the space for the always-open sidebar (shrinks #content).
+    if (window.Omeka && Omeka.reserveSidebarSpace) {
+        Omeka.reserveSidebarSpace();
+    }
 
     $('.check-and-fix').on('click', '.task-subject-head', selectSubject);
     $('.check-and-fix .fieldset-process').on('change', function () {

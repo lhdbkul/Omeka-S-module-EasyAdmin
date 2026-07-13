@@ -436,9 +436,9 @@
         display: none !important;
     }
 
-    /* Check and fix: subject blocks (name + description + action radio) */
+    /* Check and fix: subject blocks in the left list (name + description) */
     .check-and-fix .task-subject {
-        margin: 0 0 .4em;
+        margin: 0 0 .3em;
         border-left: 3px solid #dfdfdf;
     }
     .check-and-fix .task-subject-head {
@@ -454,19 +454,15 @@
     .check-and-fix .task-subject.selected > .task-subject-head {
         background-color: rgba(47, 111, 159, .08);
     }
+    /* Description under the name, for readability. */
     .check-and-fix .task-subject-name {
+        display: block;
         font-weight: bold;
     }
     .check-and-fix .task-subject-desc {
+        display: block;
         color: #666;
-    }
-    /* Action radio, revealed on selection. */
-    .check-and-fix .task-actions {
-        padding: .2em .6em .5em 1.6em;
-    }
-    .check-and-fix .task-actions > label {
-        display: inline-block;
-        margin: 0 1.2em .2em 0;
+        font-size: .92em;
     }
 
     /* Legacy grouping for tasks added by other modules (fallback) */
@@ -480,13 +476,26 @@
         margin: .15em 0;
     }
 
-    /* Check and fix: option panel moved under the selected task */
-    .check-and-fix .task-actions > fieldset,
-    .check-and-fix .task-actions > .field,
-    .check-and-fix .task-group > fieldset,
-    .check-and-fix .task-group > .field {
-        margin: .4em 0 .6em 0;
-        padding-left: .8em;
-        border-left: 2px solid #e3a21a;
+    /* Check and fix: right sidebar recap (task config + options) */
+    #cf-sidebar .task-help h3,
+    #cf-sidebar .task-recap-name {
+        margin-top: 0;
+    }
+    #cf-sidebar .task-recap-desc {
+        color: #555;
+    }
+    #cf-sidebar .task-recap-actions {
+        margin: .6em 0;
+    }
+    #cf-sidebar .task-recap-actions > label {
+        display: inline-block;
+        margin: 0 1.2em .3em 0;
+    }
+    #cf-sidebar .task-recap-options .field {
+        display: block;
+    }
+    #cf-sidebar .task-recap-options .field-meta,
+    #cf-sidebar .task-recap-options .inputs {
+        width: 100%;
     }
 }

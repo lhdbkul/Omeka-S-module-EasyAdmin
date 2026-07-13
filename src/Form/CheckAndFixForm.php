@@ -41,7 +41,7 @@ class CheckAndFixForm extends Form
                 'actions' => [
                     'files_missing_check' => 'List (originals)', // @translate
                     'files_missing_check_full' => 'List (with derivatives)', // @translate
-                    'files_missing_fix' => 'Restore from a source directory', // @translate
+                    'files_missing_fix' => 'Restore from a source directory (crash recovery)', // @translate
                     'files_missing_fix_db' => 'Remove items and medias', // @translate
                 ],
             ],
