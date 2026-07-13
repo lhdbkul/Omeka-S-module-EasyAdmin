@@ -61,6 +61,12 @@ class FileExcess extends AbstractCheckFile
             return false;
         }
 
+        // Derivatives are checked only on demand; a move always processes them.
+        $includeDerivatives = $move || $this->getArg('include_derivatives', false);
+        if (!$includeDerivatives) {
+            return true;
+        }
+
         foreach (array_keys($this->config['thumbnails']['types']) as $type) {
             if ($move) {
                 $path = $this->basePath . '/check/' . $type;

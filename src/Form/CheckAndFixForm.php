@@ -83,7 +83,8 @@ class CheckAndFixForm extends Form
                 'name' => 'Excess files', // @translate
                 'description' => 'Files present in "/files/" but not referenced in the database.', // @translate
                 'actions' => [
-                    'files_excess_check' => 'List', // @translate
+                    'files_excess_check' => 'List (originals)', // @translate
+                    'files_excess_check_full' => 'List (with derivatives)', // @translate
                     'files_excess_move' => 'Move to "/files/check/"', // @translate
                 ],
             ],
@@ -544,7 +545,8 @@ class CheckAndFixForm extends Form
                 'options' => [
                     'label' => '',
                     'value_options' => [
-                        'files_excess_check' => 'List files that are present in "/files/", but not in database', // @translate
+                        'files_excess_check' => 'List files that are present in "/files/", but not in database (originals only)', // @translate
+                        'files_excess_check_full' => 'List files that are present in "/files/", but not in database (include derivatives)', // @translate
                         'files_excess_move' => 'Move files that are present in "/files/", but not in database, into "/files/check/"', // @translate
                         'files_missing_check' => 'List files that are present in database, not in "/files/" (original only)', // @translate
                         'files_missing_check_full' => 'List files that are present in database, not in "/files/" (include derivatives)', // @translate
