@@ -109,16 +109,10 @@ $formatSize = function ($bytes) {
         <div class="field field-drag-and-drop">
             <div class="inputs bulk-drop">
                 <span><?= $translate('Drag and drop files here') ?></span>
-            </div>
-        </div>
-        <div class="field field-browse-files">
-            <div class="inputs">
-                <button type="button" class="button button-browse button-browse-files"><?= $translate('Browse files') ?></button>
-            </div>
-        </div>
-        <div class="field field-browse-folders">
-            <div class="inputs">
-                <button type="button" class="button button-browse button-browse-directory" webkitdirectory="webkitdirectory"><?= $translate('Select folder') ?></button>
+                <div class="bulk-drop-buttons">
+                    <button type="button" class="button button-browse button-browse-files"><?= $translate('Browse files') ?></button>
+                    <button type="button" class="button button-browse button-browse-directory" webkitdirectory="webkitdirectory"><?= $translate('Select folder') ?></button>
+                </div>
             </div>
         </div>
     </div>

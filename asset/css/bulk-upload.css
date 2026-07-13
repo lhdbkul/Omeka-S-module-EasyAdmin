@@ -25,14 +25,31 @@
     .media-bulk-upload .bulk-drop:hover {
         outline: 2px dashed grey;
     }
+    /* File manager: the drop area spans the whole surface, with the browse
+       buttons inline inside it, on a reduced height. */
+    #bulk-upload .field.field-drag-and-drop {
+        display: block;
+        height: auto;
+        margin: 0;
+    }
     #bulk-upload .media-bulk-upload .bulk-drop {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        height: 20vh;
+        margin: 0;
         outline: 2px dashed lightgrey;
+        text-align: center;
     }
     #bulk-upload .media-bulk-upload .bulk-drop:hover {
         outline: 2px dashed grey;
     }
-    #bulk-upload .media-bulk-upload .bulk-drop span {
-        padding-left: 10px;
+    #bulk-upload .media-bulk-upload .bulk-drop .bulk-drop-buttons {
+        display: flex;
+        gap: 12px;
     }
     #media-list .bulk-upload-actions {
         width: 100%;
