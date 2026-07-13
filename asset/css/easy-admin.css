@@ -441,12 +441,26 @@
         margin: 0 0 .3em;
         border-left: 3px solid #dfdfdf;
     }
+    /* The head is a <button> for keyboard a11y; reset native button styling. */
     .check-and-fix .task-subject-head {
+        display: block;
+        width: 100%;
+        margin: 0;
         padding: .35em .6em;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        font: inherit;
+        color: inherit;
+        text-align: left;
         cursor: pointer;
     }
     .check-and-fix .task-subject-head:hover {
         background-color: rgba(0, 0, 0, .04);
+    }
+    .check-and-fix .task-subject-head:focus-visible {
+        outline: 2px solid #2f6f9f;
+        outline-offset: -2px;
     }
     .check-and-fix .task-subject.selected {
         border-left-color: #2f6f9f;

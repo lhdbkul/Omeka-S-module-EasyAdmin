@@ -144,10 +144,10 @@ $(document).ready(function () {
 
     var buildSubjectBlock = function (key, members, meta) {
         var $block = $('<div class="task-subject" data-subject="' + key + '">'
-            + '<div class="task-subject-head">'
+            + '<button type="button" class="task-subject-head" aria-pressed="false">'
             + '<span class="task-subject-name"></span> '
             + '<span class="task-subject-desc"></span>'
-            + '</div><div class="task-actions" data-subject="' + key + '"></div></div>');
+            + '</button><div class="task-actions" data-subject="' + key + '"></div></div>');
         $block.find('.task-subject-name').text(meta.name);
         $block.find('.task-subject-desc').text(meta.description || '');
         var $actions = $block.find('.task-actions');
@@ -193,6 +193,7 @@ $(document).ready(function () {
         $stash.append($recapActions.children()).append($recapOptions.children());
         $('input.fieldset-process').prop('checked', false);
         $('.check-and-fix .task-subject').removeClass('selected');
+        $('.check-and-fix .task-subject-head').attr('aria-pressed', 'false');
         optionFieldsets().hide();
         $('.task-actions').hide();
         $entityField.hide();
@@ -214,6 +215,7 @@ $(document).ready(function () {
             $recap.find('.task-recap-name').text($block.find('.task-subject-name').text());
             $recap.find('.task-recap-desc').text($block.find('.task-subject-desc').text());
             $block.addClass('selected');
+            $block.find('.task-subject-head').attr('aria-pressed', 'true');
             $recapActions.append($actions.show());
         } else {
             // Plain legacy radio (no colon, no metadata): use its label.
