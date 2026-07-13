@@ -354,7 +354,7 @@ class FileDerivative extends AbstractCheck
         }
 
         $entityTypes = $this->getArg('entity_types') ?: ['media'];
-        if (in_array('digital_object', $entityTypes, true)) {
+        if (in_array('digital_objects', $entityTypes, true)) {
             $this->processDigitalObjects($basePath, $types, $skipExisting, $tempFileFactory);
             $this->processDigitalObjectsWithoutOriginal($basePath, $types, $skipExisting);
         }

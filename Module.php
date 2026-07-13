@@ -825,6 +825,13 @@ class Module extends AbstractModule
             'Omeka\Controller\Admin\Item' => 'items',
             'Omeka\Controller\Admin\ItemSet' => 'item_sets',
             'Omeka\Controller\Admin\Media' => 'media',
+            // Modules.
+            'annotation' => 'annotations',
+            'Annotate\Controller\Admin\Annotation' => 'annotations',
+            'Annotate\Controller\Admin\AnnotationController' => 'annotations',
+            'digital-object' => 'digital_objects',
+            'DigitalObject\Controller\Admin\DigitalObject' => 'digital_objects',
+            'DigitalObject\Controller\Admin\DigitalObjectController' => 'digital_objects',
         ];
         if (!isset($controllersToResourceTypes[$controller])) {
             return;
@@ -945,6 +952,8 @@ class Module extends AbstractModule
             'items' => 'Add new item',
             'item_sets' => 'Add new item set',
             'media' => 'Add new media',
+            'annotations' => 'Add new annotation',
+            'digital_objects' => 'Add new digital object',
         ];
 
         $buttons = [];

@@ -565,7 +565,15 @@ class CheckAndFixForm extends Form
                 ],
             ]);
 
-        $available = $this->getOption('available_resource_types') ?: ['items', 'item_sets', 'media', 'value_annotations', 'annotations', 'digital_objects'];
+        $available = $this->getOption('available_resource_types')
+            ?: [
+                'items',
+                'item_sets',
+                'media',
+                'value_annotations',
+                'annotations',
+                'digital_objects',
+            ];
         $fieldset
             ->add([
                 'name' => 'entity_types',
@@ -575,12 +583,15 @@ class CheckAndFixForm extends Form
                     'info' => 'Most file tasks apply to medias and, when the module is present, to digital objects.', // @translate
                     'value_options' => array_filter([
                         'media' => 'Media', // @translate
-                        'digital_object' => in_array('digital_objects', $available, true) ? 'Digital objects' : null, // @translate
+                        'digital_objects' => in_array('digital_objects', $available, true) ? 'Digital objects' : null, // @translate
                     ]),
                 ],
                 'attributes' => [
                     'id' => 'files_checkfix-entity_types',
-                    'value' => ['media'],
+                    'value' => [
+                        'media',
+                        'digital_objects',
+                    ],
                 ],
             ]);
 
@@ -946,7 +957,15 @@ class CheckAndFixForm extends Form
                 ],
             ]);
 
-        $available = $this->getOption('available_resource_types') ?: ['items', 'item_sets', 'media', 'value_annotations', 'annotations', 'digital_objects'];
+        $available = $this->getOption('available_resource_types')
+            ?: [
+                'items',
+                'item_sets',
+                'media',
+                'value_annotations',
+                'annotations',
+                'digital_objects',
+            ];
         $hasValueAnnotation = in_array('value_annotations', $available, true);
 
         $processOptions = [

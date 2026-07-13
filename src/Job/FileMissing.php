@@ -139,7 +139,7 @@ class FileMissing extends AbstractCheckFile
         // source, delete items) does not apply, so only the check of missing
         // original files is run.
         $entityTypes = $this->getArg('entity_types') ?: ['media'];
-        if (in_array('digital_object', $entityTypes, true)) {
+        if (in_array('digital_objects', $entityTypes, true)) {
             $this->checkMissingFilesDigitalObjects();
         }
 
