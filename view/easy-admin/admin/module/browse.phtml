@@ -117,7 +117,8 @@ $states = [
 </nav>
 
 <?php if ($cataloguePending): ?>
-<div class="messages info" id="catalogue-loading">
+<?php $this->headScript()->appendFile($assetUrl('js/addon-catalogue.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']); ?>
+<div class="messages info" id="catalogue-loading" data-catalogue-url="<?= $escapeAttr($catalogueUrl) ?>">
     <p><?= $escape($translate('Loading the module catalogue from omeka.org and github… Update detection and installation from catalogue will appear shortly. If it does not, refresh the catalogue.')) ?></p>
 </div>
 <?php elseif (!$catalogueModules): ?>
@@ -523,48 +524,6 @@ uasort($catalogueList, function ($a, $b) {
         <?= $this->form()->closeTag($installCatalogueForm) ?>
     </div>
 </div>
-
-<?php if ($cataloguePending): ?>
-<script>
-// First load with an empty cache: fetch and render the catalogue in the
-// background, then swap the page content so the slow external http requests do
-// not block the initial render.
-(function () {
-    var url = <?= json_encode($catalogueUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
-    fetch(url, {
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
-        credentials: 'same-origin'
-    })
-        .then(function (response) {
-            return response.ok ? response.text() : Promise.reject(response.status);
-        })
-        .then(function (html) {
-            var content = document.getElementById('content');
-            if (!content) {
-                return;
-            }
-            content.innerHTML = html;
-            // innerHTML does not execute scripts: re-inject them so the sidebar
-            // selection filter and state filter are rebound.
-            content.querySelectorAll('script').forEach(function (old) {
-                var script = document.createElement('script');
-                if (old.src) {
-                    script.src = old.src;
-                } else {
-                    script.textContent = old.textContent;
-                }
-                old.parentNode.replaceChild(script, old);
-            });
-        })
-        .catch(function () {
-            var loading = document.getElementById('catalogue-loading');
-            if (loading) {
-                loading.className = 'messages warning';
-            }
-        });
-})();
-</script>
-<?php endif ?>
 
 <script>
 $('.state-filter select').change(function() {
