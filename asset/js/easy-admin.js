@@ -310,6 +310,13 @@ $(document).ready(function () {
     });
     $('#toggle_tasks_with_warning').on('click', hideTasksWarning);
 
+    // UTF-8 record types: checking a specific type unchecks "All".
+    $('.check-and-fix').on('change', '#db_utf8_encode-type_resources_field input[type="checkbox"]', function () {
+        if (this.checked && this.value !== 'all') {
+            $('#db_utf8_encode-type_resources_field input[type="checkbox"][value="all"]').prop('checked', false);
+        }
+    });
+
     hideTasksWarning();
     showProcessTask();
 
