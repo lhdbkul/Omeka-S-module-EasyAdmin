@@ -208,6 +208,24 @@ $(document).ready(function () {
     // recap can be rebuilt at each selection without losing nodes.
     var $stash = $('<div id="cf-stash" hidden></div>').appendTo($form);
 
+    // Empty the recap: stash its nodes, clear the selection and hide panels.
+    var resetRecap = function () {
+        $stash.append($recapActions.children()).append($recapOptions.children());
+        $('input.fieldset-process').prop('checked', false);
+        $('.check-and-fix .task-subject').removeClass('selected');
+        $('.check-and-fix .task-subject-head').attr('aria-pressed', 'false');
+        optionFieldsets().hide();
+        $('.task-actions').hide();
+        $entityField.hide();
+    };
+
+    // Return to the default sidebar (help + dangerous-tasks toggle).
+    var showHelp = function () {
+        resetRecap();
+        $recap.prop('hidden', true);
+        $help.prop('hidden', false);
+    };
+
     var showProcessTask = function (clicked) {
         var current = clicked
             ? $(clicked)
@@ -216,13 +234,7 @@ $(document).ready(function () {
 
         // Stash everything currently in the recap, then rebuild it: nodes are
         // never lost and stay findable by value/subject wherever they sit.
-        $stash.append($recapActions.children()).append($recapOptions.children());
-        $('input.fieldset-process').prop('checked', false);
-        $('.check-and-fix .task-subject').removeClass('selected');
-        $('.check-and-fix .task-subject-head').attr('aria-pressed', 'false');
-        optionFieldsets().hide();
-        $('.task-actions').hide();
-        $entityField.hide();
+        resetRecap();
 
         if (!value) {
             $recap.prop('hidden', true);
@@ -267,7 +279,13 @@ $(document).ready(function () {
     // action group ".task-actions" carries the subject and holds the radios
     // wherever it currently sits (block, recap or stash), so find them there.
     var selectSubject = function () {
-        var key = $(this).closest('.task-subject').attr('data-subject');
+        var $subject = $(this).closest('.task-subject');
+        // Clicking the already-open task closes it and shows the default view.
+        if ($subject.hasClass('selected')) {
+            showHelp();
+            return;
+        }
+        var key = $subject.attr('data-subject');
         var $radio = $('.task-actions[data-subject="' + key + '"] input.fieldset-process:not(:disabled)').first();
         if ($radio.length) {
             showProcessTask($radio[0]);
