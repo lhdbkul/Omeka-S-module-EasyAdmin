@@ -151,23 +151,15 @@ class SettingsFieldset extends Fieldset
             ])
 
             ->add([
-                'name' => 'easyadmin_thumbnailer',
-                'type' => Element\Select::class,
+                'name' => 'easyadmin_disable_thumbnails',
+                'type' => Element\Checkbox::class,
                 'options' => [
                     'element_group' => 'easy_admin',
-                    'label' => 'Thumbnailer for derivative images', // @translate
-                    'info' => 'Override the default thumbnailer set in the config if needed, for example to skip temporarily creation of derivatives.', // @translate
-                    'value_options' => [
-                        '' => 'Default (keep current)', // @translate
-                        'imagemagick' => 'ImageMagick (command line)', // @translate
-                        'imagick' => 'Imagick (php extension)', // @translate
-                        'gd' => 'GD (php extension)', // @translate
-                        'nothumbnail' => 'No thumbnail', // @translate
-                    ],
+                    'label' => 'Disable creation of thumbnails', // @translate
+                    'info' => 'Skip creation of derivative images, for example to speed up imports. Recreate them later with the check and fix task.', // @translate
                 ],
                 'attributes' => [
-                    'id' => 'easyadmin_thumbnailer',
-                    'value' => '',
+                    'id' => 'easyadmin_disable_thumbnails',
                 ],
             ])
             ->add([
