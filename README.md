@@ -124,11 +124,12 @@ file "config/local.config.php"), depending on your linux distribution:
 
 ```php
     'http_client' => [
-        // 'adapter' => \Laminas\Http\Client\Adapter\Curl::class,
+        // 'adapter' => null,
         'sslcapath' => '/usr/local/etc/ssl/certs',
         'sslcafile' => '/usr/local/etc/ssl/certs/ca.crt',
         // 'sslcapath' => '/etc/pki/tls/certs',
         // 'sslcafile' => '/etc/pki/tls/certs/ca-bundle.crt',
+        'curloptions' => [],
     ],
 ```
 
@@ -136,11 +137,12 @@ In some cases, the path should be relative:
 
 ```php
     'http_client' => [
-        // 'adapter' => \Laminas\Http\Client\Adapter\Curl::class,
+        // 'adapter' => null,
         'sslcapath' => '/usr/local/etc/ssl/certs/',
         'sslcafile' => 'ca.crt',
         // 'sslcapath' => '/etc/pki/tls/certs/',
         // 'sslcafile' => 'ca-bundle.crt',
+        'curloptions' => [],
     ],
 ```
 
