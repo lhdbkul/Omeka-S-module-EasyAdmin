@@ -1157,7 +1157,7 @@ class Addons extends AbstractPlugin
                 if ($clause === '') {
                     continue;
                 }
-                if (!preg_match('~^(?<op>>=|<=|<>|!=|==|=|>|<|\^|~)?\s*(?<v>\d[\d.A-Za-z\-+]*)$~', $clause, $m)) {
+                if (!preg_match('#^(?<op>>=|<=|<>|!=|==|=|>|<|\^|~)?\s*(?<v>\d[\d.A-Za-z\-+]*)$#', $clause, $m)) {
                     return null;
                 }
                 $op = $m['op'] ?: '=';
