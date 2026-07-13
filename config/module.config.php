@@ -186,7 +186,7 @@ return [
         ],
     ],
     'navigation' => [
-        'AdminModule' => [
+        'AdminGlobal' => [
             'easy-admin' => [
                 'label' => 'Easy Admin', // @translate
                 'route' => 'admin/easy-admin/default',
