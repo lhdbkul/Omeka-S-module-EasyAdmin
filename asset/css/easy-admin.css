@@ -16,7 +16,7 @@
     .easy-admin.cron .no-resources:before,
     .file-manager .subhead::before,
     .file-manager .no-resources:before {
-        content: "";
+        content: ""; /* fas fa-tools */
     }
 
     .easy-admin-addons .chosen-container .chosen-results {
@@ -539,6 +539,32 @@
     #cf-sidebar .task-help .task-toggle-dangerous label {
         font-weight: bold;
         cursor: pointer;
+    }
+
+    /* Keep the info arrow on the label line, at the far right, with the
+       description wrapping full-width below. Applies to regular fields (label
+       in .field-meta) and to single checkboxes whose label/arrow were moved
+       into .inputs. */
+    #cf-sidebar .task-recap-options .field-meta,
+    #cf-sidebar .task-recap-options .cf-bare-checkbox .inputs {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        padding-right: 0;
+    }
+    #cf-sidebar .task-recap-options .field-meta > label,
+    #cf-sidebar .task-recap-options .cf-bare-checkbox .inputs > label {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    #cf-sidebar .task-recap-options .field-meta > .expand,
+    #cf-sidebar .task-recap-options .cf-bare-checkbox .inputs > .expand {
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+    #cf-sidebar .task-recap-options .field-meta > .collapsible,
+    #cf-sidebar .task-recap-options .cf-bare-checkbox .inputs > .collapsible {
+        flex: 0 0 100%;
     }
 
     /* Pinned submit, using the core confirm-main/confirm-panel pattern. These

@@ -346,6 +346,7 @@ class CheckAndFixForm extends Form
         $this->dangerousTasks = [
             'files_missing_fix_db',
             'files_media_no_original_fix',
+            'theme_templates_check',
             'theme_templates_fix',
             'db_utf8_encode_fix',
         ];

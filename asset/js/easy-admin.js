@@ -69,6 +69,8 @@ $(document).ready(function () {
             $meta.find('> label').remove();
             $meta.children().appendTo($inputs);
             $meta.remove();
+            // Mark it so the moved info arrow can sit inline at the right.
+            $field.addClass('cf-bare-checkbox');
         });
     };
 
