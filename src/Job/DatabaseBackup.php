@@ -155,7 +155,9 @@ class DatabaseBackup extends AbstractJob
         }
 
         $filename = basename($filepath);
-        $size = filesize($filepath);
+        // filesize() returns false when the file is missing (unzipped).
+        // Keep it integer for formatSize().
+        $size = (int) @filesize($filepath);
         // Link to the authenticated download action: the backup directory is
         // protected by a .htaccess that denies direct web access.
         $url = $this->getServiceLocator()->get('ViewHelperManager')->get('url');
