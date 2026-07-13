@@ -347,6 +347,7 @@ class CheckAndFixForm extends Form
             'files_missing_fix_db',
             'files_media_no_original_fix',
             'theme_templates_fix',
+            'db_utf8_encode_fix',
         ];
 
         // Tasks that support "entity_types" option (media / digital objects).
