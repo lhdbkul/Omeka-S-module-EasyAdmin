@@ -12,17 +12,8 @@ class HttpClientFactory implements FactoryInterface
 {
     /**
      * Create an HTTP Client instance.
-     *
-     * When no adapter is explicitly configured, prefer the Curl adapter with
-     * HTTP/2 negotiation (TLS-ALPN, transparent fallback to HTTP/1.1) if the
-     * curl extension supports it. Otherwise fall back to the Socket adapter.
-     *
-     * Override this default by setting `http_client.adapter` and optionally
-     * `http_client.curloptions` in local.config.php.
-     *
-     * @return \Laminas\Http\Client
      */
-    public function __invoke(ContainerInterface $serviceLocator, $requestedName, ?array $options = null)
+    public function __invoke(ContainerInterface $serviceLocator, $requestedName, ?array $options = null): Client
     {
         $config = $serviceLocator->get('Config');
         $options = [];
@@ -30,39 +21,35 @@ class HttpClientFactory implements FactoryInterface
             $options = $config['http_client'];
         }
 
-        // Pick the Curl adapter by default whenever the curl extension is
-        // loaded. HTTP/2 is enabled below only when libcurl supports it; on
-        // older builds, Curl still handles HTTP/1.1 (better TLS chain
-        // resolution than Socket).
+        // Normalize short adapter aliases to class before check below.
+        if (is_string($options['adapter'] ?? null)) {
+            $aliases = [
+                'curl' => Curl::class,
+                'socket' => Socket::class,
+            ];
+            $options['adapter'] = $aliases[strtolower($options['adapter'])] ?? $options['adapter'];
+        }
+
+        // Autodetect the adapter only when none is configured (curl to support
+        // HTTP/2 when available, socket otherwise).
+        // An explicitly configured adapter is kept without silent fallback.
         if (empty($options['adapter'])) {
             $options['adapter'] = extension_loaded('curl')
                 ? Curl::class
                 : Socket::class;
         }
+        $isCurl = is_a($options['adapter'], Curl::class, true);
 
-        // Client::setOptions() does not forward curloptions to the adapter;
-        // hand them over directly after instantiation.
-        $curlOptions = $options['curloptions'] ?? [];
-        unset($options['curloptions']);
-
-        $client = new Client(null, $options);
-
-        // When the active adapter is Curl, default to HTTP/2 negotiation
-        // (TLS-ALPN, transparent fallback to HTTP/1.1) unless the admin has
-        // already pinned a CURLOPT_HTTP_VERSION value.
-        if ($options['adapter'] === Curl::class
+        // Negotiate HTTP/2 over TLS when curl is used and libcurl supports it,
+        // unless the http version is set explicitly.
+        // Curl transparently falls back to HTTP/1.1 when server does not /2.
+        if ($isCurl
             && defined('CURL_HTTP_VERSION_2TLS')
-            && !array_key_exists(CURLOPT_HTTP_VERSION, $curlOptions)
+            && !isset($options['curloptions'][CURLOPT_HTTP_VERSION])
         ) {
-            $curlOptions[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_2TLS;
-        }
-        if ($curlOptions) {
-            $adapter = $client->getAdapter();
-            if ($adapter instanceof Curl) {
-                $adapter->setOptions(['curloptions' => $curlOptions]);
-            }
+            $options['curloptions'][CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_2TLS;
         }
 
-        return $client;
+        return new Client(null, $options);
     }
 }

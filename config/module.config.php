@@ -3,6 +3,12 @@
 namespace EasyAdmin;
 
 return [
+    // Reset adapter to null so overridden http client factory can autodetect
+    // curl (HTTP/2) on older Omeka cores that pin a socket adapter.
+    'http_client' => [
+        'adapter' => null,
+        'curloptions' => [],
+    ],
     'service_manager' => [
         'invokables' => [
             Mvc\MvcListeners::class => Mvc\MvcListeners::class,
