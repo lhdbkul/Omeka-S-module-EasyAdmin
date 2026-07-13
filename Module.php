@@ -91,6 +91,29 @@ class Module extends AbstractModule
             $status = $this->getServiceLocator()->get('Omeka\Status');
             if ($displayException === 'all' || $status->isAdminRequest()) {
                 ini_set('display_errors', '1');
+                ini_set('log_errors', '1');
+                // Log uncaught fatal php errors through the standard logger.
+                // Unlike mvc exceptions handled by Omeka\Mvc\ExceptionListener, fatal
+                // errors don't go through mvc layer, so they are only displayed and
+                // never recorded.
+                // See the job fatal handling in Job\DispatchStrategy\Synchronous.
+                if (version_compare(\Omeka\Module::VERSION, '4.3', '<')) {
+                    $services = $this->getServiceLocator();
+                    register_shutdown_function(function () use ($services): void {
+                        $error = error_get_last();
+                        $fatals = E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR;
+                        if ($error && ($error['type'] & $fatals)) {
+                            try {
+                                $services->get('Omeka\Logger')->err(
+                                    'Fatal error: {message} in {file}:{line}', // @translate
+                                    ['message' => $error['message'], 'file' => $error['file'], 'line' => $error['line']]
+                                );
+                            } catch (\Throwable $e) {
+                                // Logger may be unavailable during shutdown.
+                            }
+                        }
+                    });
+                }
             }
         }
 
