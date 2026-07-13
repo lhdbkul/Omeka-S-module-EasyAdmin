@@ -15,6 +15,58 @@ class CheckAndFixForm extends Form
     use EventManagerAwareTrait;
 
     /**
+     * Subject metadata (core + modules), filled in init() and during the
+     * "form.add_elements" event.
+     *
+     * @var array<string, array>
+     */
+    protected $taskSubjects = [];
+
+    /**
+     * Process values of dangerous tasks (hidden until the user opts in).
+     *
+     * @var string[]
+     */
+    protected $dangerousTasks = [];
+
+    /**
+     * Let modules add their subject metadata, so their tasks get the same name
+     * + description + action ui as core tasks. Call it in a listener of the
+     * "form.add_elements" event.
+     *
+     * @param array<string, array> $subjects
+     */
+    public function addTaskSubjects(array $subjects): self
+    {
+        foreach ($subjects as $key => $data) {
+            $this->taskSubjects[$key] = $data;
+        }
+        return $this;
+    }
+
+    /**
+     * Let modules flag their dangerous tasks (process values), so they are
+     * hidden until the user opts in. Call it during "form.add_elements".
+     *
+     * @param string[] $values
+     */
+    public function addDangerousTasks(array $values): self
+    {
+        $this->dangerousTasks = array_merge($this->dangerousTasks, array_values($values));
+        return $this;
+    }
+
+    /**
+     * Subject metadata merged from core and modules.
+     *
+     * @return array<string, array>
+     */
+    public function getTaskSubjects(): array
+    {
+        return $this->taskSubjects;
+    }
+
+    /**
      * Map of tasks grouped by subject for the intermediate ui: a short name, a
      * description covering all its actions, and the actions (process value =>
      * short verb). A subject with a single action keeps a single-option radio.
@@ -286,16 +338,18 @@ class CheckAndFixForm extends Form
             ->appendFieldsetTasks()
         ;
 
-        $taskWarnings = [
+        // Seed core subjects and dangerous tasks. Modules complete both during
+        // the "form.add_elements" event below, so data-tasks-warning and the
+        // subjects map (exposed to the view) include their tasks.
+        $this->taskSubjects = self::subjects();
+        $this->dangerousTasks = [
             'files_missing_fix_db',
             'files_media_no_original_fix',
             'theme_templates_fix',
         ];
-        $this->setAttribute('data-tasks-warning', implode(',', $taskWarnings));
 
-        // Tasks that support the "entity_types" option (media / digital
-        // objects). The field is shown only when one of them is the selected
-        // task.
+        // Tasks that support "entity_types" option (media / digital objects).
+        // The field is shown only when one of them is the selected task.
         $entityTypesTasks = [
             'files_derivative',
             'files_missing_check',
@@ -329,6 +383,9 @@ class CheckAndFixForm extends Form
 
         $event = new Event('form.add_elements', $this);
         $this->getEventManager()->triggerEvent($event);
+
+        // Built after the event so module-flagged dangerous tasks are included.
+        $this->setAttribute('data-tasks-warning', implode(',', array_values(array_unique($this->dangerousTasks))));
 
         $inputFilter = $this->getInputFilter();
 

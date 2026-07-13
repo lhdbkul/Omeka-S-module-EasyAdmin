@@ -12,13 +12,13 @@ $escape = $plugins->get('escapeHtml');
 $form->setAttribute('data-db-loop-warning', $translate('A query combined with “All” resource types is applied identically to every type; filters unsupported by a type are ignored.'));
 $form->setAttribute('data-filter-placeholder', $translate('Filter tasks…'));
 
-// Preapre subject metadata (name, description, action verbs).
-// Only core tasks are listed; tasks added by other modules through the
-// "form.add_elements" event fall back to grouped radios in the js.
+// Prepare subject metadata (name, description, action verbs), merged from core
+// and from modules that added theirs through the "form.add_elements" event.
+// Tasks without metadata fall back to grouped radios (split on ":") in the js.
 $subjectsData = [];
-foreach (\EasyAdmin\Form\CheckAndFixForm::subjects() as $subjectKey => $subject) {
+foreach ($form->getTaskSubjects() as $subjectKey => $subject) {
     $actions = [];
-    foreach ($subject['actions'] as $processValue => $verb) {
+    foreach ($subject['actions'] ?? [] as $processValue => $verb) {
         $actions[$processValue] = $translate($verb);
     }
     $subjectsData[$subjectKey] = [

@@ -47,6 +47,16 @@ $(document).ready(function () {
      * Build subject blocks (known tasks) and legacy groups (others), per
      * section, so tasks added by modules still appear.
      */
+    // Split a "Module: action" label into {title, action}; null when no colon.
+    var splitLabel = function (labelEl) {
+        var text = $(labelEl).text().trim();
+        var idx = text.indexOf(':');
+        if (idx === -1) {
+            return null;
+        }
+        return {title: text.slice(0, idx).trim(), action: text.slice(idx + 1).trim()};
+    };
+
     var buildSubjects = function () {
         $('.check-and-fix fieldset.field-container').each(function () {
             var entries = $(this).find('input.fieldset-process').map(function () {
@@ -57,6 +67,7 @@ $(document).ready(function () {
             while (i < entries.length) {
                 var meta = valueIndex[entries[i].value];
                 if (meta) {
+                    // Core/module task with metadata.
                     var key = meta.subject;
                     var members = [];
                     while (i < entries.length
@@ -66,12 +77,31 @@ $(document).ready(function () {
                         members.push(entries[i]);
                         i++;
                     }
-                    buildSubjectBlock(key, members);
+                    buildSubjectBlock(key, members, subjects[key]);
+                } else if (splitLabel(entries[i].label)) {
+                    // Module task not updated yet: "Module: action" → group
+                    // consecutive same-title labels as a subject block.
+                    var title = splitLabel(entries[i].label).title;
+                    var members2 = [];
+                    var actions = {};
+                    while (i < entries.length && !valueIndex[entries[i].value]) {
+                        var s = splitLabel(entries[i].label);
+                        if (!s || s.title !== title) {
+                            break;
+                        }
+                        actions[entries[i].value] = s.action;
+                        members2.push(entries[i]);
+                        i++;
+                    }
+                    buildSubjectBlock('mod_' + title.replace(/\W+/g, '_'), members2,
+                        {name: title, description: '', actions: actions});
                 } else {
+                    // Plain fallback group (no metadata, no colon).
                     var subj = subjectOf(entries[i].value);
                     var group = [];
                     while (i < entries.length
                         && !valueIndex[entries[i].value]
+                        && !splitLabel(entries[i].label)
                         && subjectOf(entries[i].value) === subj
                     ) {
                         group.push(entries[i].label);
@@ -83,15 +113,14 @@ $(document).ready(function () {
         });
     };
 
-    var buildSubjectBlock = function (key, members) {
-        var meta = subjects[key];
+    var buildSubjectBlock = function (key, members, meta) {
         var $block = $('<div class="task-subject" data-subject="' + key + '">'
             + '<div class="task-subject-head">'
             + '<span class="task-subject-name"></span> '
             + '<span class="task-subject-desc"></span>'
             + '</div><div class="task-actions" data-subject="' + key + '"></div></div>');
         $block.find('.task-subject-name').text(meta.name);
-        $block.find('.task-subject-desc').text(meta.description);
+        $block.find('.task-subject-desc').text(meta.description || '');
         var $actions = $block.find('.task-actions');
         $block.insertBefore(members[0].label);
         members.forEach(function (e) {
@@ -146,16 +175,19 @@ $(document).ready(function () {
         }
         current.prop('checked', true);
 
-        var meta = valueIndex[value];
-        if (meta && subjects[meta.subject]) {
-            $recap.find('.task-recap-name').text(subjects[meta.subject].name);
-            $recap.find('.task-recap-desc').text(subjects[meta.subject].description);
-            $('.task-subject[data-subject="' + meta.subject + '"]').addClass('selected');
-            // The action group lives in the block, the stash or the recap: find
-            // it by subject wherever it is, move it back into the recap.
-            $recapActions.append($('.task-actions[data-subject="' + meta.subject + '"]').show());
+        // The active radio sits in its subject block, the stash or the recap.
+        // Read the subject from its ".task-actions" wrapper (works for core and
+        // for the "Module: action" fallback blocks alike).
+        var $actions = current.closest('.task-actions');
+        var key = $actions.attr('data-subject');
+        if (key) {
+            var $block = $('.task-subject[data-subject="' + key + '"]');
+            $recap.find('.task-recap-name').text($block.find('.task-subject-name').text());
+            $recap.find('.task-recap-desc').text($block.find('.task-subject-desc').text());
+            $block.addClass('selected');
+            $recapActions.append($actions.show());
         } else {
-            // Fallback task (added by a module): use the radio label.
+            // Plain legacy radio (no colon, no metadata): use its label.
             $recap.find('.task-recap-name').text(current.closest('label').text().trim());
             $recap.find('.task-recap-desc').text('');
         }
@@ -175,16 +207,11 @@ $(document).ready(function () {
     };
 
     // Click a subject header: select it, preselecting its first action. The
-    // first action radio is found by value (it may sit in the recap or stash).
-    var firstActionValue = function (key) {
-        var actions = (subjects[key] && subjects[key].actions) || {};
-        return Object.keys(actions)[0];
-    };
+    // action group ".task-actions" carries the subject and holds the radios
+    // wherever it currently sits (block, recap or stash), so find them there.
     var selectSubject = function () {
         var key = $(this).closest('.task-subject').attr('data-subject');
-        var value = firstActionValue(key);
-        // The radio may be in the block, the recap or the stash: find by value.
-        var $radio = $form.find('input.fieldset-process[value="' + value + '"]').first();
+        var $radio = $('.task-actions[data-subject="' + key + '"] input.fieldset-process').first();
         if ($radio.length) {
             showProcessTask($radio[0]);
         }
