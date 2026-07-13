@@ -25,6 +25,12 @@ $(document).ready(function() {
             currentTask.prop('checked', true);
             $('fieldset.field-container > fieldset.' + currentTaskVal).show();
         }
+        // The "entity_types" option is a plain field (not a sub-fieldset), so
+        // toggle it explicitly: shown only for the tasks that support it.
+        const entityTypesTasks = ($('#check-and-fix-form').data('entity-types-tasks') || '').split(',');
+        $('#files_checkfix-entity_types_field').toggle(
+            !!currentTaskVal && entityTypesTasks.includes(currentTaskVal)
+        );
     }
 
     $('.check-and-fix fieldset.field-container > fieldset').hide();

@@ -34,6 +34,28 @@ class CheckAndFixForm extends Form
         ];
         $this->setAttribute('data-tasks-warning', implode(',', $taskWarnings));
 
+        // Tasks that support the "entity_types" option (media / digital
+        // objects). The field is shown only when one of them is the selected
+        // task.
+        $entityTypesTasks = [
+            'files_derivative',
+            'files_missing_check',
+            'files_missing_check_full',
+            'files_missing_fix',
+            'files_missing_fix_db',
+            'files_dimension_check',
+            'files_dimension_fix',
+            'files_hash_check',
+            'files_hash_fix',
+            'files_size_check',
+            'files_size_fix',
+            'files_storage_check',
+            'files_storage_fix',
+            'files_media_type_check',
+            'files_media_type_fix',
+        ];
+        $this->setAttribute('data-entity-types-tasks', implode(',', $entityTypesTasks));
+
         $this
             ->add([
                 'name' => 'toggle_tasks_with_warning',
