@@ -1314,7 +1314,7 @@ class Module extends AbstractModule
         }
 
         foreach ($filesData['file'] ?? [] as $key => $fileData) {
-            $filesData['file'][$key] = json_decode($fileData, true) ?: [];
+            $filesData['file'][$key] = json_decode((string) $fileData, true) ?: [];
         }
 
         /**
@@ -1342,6 +1342,10 @@ class Module extends AbstractModule
 
         $newDataMedias = [];
         foreach ($data['o:media'] as $dataMedia) {
+            // Skip null or malformed entries before hydration.
+            if (!is_array($dataMedia)) {
+                continue;
+            }
             $newDataMedias[] = $dataMedia;
 
             if (empty($dataMedia['o:ingester'])
