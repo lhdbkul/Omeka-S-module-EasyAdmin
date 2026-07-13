@@ -14,6 +14,265 @@ class CheckAndFixForm extends Form
 {
     use EventManagerAwareTrait;
 
+    /**
+     * Map of tasks grouped by subject for the intermediate ui: a short name, a
+     * description covering all its actions, and the actions (process value =>
+     * short verb). A subject with a single action keeps a single-option radio.
+     * Strings are translated in the view. Process values not listed here fall
+     * back to the legacy grouped radios.
+     *
+     * @return array<string, array>
+     */
+    public static function subjects(): array
+    {
+        return [
+            // Files.
+            'files_excess' => [
+                'name' => 'Excess files', // @translate
+                'description' => 'Files present in "/files/" but not referenced in the database.', // @translate
+                'actions' => [
+                    'files_excess_check' => 'List', // @translate
+                    'files_excess_move' => 'Move to "/files/check/"', // @translate
+                ],
+            ],
+            'files_missing' => [
+                'name' => 'Missing files', // @translate
+                'description' => 'Files referenced in the database but absent from "/files/".', // @translate
+                'actions' => [
+                    'files_missing_check' => 'List (originals)', // @translate
+                    'files_missing_check_full' => 'List (with derivatives)', // @translate
+                    'files_missing_fix' => 'Restore from a source directory', // @translate
+                    'files_missing_fix_db' => 'Remove items and medias', // @translate
+                ],
+            ],
+            'dirs_excess' => [
+                'name' => 'Empty directories', // @translate
+                'description' => 'Empty directories left in "/files/" (mainly for module Archive Repertory).', // @translate
+                'actions' => [
+                    'dirs_excess' => 'Remove', // @translate
+                ],
+            ],
+            'files_derivative' => [
+                'name' => 'Thumbnails (derivatives)', // @translate
+                'description' => 'Recreate the derivative images (thumbnails) of files.', // @translate
+                'actions' => [
+                    'files_derivative' => 'Rebuild', // @translate
+                    'files_derivative_file_system' => 'Rebuild via terminal (faster)', // @translate
+                ],
+            ],
+            'files_media_no_original' => [
+                'name' => 'Media without original', // @translate
+                'description' => 'Media rendered as a file but with neither an original file nor thumbnails (media with thumbnails are kept).', // @translate
+                'actions' => [
+                    'files_media_no_original' => 'Check', // @translate
+                    'files_media_no_original_fix' => 'Remove', // @translate
+                ],
+            ],
+            // Files and database.
+            'files_size' => [
+                'name' => 'File sizes', // @translate
+                'description' => 'Compare the file size stored in the database with the real file.', // @translate
+                'actions' => [
+                    'files_size_check' => 'Check', // @translate
+                    'files_size_fix' => 'Fix', // @translate
+                ],
+            ],
+            'files_hash' => [
+                'name' => 'SHA-256 hashes', // @translate
+                'description' => 'Compare the sha256 hash stored in the database with the real file.', // @translate
+                'actions' => [
+                    'files_hash_check' => 'Check', // @translate
+                    'files_hash_fix' => 'Fix', // @translate
+                ],
+            ],
+            'files_storage' => [
+                'name' => 'Storage names', // @translate
+                'description' => 'Hashed storage names of files.', // @translate
+                'actions' => [
+                    'files_storage_check' => 'Check', // @translate
+                    'files_storage_fix' => 'Re-hash', // @translate
+                ],
+            ],
+            'files_media_type' => [
+                'name' => 'Media types', // @translate
+                'description' => 'Precise media type of files (mainly useful for xml).', // @translate
+                'actions' => [
+                    'files_media_type_check' => 'Check', // @translate
+                    'files_media_type_fix' => 'Fix', // @translate
+                ],
+            ],
+            'files_dimension' => [
+                'name' => 'File dimensions', // @translate
+                'description' => 'Width, height and duration of image, audio and video files (modules IIIF Server / Image Server).', // @translate
+                'actions' => [
+                    'files_dimension_check' => 'Check', // @translate
+                    'files_dimension_fix' => 'Fix', // @translate
+                ],
+            ],
+            'media_position' => [
+                'name' => 'Media positions', // @translate
+                'description' => 'Position of medias inside their item (start at 1, without gap).', // @translate
+                'actions' => [
+                    'media_position_check' => 'Check', // @translate
+                    'media_position_fix' => 'Fix', // @translate
+                ],
+            ],
+            // Resources and values.
+            'db_loop_save' => [
+                'name' => 'Save all resources', // @translate
+                'description' => 'Re-save resources to re-apply settings through events (for example advanced resource templates).', // @translate
+                'actions' => [
+                    'db_loop_save' => 'Run', // @translate
+                ],
+            ],
+            'db_resource_invalid' => [
+                'name' => 'Invalid resource types', // @translate
+                'description' => 'Resources whose type does not match their data (Item, ItemSet, Media, etc.).', // @translate
+                'actions' => [
+                    'db_resource_invalid_check' => 'Check', // @translate
+                    'db_resource_invalid_fix' => 'Fix', // @translate
+                ],
+            ],
+            'db_resource_incomplete' => [
+                'name' => 'Incomplete resources', // @translate
+                'description' => 'Resource rows not specified as item, media, item set, etc.', // @translate
+                'actions' => [
+                    'db_resource_incomplete_check' => 'Check', // @translate
+                    'db_resource_incomplete_fix' => 'Remove', // @translate
+                ],
+            ],
+            'db_resource_orphans' => [
+                'name' => 'Orphan sub-rows', // @translate
+                'description' => 'Rows in sub-tables (item, media, item set, annotation, digital object…) without a matching resource.', // @translate
+                'actions' => [
+                    'db_resource_orphans_check' => 'Check', // @translate
+                    'db_resource_orphans_fix' => 'Remove', // @translate
+                ],
+            ],
+            'db_item_no_value' => [
+                'name' => 'Items without value', // @translate
+                'description' => 'Items that have no value (media values are not checked).', // @translate
+                'actions' => [
+                    'db_item_no_value' => 'Check', // @translate
+                    'db_item_no_value_fix' => 'Remove', // @translate
+                ],
+            ],
+            'db_utf8_encode' => [
+                'name' => 'UTF-8 encoding', // @translate
+                'description' => 'Values mis-encoded after a Windows import (for example "Ã©" instead of "é").', // @translate
+                'actions' => [
+                    'db_utf8_encode_check' => 'Check', // @translate
+                    'db_utf8_encode_fix' => 'Fix', // @translate
+                ],
+            ],
+            'db_value_clean' => [
+                'name' => 'Clean values', // @translate
+                'description' => 'Trim, normalize and deduplicate property values.', // @translate
+                'actions' => [
+                    'db_value_clean_fix' => 'Clean', // @translate
+                ],
+            ],
+            'db_resource_title' => [
+                'name' => 'Resource titles', // @translate
+                'description' => 'Cached resource titles, for example after a hard import.', // @translate
+                'actions' => [
+                    'db_resource_title_check' => 'Check', // @translate
+                    'db_resource_title_fix' => 'Update', // @translate
+                ],
+            ],
+            'db_item_primary_media' => [
+                'name' => 'Primary media', // @translate
+                'description' => 'The primary media set on items.', // @translate
+                'actions' => [
+                    'db_item_primary_media_check' => 'Check', // @translate
+                    'db_item_primary_media_fix' => 'Set', // @translate
+                ],
+            ],
+            'db_value_annotation_template' => [
+                'name' => 'Value annotation templates', // @translate
+                'description' => 'Templates and classes of value annotations (module Advanced Resource Template).', // @translate
+                'actions' => [
+                    'db_value_annotation_template_check' => 'Check', // @translate
+                    'db_value_annotation_template_fix' => 'Fix', // @translate
+                ],
+            ],
+            // Database.
+            'db_job' => [
+                'name' => 'Jobs', // @translate
+                'description' => 'Dead jobs, living in database but not running in the system.', // @translate
+                'actions' => [
+                    'db_job_check' => 'Check', // @translate
+                    'db_job_fix' => 'Fix statuses', // @translate
+                    'db_job_fix_all' => 'Fix all (after a reboot)', // @translate
+                ],
+            ],
+            'db_session' => [
+                'name' => 'Sessions table', // @translate
+                'description' => 'Size of the sessions table in database.', // @translate
+                'actions' => [
+                    'db_session_check' => 'Check size', // @translate
+                    'db_session_clean' => 'Remove old', // @translate
+                    'db_session_recreate' => 'Remove all', // @translate
+                ],
+            ],
+            'db_log' => [
+                'name' => 'Logs table', // @translate
+                'description' => 'Size of the logs table in database (module Log).', // @translate
+                'actions' => [
+                    'db_log_check' => 'Check size', // @translate
+                    'db_log_clean' => 'Remove old', // @translate
+                ],
+            ],
+            'db_customvocab_missing_itemsets' => [
+                'name' => 'Custom vocab item sets', // @translate
+                'description' => 'Custom vocabs whose linked item set no longer exists.', // @translate
+                'actions' => [
+                    'db_customvocab_missing_itemsets_check' => 'Check', // @translate
+                    'db_customvocab_missing_itemsets_clean' => 'Fix (replace or remove)', // @translate
+                ],
+            ],
+            'db_fulltext' => [
+                'name' => 'Full-text index', // @translate
+                'description' => 'Rebuild the full-text search index of resources.', // @translate
+                'actions' => [
+                    'db_fulltext_index' => 'Index', // @translate
+                ],
+            ],
+            // Themes.
+            'theme_templates' => [
+                'name' => 'Theme templates (v4.1)', // @translate
+                'description' => 'Templates to migrate in themes for Omeka S v4.1 (backup themes first).', // @translate
+                'actions' => [
+                    'theme_templates_check' => 'Check', // @translate
+                    'theme_templates_fix' => 'Migrate', // @translate
+                ],
+            ],
+            // System.
+            'cache' => [
+                'name' => 'Caches', // @translate
+                'description' => 'Application caches.', // @translate
+                'actions' => [
+                    'cache_check' => 'Check', // @translate
+                    'cache_fix' => 'Clear', // @translate
+                ],
+            ],
+            'install' => [
+                'name' => 'Installation', // @translate
+                'description' => 'Check the consistency of the installation.', // @translate
+                'actions' => [
+                    'install_check' => 'Check', // @translate
+                ],
+            ],
+            'mail' => [
+                'name' => 'Email', // @translate
+                'description' => 'Email configuration; sends a test email.', // @translate
+                'actions' => [
+                    'mail_check' => 'Check', // @translate
+                ],
+            ],
+        ];
+    }
+
     public function init(): void
     {
         $this

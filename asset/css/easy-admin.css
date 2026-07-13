@@ -436,7 +436,40 @@
         display: none !important;
     }
 
-    /* Check and fix: subject grouping (pairs check/fix as one unit) */
+    /* Check and fix: subject blocks (name + description + action radio) */
+    .check-and-fix .task-subject {
+        margin: 0 0 .4em;
+        border-left: 3px solid #dfdfdf;
+    }
+    .check-and-fix .task-subject-head {
+        padding: .35em .6em;
+        cursor: pointer;
+    }
+    .check-and-fix .task-subject-head:hover {
+        background-color: rgba(0, 0, 0, .04);
+    }
+    .check-and-fix .task-subject.selected {
+        border-left-color: #2f6f9f;
+    }
+    .check-and-fix .task-subject.selected > .task-subject-head {
+        background-color: rgba(47, 111, 159, .08);
+    }
+    .check-and-fix .task-subject-name {
+        font-weight: bold;
+    }
+    .check-and-fix .task-subject-desc {
+        color: #666;
+    }
+    /* Action radio, revealed on selection. */
+    .check-and-fix .task-actions {
+        padding: .2em .6em .5em 1.6em;
+    }
+    .check-and-fix .task-actions > label {
+        display: inline-block;
+        margin: 0 1.2em .2em 0;
+    }
+
+    /* Legacy grouping for tasks added by other modules (fallback) */
     .check-and-fix .task-group {
         margin: 0 0 .6em;
         padding: .3em .6em;
@@ -446,14 +479,13 @@
         display: block;
         margin: .15em 0;
     }
-    .check-and-fix .task-group:hover {
-        border-left-color: #6b6b6b;
-    }
 
     /* Check and fix: option panel moved under the selected task */
+    .check-and-fix .task-actions > fieldset,
+    .check-and-fix .task-actions > .field,
     .check-and-fix .task-group > fieldset,
     .check-and-fix .task-group > .field {
-        margin: .4em 0 .6em 1.6em;
+        margin: .4em 0 .6em 0;
         padding-left: .8em;
         border-left: 2px solid #e3a21a;
     }

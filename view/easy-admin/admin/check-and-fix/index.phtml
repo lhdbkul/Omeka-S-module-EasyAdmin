@@ -11,6 +11,23 @@ $translate = $plugins->get('translate');
 $form->setAttribute('data-db-loop-warning', $translate('A query combined with “All” resource types is applied identically to every type; filters unsupported by a type are ignored.'));
 $form->setAttribute('data-filter-placeholder', $translate('Filter tasks…'));
 
+// Preapre subject metadata (name, description, action verbs).
+// Only core tasks are listed; tasks added by other modules through the
+// "form.add_elements" event fall back to grouped radios in the js.
+$subjectsData = [];
+foreach (\EasyAdmin\Form\CheckAndFixForm::subjects() as $subjectKey => $subject) {
+    $actions = [];
+    foreach ($subject['actions'] as $processValue => $verb) {
+        $actions[$processValue] = $translate($verb);
+    }
+    $subjectsData[$subjectKey] = [
+        'name' => $translate($subject['name'] ?? $subjectKey),
+        'description' => isset($subject['description']) ? $translate($subject['description']) : '',
+        'actions' => $actions,
+    ];
+}
+$form->setAttribute('data-subjects', json_encode($subjectsData, JSON_UNESCAPED_UNICODE));
+
 $form->prepare();
 
 $this->htmlElement('body')->appendAttribute('class', 'easy-admin check-and-fix browse');
