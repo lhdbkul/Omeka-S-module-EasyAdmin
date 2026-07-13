@@ -586,6 +586,29 @@ class CheckAndFixForm extends Form
         $fieldset
             ->add([
                 'type' => Fieldset::class,
+                'name' => 'files_excess',
+                'options' => [
+                    'label' => 'Options for excess files', // @translate
+                ],
+                'attributes' => [
+                    'class' => 'files_excess_check files_excess_check_full',
+                ],
+            ])
+            ->get('files_excess')
+            ->add([
+                'name' => 'sha256',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'label' => 'Compute the SHA-256 of each file (to find duplicates)', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'files_excess-sha256',
+                ],
+            ]);
+
+        $fieldset
+            ->add([
+                'type' => Fieldset::class,
                 'name' => 'files_missing',
                 'options' => [
                     'label' => 'Options for fix missing files', // @translate

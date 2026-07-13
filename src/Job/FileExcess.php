@@ -9,6 +9,7 @@ class FileExcess extends AbstractCheckFile
     protected $columns = [
         'filename' => 'Filename', // @translate
         'extension' => 'Extension', // @translate
+        'size' => 'Size', // @translate
         'type' => 'Type', // @translate
         'exists' => 'Exists', // @translate
         'item' => 'Item', // @translate
@@ -16,8 +17,20 @@ class FileExcess extends AbstractCheckFile
         'fixed' => 'Fixed', // @translate
     ];
 
+    /**
+     * @var bool
+     */
+    protected $withSha256 = false;
+
     public function perform(): void
     {
+        // Add the sha256 column before the header is written, to help finding
+        // duplicate files. Hashing is only done on excess files (see below).
+        if ($this->getArg('sha256')) {
+            $this->withSha256 = true;
+            $this->columns['sha256'] = 'SHA-256'; // @translate
+        }
+
         parent::perform();
         if ($this->job->getStatus() === \Omeka\Entity\Job::STATUS_ERROR) {
             return;
@@ -207,17 +220,17 @@ class FileExcess extends AbstractCheckFile
         // files are not flagged as excess.
         $hasDigitalObject = class_exists('DigitalObject\Module', false);
         if ($isOriginal) {
-            $sql = 'SELECT `id`, `item_id`, `storage_id`, `extension` FROM `media`'
+            $sql = 'SELECT `id`, `item_id`, `storage_id`, `extension`, `sha256` FROM `media`'
                 . ' WHERE `storage_id` IN (:ids) AND `has_original` = 1';
             if ($hasDigitalObject) {
-                $sql .= ' UNION ALL SELECT `id`, NULL AS `item_id`, `storage_id`, `extension`'
+                $sql .= ' UNION ALL SELECT `id`, NULL AS `item_id`, `storage_id`, `extension`, `sha256`'
                     . ' FROM `digital_object` WHERE `storage_id` IN (:ids) AND `has_original` = 1';
             }
         } else {
-            $sql = 'SELECT `id`, `item_id`, `storage_id` FROM `media`'
+            $sql = 'SELECT `id`, `item_id`, `storage_id`, `sha256` FROM `media`'
                 . ' WHERE `storage_id` IN (:ids) AND `has_thumbnails` = 1';
             if ($hasDigitalObject) {
-                $sql .= ' UNION ALL SELECT `id`, NULL AS `item_id`, `storage_id`'
+                $sql .= ' UNION ALL SELECT `id`, NULL AS `item_id`, `storage_id`, `sha256`'
                     . ' FROM `digital_object` WHERE `storage_id` IN (:ids) AND `has_thumbnails` = 1';
             }
         }
@@ -262,6 +275,7 @@ class FileExcess extends AbstractCheckFile
             $row = [
                 'filename' => $filename,
                 'extension' => pathinfo($filename, PATHINFO_EXTENSION),
+                'size' => @filesize($path . '/' . $filename) ?: '',
                 'type' => $type,
                 'exists' => '',
                 'item' => '',
@@ -273,12 +287,23 @@ class FileExcess extends AbstractCheckFile
                 $row['exists'] = $yes;
                 $row['item'] = $mediaLookup[$key]['item_id'];
                 $row['media'] = $mediaLookup[$key]['id'];
+                // Referenced files: reuse the stored hash (media.sha256 is the
+                // hash of the original), no file read.
+                if ($this->withSha256) {
+                    $row['sha256'] = $mediaLookup[$key]['sha256'] ?? '';
+                }
                 ++$totalSuccess;
                 $this->writeRow($row);
                 continue;
             }
 
             $row['exists'] = $no;
+
+            // Excess files: compute the hash to compare in the table, against
+            // referenced files or between themselves, to spot duplicates.
+            if ($this->withSha256) {
+                $row['sha256'] = @hash_file('sha256', $path . '/' . $filename) ?: '';
+            }
 
             if ($move) {
                 $dirname = dirname($movePath . '/' . $filename);

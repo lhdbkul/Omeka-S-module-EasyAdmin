@@ -61,7 +61,7 @@ class CheckAndFixController extends AbstractActionController
                 // no break
             case 'files_excess_check':
             case 'files_excess_move':
-                $job = $dispatcher->dispatch(\EasyAdmin\Job\FileExcess::class, $defaultParams);
+                $job = $dispatcher->dispatch(\EasyAdmin\Job\FileExcess::class, $defaultParams + ($params['files_checkfix']['files_excess'] ?? []));
                 break;
             case 'files_missing_check_full':
                 $params['files_checkfix']['files_missing']['include_derivatives'] = true;
