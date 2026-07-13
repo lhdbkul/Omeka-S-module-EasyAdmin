@@ -176,6 +176,17 @@ class Addons extends AbstractPlugin
     }
 
     /**
+     * Check if the addon lists are already cached in session, without doing any
+     * network request. Used to decide whether the catalogue can be served
+     * synchronously or must be fetched asynchronously (slow first load).
+     */
+    public function isCached(): bool
+    {
+        $container = new Container('EasyAdmin');
+        return !empty($container->addons) && isset($container->selections);
+    }
+
+    /**
      * Check if the lists of addons are empty before init.
      */
     public function isEmpty(): bool

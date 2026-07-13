@@ -40,13 +40,6 @@ class ModuleController extends AbstractActionController
             return strcasecmp($a->getName(), $b->getName());
         });
 
-        // Get available modules from catalogue.
-        $catalogueAddons = $addons->getAddons();
-        $addons->enrichWithLocalState($catalogueAddons);
-
-        $omekaModules = $catalogueAddons['omekamodule'] ?? [];
-        $webModules = $catalogueAddons['module'] ?? [];
-
         // Build the manage form for installed modules.
         $manageForm = $this->getForm(AddonManageForm::class);
 
@@ -54,6 +47,34 @@ class ModuleController extends AbstractActionController
         if ($request->isPost()) {
             return $this->handlePost($addons, $manageForm);
         }
+
+        // The catalogue requires up to five sequential external http requests
+        // (omeka.org and github), so on the first load (empty cache) it is
+        // fetched asynchronously: the page is rendered immediately without it,
+        // then a background request (catalogue=1) re-renders the content. When
+        // already cached, or on that async request, it is served synchronously.
+        $isCatalogueRequest = $request->isXmlHttpRequest()
+            && $this->params()->fromQuery('catalogue') === '1';
+        $cataloguePending = false;
+        if ($isCatalogueRequest || $addons->isCached()) {
+            $catalogueAddons = $addons->getAddons();
+            $addons->enrichWithLocalState($catalogueAddons);
+            $selections = $addons->getSelections();
+        } else {
+            $catalogueAddons = [];
+            $selections = [];
+            $cataloguePending = true;
+        }
+
+        $omekaModules = $catalogueAddons['omekamodule'] ?? [];
+        $webModules = $catalogueAddons['module'] ?? [];
+
+        // Url of the background request that fetches and renders the catalogue.
+        $catalogueUrl = $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'module', 'action' => 'index'],
+            ['query' => ['catalogue' => '1'] + $this->params()->fromQuery()]
+        );
 
         // Filter by state if requested.
         $state = $this->params()->fromQuery('state');
@@ -100,8 +121,17 @@ class ModuleController extends AbstractActionController
             'selections' => $selections,
             'installCatalogueForm' => $installCatalogueForm,
             'refreshForm' => $refreshForm,
+            'cataloguePending' => $cataloguePending,
+            'catalogueUrl' => $catalogueUrl,
         ]);
         $view->setTemplate('easy-admin/admin/module/browse');
+
+        // The async catalogue request returns only the content, swapped into
+        // the page by javascript, so render without the admin layout.
+        if ($isCatalogueRequest) {
+            $view->setTerminal(true);
+        }
+
         return $view;
     }
 
