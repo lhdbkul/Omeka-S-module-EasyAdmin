@@ -548,3 +548,60 @@ if (version_compare($oldVersion, '3.4.45', '<')) {
     }
     $settings->set('easyadmin_asset_extensions', array_values(array_unique($fixed)));
 }
+
+if (version_compare($oldVersion, '3.4.46', '<')) {
+    // Migrate cron tasks from flattened ids ("session_8d") to real ids plus a
+    // clean params map ("session" + {age: "8d"}), matching the new cron model.
+    $migrateTaskId = function (string $taskId): array {
+        if (strncmp($taskId, 'session_', 8) === 0) {
+            return ['session', ['age' => substr($taskId, 8)]];
+        }
+        if ($taskId === 'backup_db_compressed' || $taskId === 'backup_db_plain') {
+            return ['backup_database', ['format' => substr($taskId, 10)]];
+        }
+        if ($taskId === 'backup_files_full' || $taskId === 'backup_files_config') {
+            return ['backup_files', ['scope' => substr($taskId, 13)]];
+        }
+        return [$taskId, []];
+    };
+
+    // Nested tasks structure (easyadmin_cron).
+    $cronSettings = $settings->get('easyadmin_cron', []);
+    if (!empty($cronSettings['tasks'])) {
+        $migrated = [];
+        foreach ($cronSettings['tasks'] as $taskId => $taskConf) {
+            [$realId, $params] = $migrateTaskId((string) $taskId);
+            $entry = is_array($taskConf) ? $taskConf : ['enabled' => true];
+            unset($entry['parent_task']);
+            if ($params) {
+                $entry['params'] = $params;
+            }
+            $migrated[$realId] = $entry;
+        }
+        $cronSettings['tasks'] = $migrated;
+        $settings->set('easyadmin_cron', $cronSettings);
+    }
+
+    // Legacy flat array of enabled ids (easyadmin_cron_tasks).
+    $flat = $settings->get('easyadmin_cron_tasks', []);
+    if (is_array($flat) && $flat) {
+        $ids = [];
+        foreach ($flat as $taskId) {
+            [$realId] = $migrateTaskId((string) $taskId);
+            $ids[$realId] = true;
+        }
+        $settings->set('easyadmin_cron_tasks', array_keys($ids));
+    }
+
+    // Warn if the Cron module is present but too old for the new task model.
+    if (method_exists($this, 'isModuleActive')
+        && method_exists($this, 'isModuleVersionAtLeast')
+        && $this->isModuleActive('Cron')
+        && !$this->isModuleVersionAtLeast('Cron', '3.4.3')
+    ) {
+        $messenger->addWarning(new PsrMessage(
+            'The module Cron should be upgraded to version {version} or later for the new cron task configuration.', // @translate
+            ['version' => '3.4.3']
+        ));
+    }
+}
