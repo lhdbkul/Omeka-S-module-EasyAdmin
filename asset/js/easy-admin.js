@@ -164,6 +164,17 @@ $(document).ready(function () {
         return dangerousTasks.indexOf(value) !== -1;
     };
 
+    // Hide a section that has no visible subject/group (e.g. all its tasks
+    // filtered out, or all dangerous while listing normal ones).
+    var updateEmptySections = function () {
+        $('.check-and-fix fieldset.field-container').each(function () {
+            var hasVisible = $(this).find('.task-subject, .task-group').toArray().some(function (el) {
+                return !el.classList.contains('task-hidden-filter') && el.style.display !== 'none';
+            });
+            $(this).toggle(hasVisible);
+        });
+    };
+
     // Exclusive switch: checked lists only dangerous tasks, unchecked lists
     // only normal ones.
     var hideTasksWarning = function () {
@@ -184,6 +195,7 @@ $(document).ready(function () {
             });
             $(this).toggle(hasMatch);
         });
+        updateEmptySections();
     };
 
     var $sidebar = $('#cf-sidebar');
@@ -268,6 +280,7 @@ $(document).ready(function () {
             var match = !query || $(this).text().toLowerCase().indexOf(query) !== -1;
             $(this).toggleClass('task-hidden-filter', !match);
         });
+        updateEmptySections();
     };
 
     var addFilter = function () {
