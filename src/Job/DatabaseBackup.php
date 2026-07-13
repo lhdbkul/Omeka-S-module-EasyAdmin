@@ -118,7 +118,7 @@ class DatabaseBackup extends AbstractJob
         );
 
         // Try mysqldump first if available.
-        $mysqldump = $this->cli->getCommandPath('mysqldump');
+        $mysqldump = $this->findCommandPath('mysqldump');
         if ($mysqldump) {
             $success = $this->backupWithMysqldump(
                 $filepath,
@@ -195,7 +195,7 @@ class DatabaseBackup extends AbstractJob
         bool $includeTriggers,
         array $skipDataTables
     ): bool {
-        $mysqldump = $this->cli->getCommandPath('mysqldump');
+        $mysqldump = $this->findCommandPath('mysqldump');
 
         // Handle tables to skip data.
         $skipTables = $this->getSkipDataTables($skipDataTables);
@@ -250,7 +250,7 @@ class DatabaseBackup extends AbstractJob
 
         // Add compression via shell pipe for streaming efficiency.
         if ($compress) {
-            $gzip = $this->cli->getCommandPath('gzip');
+            $gzip = $this->findCommandPath('gzip');
             if ($gzip) {
                 $cmd .= ' | ' . escapeshellcmd($gzip) . ' -c' . $this->gzipLevelFlag();
             } else {
@@ -284,7 +284,7 @@ class DatabaseBackup extends AbstractJob
         bool $includeTriggers,
         array $skipTables
     ): bool {
-        $mysqldump = $this->cli->getCommandPath('mysqldump');
+        $mysqldump = $this->findCommandPath('mysqldump');
         $tempFile = $filepath . '.tmp.sql';
 
         // Get all tables.
@@ -348,7 +348,7 @@ class DatabaseBackup extends AbstractJob
 
             // Compress if needed using shell pipe.
             if ($compress) {
-                $gzip = $this->cli->getCommandPath('gzip');
+                $gzip = $this->findCommandPath('gzip');
                 if ($gzip) {
                     $cmd = escapeshellcmd($gzip) . ' -c' . $this->gzipLevelFlag() . ' ' . escapeshellarg($tempFile)
                         . ' > ' . escapeshellarg($filepath);
@@ -878,6 +878,47 @@ class DatabaseBackup extends AbstractJob
             HTACCESS;
 
         @file_put_contents($htaccessPath, $htaccessContent);
+    }
+
+    /**
+     * Find the path of a command without logging an error when it is absent.
+     *
+     * Omeka\Stdlib\Cli::getCommandPath() runs "command -v", which exits
+     * non-zero for a missing command; the Cli service then logs it as an error
+     * (plus an empty stderr line). Here a missing mysqldump or gzip is a normal
+     * case handled by a fallback, so detect it quietly, using the same
+     * primitives as the Cli "auto" strategy (proc_open, then exec) so the
+     * command is still found on servers where only shell_exec is disabled.
+     */
+    protected function findCommandPath(string $command): ?string
+    {
+        $cmd = sprintf('command -v %s 2>/dev/null', escapeshellarg($command));
+        $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
+        $available = function ($name) use ($disabled) {
+            return function_exists($name) && !in_array($name, $disabled, true);
+        };
+
+        $output = '';
+        if ($available('proc_open')) {
+            $descriptors = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+            $proc = @proc_open($cmd, $descriptors, $pipes, getcwd());
+            if (is_resource($proc)) {
+                fclose($pipes[0]);
+                $output = (string) stream_get_contents($pipes[1]);
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                proc_close($proc);
+            }
+        } elseif ($available('exec')) {
+            $lines = [];
+            @exec($cmd, $lines);
+            $output = implode("\n", $lines);
+        } elseif ($available('shell_exec')) {
+            $output = (string) @shell_exec($cmd);
+        }
+
+        $output = trim($output);
+        return $output === '' ? null : $output;
     }
 
     /**
