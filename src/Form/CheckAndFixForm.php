@@ -94,14 +94,14 @@ class CheckAndFixForm extends Form
                     'files_missing_check' => 'List (originals)', // @translate
                     'files_missing_check_full' => 'List (with derivatives)', // @translate
                     'files_missing_fix' => 'Restore from a source directory (crash recovery)', // @translate
-                    'files_missing_fix_db' => 'Remove items and medias', // @translate
+                    'files_missing_fix_db' => 'Delete items and medias', // @translate
                 ],
             ],
             'dirs_excess' => [
                 'name' => 'Empty directories', // @translate
                 'description' => 'Empty directories left in "/files/" (mainly for module Archive Repertory).', // @translate
                 'actions' => [
-                    'dirs_excess' => 'Remove', // @translate
+                    'dirs_excess' => 'Delete', // @translate
                 ],
             ],
             'files_derivative' => [
@@ -117,7 +117,7 @@ class CheckAndFixForm extends Form
                 'description' => 'Media rendered as a file but with neither an original file nor thumbnails (media with thumbnails are kept).', // @translate
                 'actions' => [
                     'files_media_no_original' => 'Check', // @translate
-                    'files_media_no_original_fix' => 'Remove', // @translate
+                    'files_media_no_original_fix' => 'Delete', // @translate
                 ],
             ],
             // Files and database.
@@ -190,7 +190,7 @@ class CheckAndFixForm extends Form
                 'description' => 'Resource rows not specified as item, media, item set, etc.', // @translate
                 'actions' => [
                     'db_resource_incomplete_check' => 'Check', // @translate
-                    'db_resource_incomplete_fix' => 'Remove', // @translate
+                    'db_resource_incomplete_fix' => 'Delete', // @translate
                 ],
             ],
             'db_resource_orphans' => [
@@ -198,7 +198,7 @@ class CheckAndFixForm extends Form
                 'description' => 'Rows in sub-tables (item, media, item set, annotation, digital object…) without a matching resource.', // @translate
                 'actions' => [
                     'db_resource_orphans_check' => 'Check', // @translate
-                    'db_resource_orphans_fix' => 'Remove', // @translate
+                    'db_resource_orphans_fix' => 'Delete', // @translate
                 ],
             ],
             'db_item_no_value' => [
@@ -206,7 +206,7 @@ class CheckAndFixForm extends Form
                 'description' => 'Items that have no value (media values are not checked).', // @translate
                 'actions' => [
                     'db_item_no_value' => 'Check', // @translate
-                    'db_item_no_value_fix' => 'Remove', // @translate
+                    'db_item_no_value_fix' => 'Delete', // @translate
                 ],
             ],
             'db_utf8_encode' => [
@@ -263,8 +263,8 @@ class CheckAndFixForm extends Form
                 'description' => 'Size of the sessions table in database.', // @translate
                 'actions' => [
                     'db_session_check' => 'Check size', // @translate
-                    'db_session_clean' => 'Remove old', // @translate
-                    'db_session_recreate' => 'Remove all', // @translate
+                    'db_session_clean' => 'Delete old', // @translate
+                    'db_session_recreate' => 'Delete all', // @translate
                 ],
             ],
             'db_log' => [
@@ -272,7 +272,7 @@ class CheckAndFixForm extends Form
                 'description' => 'Size of the logs table in database (module Log).', // @translate
                 'actions' => [
                     'db_log_check' => 'Check size', // @translate
-                    'db_log_clean' => 'Remove old', // @translate
+                    'db_log_clean' => 'Delete old', // @translate
                 ],
             ],
             'db_customvocab_missing_itemsets' => [
@@ -280,7 +280,7 @@ class CheckAndFixForm extends Form
                 'description' => 'Custom vocabs whose linked item set no longer exists.', // @translate
                 'actions' => [
                     'db_customvocab_missing_itemsets_check' => 'Check', // @translate
-                    'db_customvocab_missing_itemsets_clean' => 'Fix (replace or remove)', // @translate
+                    'db_customvocab_missing_itemsets_clean' => 'Fix (replace or delete)', // @translate
                 ],
             ],
             'db_fulltext' => [
@@ -561,8 +561,8 @@ class CheckAndFixForm extends Form
                         'files_missing_check' => 'List files that are present in database, not in "/files/" (original only)', // @translate
                         'files_missing_check_full' => 'List files that are present in database, not in "/files/" (include derivatives)', // @translate
                         'files_missing_fix' => 'Copy missing original files from the source directory below (recover a disaster)', // @translate
-                        'files_missing_fix_db' => 'Remove items with one file that is missing and missing medias (WARNING: export your items first)', // @translate
-                        'dirs_excess' => 'Remove empty directories in "/files/" (mainly for module Archive Repertory)', // @translate
+                        'files_missing_fix_db' => 'Delete items with one file that is missing and missing medias (WARNING: export your items first)', // @translate
+                        'dirs_excess' => 'Delete empty directories in "/files/" (mainly for module Archive Repertory)', // @translate
                         'files_derivative' => 'Rebuild derivative images (thumbnails)', // @translate
                         'files_derivative_file_system' => 'Quick rebuild all derivative images (from terminal, 10x times faster)', // @translate
                     ],
@@ -892,7 +892,7 @@ class CheckAndFixForm extends Form
                     'label' => '',
                     'value_options' => [
                         'files_media_no_original' => 'Check media rendered as "file", but without original', // @translate
-                        'files_media_no_original_fix' => 'Remove media rendered as "file", but without original (WARNING: export your media first)', // @translate
+                        'files_media_no_original_fix' => 'Delete media rendered as "file", but without original (WARNING: export your media first)', // @translate
                         'files_size_check' => 'Check missing file sizes in database (not managed during upgrade to Omeka 1.2.0)', // @translate
                         'files_size_fix' => 'Fix all file sizes in database (for example after hard import)', // @translate
                         'files_hash_check' => 'Check sha256 hashes of files', // @translate
@@ -940,11 +940,11 @@ class CheckAndFixForm extends Form
             'db_resource_invalid_check' => 'Check if all resource have valid types. (Item, ItemSet, etc)', // @translate
             'db_resource_invalid_fix' => 'Fix all resource with invalid types.', // @translate
             'db_resource_incomplete_check' => 'Check if all resources are specified as items, medias, etc.', // @translate
-            'db_resource_incomplete_fix' => 'Remove all resources that are not specified', // @translate
+            'db_resource_incomplete_fix' => 'Delete all resources that are not specified', // @translate
             'db_resource_orphans_check' => 'Check rows in sub-tables (item, media, item_set, value_annotation, annotation, digital_object) without a matching resource', // @translate
-            'db_resource_orphans_fix' => 'Remove orphan rows in sub-tables without a matching resource', // @translate
+            'db_resource_orphans_fix' => 'Delete orphan rows in sub-tables without a matching resource', // @translate
             'db_item_no_value' => 'Check items without value (media values are not checked)', // @translate
-            'db_item_no_value_fix' => 'Remove items without value (files are moved into "/files/check/")', // @translate
+            'db_item_no_value_fix' => 'Delete items without value (files are moved into "/files/check/")', // @translate
             'db_utf8_encode_check' => 'Check if all values are utf-8 encoded (Windows issues like "Ã©" for "é")', // @translate
             'db_utf8_encode_fix' => 'Fix utf-8 encoding issues', // @translate
             'db_value_clean_fix' => 'Clean and deduplicate values', // @translate
@@ -1198,12 +1198,12 @@ class CheckAndFixForm extends Form
                         'db_job_fix' => 'Set status "stopped" for jobs that never started, and "error" for the jobs that never ended', // @translate
                         'db_job_fix_all' => 'Fix status as above for all jobs (when check cannot be done after a reboot)', // @translate
                         'db_session_check' => 'Check the size of the table of sessions in database', // @translate
-                        'db_session_clean' => 'Remove old sessions (specify age below)', // @translate
-                        'db_session_recreate' => 'Remove all sessions (when table is too big)', // @translate
+                        'db_session_clean' => 'Delete old sessions', // @translate
+                        'db_session_recreate' => 'Delete all sessions (when table is too big)', // @translate
                         'db_log_check' => 'Check the size of the table of logs in database (module Log)', // @translate
-                        'db_log_clean' => 'Remove old logs', // @translate
+                        'db_log_clean' => 'Delete old logs', // @translate
                         'db_customvocab_missing_itemsets_check' => 'Check if all custom vocabs with item sets have an existing item set', // @translate
-                        'db_customvocab_missing_itemsets_clean' => 'Fix missing item sets of custom vocabs (replace or remove)', // @translate
+                        'db_customvocab_missing_itemsets_clean' => 'Fix missing item sets of custom vocabs', // @translate
                     ],
                 ],
                 'attributes' => [
@@ -1218,7 +1218,7 @@ class CheckAndFixForm extends Form
                 'type' => Fieldset::class,
                 'name' => 'db_session',
                 'options' => [
-                    'label' => 'Options to remove sessions', // @translate
+                    'label' => 'Options to delete sessions', // @translate
                 ],
                 'attributes' => [
                     'class' => 'db_session_check db_session_clean',
@@ -1241,7 +1241,7 @@ class CheckAndFixForm extends Form
                 'type' => Fieldset::class,
                 'name' => 'db_log',
                 'options' => [
-                    'label' => 'Options to remove logs (module Log)', // @translate
+                    'label' => 'Options to delete logs (module Log)', // @translate
                 ],
                 'attributes' => [
                     'class' => 'db_log_check db_log_clean',
@@ -1310,7 +1310,7 @@ class CheckAndFixForm extends Form
                     'label_attributes' => ['style' => 'display: inline-block'],
                     'value_options' => [
                         'replace' => 'Replace by a standard empty custom vocab', // @translate
-                        'remove' => 'Remove the custom vocab', // @translate
+                        'remove' => 'Delete the custom vocab', // @translate
                     ],
                 ],
                 'attributes' => [
