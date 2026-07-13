@@ -314,9 +314,10 @@ class DbUtf8Encode extends AbstractCheck
                 : (is_array($iso) ? json_encode($iso, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS) : $iso);
         }
 
-        // Same, but may be useful for a more complex check.
-        // $iso = mb_convert_encoding($string, 'UTF-8', 'ISO-8859-15');
-        $iso = utf8_decode($string);
+        // Decode utf-8 to Latin-1, replacing utf8_decode(), deprecated in php
+        // 8.2. Use ISO-8859-15 instead of ISO-8859-1 for a more complete check.
+        // $iso = mb_convert_encoding($string, 'ISO-8859-15', 'UTF-8');
+        $iso = mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
         if ($string === $iso) {
             // Don't log well formatted values because they are many.
             ++$this->totalUtf8;
