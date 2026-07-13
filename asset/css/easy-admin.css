@@ -498,4 +498,23 @@
     #cf-sidebar .task-recap-options .inputs {
         width: 100%;
     }
+    /* Submit pinned at the bottom of the sidebar (Omeka confirm-panel pattern) */
+    #cf-sidebar {
+        padding-bottom: 60px;
+    }
+    #cf-sidebar .cf-sidebar-footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1;
+        padding: 12px;
+        background-color: #f7f7f7;
+        border-top: 1px solid #dfdfdf;
+    }
+    #cf-sidebar .cf-sidebar-footer .button {
+        display: block;
+        width: 100%;
+        margin: 0;
+    }
 }

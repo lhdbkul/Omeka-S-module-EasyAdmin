@@ -202,7 +202,7 @@ $(document).ready(function () {
         var placeholder = $form.data('filter-placeholder') || 'Filter tasks…';
         var $filter = $('<div class="task-filter"><input type="search" class="task-filter-input"></div>');
         $filter.find('input').attr('placeholder', placeholder).attr('aria-label', placeholder);
-        $filter.insertAfter('#page-actions');
+        $filter.insertBefore('.check-and-fix fieldset.field-container:first');
         $filter.find('input').on('input', filterTasks);
     };
 
