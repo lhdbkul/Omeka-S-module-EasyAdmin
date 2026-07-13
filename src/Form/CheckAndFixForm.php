@@ -369,18 +369,6 @@ class CheckAndFixForm extends Form
         ];
         $this->setAttribute('data-entity-types-tasks', implode(',', $entityTypesTasks));
 
-        $this
-            ->add([
-                'name' => 'toggle_tasks_with_warning',
-                'type' => Element\Checkbox::class,
-                'options' => [
-                    'label' => 'Display dangerous tasks', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'toggle_tasks_with_warning',
-                ],
-            ]);
-
         $event = new Event('form.add_elements', $this);
         $this->getEventManager()->triggerEvent($event);
 

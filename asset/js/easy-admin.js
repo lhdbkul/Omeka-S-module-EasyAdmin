@@ -159,17 +159,31 @@ $(document).ready(function () {
         });
     };
 
+    var dangerousTasks = ($form.data('tasks-warning') || '').split(',').filter(Boolean);
+    var isDangerous = function (value) {
+        return dangerousTasks.indexOf(value) !== -1;
+    };
+
+    // Exclusive switch: checked lists only dangerous tasks, unchecked lists
+    // only normal ones.
     var hideTasksWarning = function () {
-        var warn = ($form.data('tasks-warning') || '').split(',');
-        $('.check-and-fix .fieldset-process')
-            .filter(function () {
-                return warn.includes($(this).val());
-            })
-            .each(function () {
-                $(this).prop('disabled', !$(this).prop('disabled'));
-                $(this).closest('label').css('opacity', $(this).prop('disabled') ? '0.5' : '1');
-                $(this).closest('label').toggle();
+        var onlyDangerous = $('#toggle_tasks_with_warning').prop('checked');
+        // Show and enable only the actions of the selected category.
+        $('.check-and-fix input.fieldset-process').each(function () {
+            var match = isDangerous(this.value) === onlyDangerous;
+            $(this).prop('disabled', !match).closest('label').toggle(match);
+        });
+        // Show a subject (or legacy group) only if it has a matching action.
+        $('.check-and-fix .task-subject, .check-and-fix .task-group').each(function () {
+            var key = $(this).attr('data-subject');
+            var radios = key
+                ? $('.task-actions[data-subject="' + key + '"] input.fieldset-process').toArray()
+                : $(this).find('input.fieldset-process').toArray();
+            var hasMatch = radios.some(function (r) {
+                return isDangerous(r.value) === onlyDangerous;
             });
+            $(this).toggle(hasMatch);
+        });
     };
 
     var $sidebar = $('#cf-sidebar');
@@ -242,7 +256,7 @@ $(document).ready(function () {
     // wherever it currently sits (block, recap or stash), so find them there.
     var selectSubject = function () {
         var key = $(this).closest('.task-subject').attr('data-subject');
-        var $radio = $('.task-actions[data-subject="' + key + '"] input.fieldset-process').first();
+        var $radio = $('.task-actions[data-subject="' + key + '"] input.fieldset-process:not(:disabled)').first();
         if ($radio.length) {
             showProcessTask($radio[0]);
         }
@@ -281,7 +295,7 @@ $(document).ready(function () {
     $('.check-and-fix .fieldset-process').on('change', function () {
         showProcessTask(this);
     });
-    $('input[name="toggle_tasks_with_warning"]').on('click', hideTasksWarning);
+    $('#toggle_tasks_with_warning').on('click', hideTasksWarning);
 
     hideTasksWarning();
     showProcessTask();
