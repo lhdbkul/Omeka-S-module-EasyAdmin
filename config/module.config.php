@@ -15,6 +15,7 @@ return [
         ],
         'factories' => [
             'Omeka\HttpClient' => Service\HttpClientFactory::class,
+            'EasyAdmin\File\Thumbnailer\Configured' => Service\File\Thumbnailer\ConfiguredThumbnailerFactory::class,
         ],
         'delegators' => [
             'Omeka\File\Store\Local' => [

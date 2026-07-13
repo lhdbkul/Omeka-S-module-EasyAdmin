@@ -39,6 +39,7 @@ use Common\Stdlib\PsrMessage;
 use Common\TraitModule;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
+use Laminas\ModuleManager\ModuleEvent;
 use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Session\Container;
@@ -61,6 +62,35 @@ class Module extends AbstractModule
     public function init(ModuleManager $moduleManager): void
     {
         require_once __DIR__ . '/vendor/autoload.php';
+
+        // Run last so the thumbnailer alias set by the core, local config or
+        // another module is captured as default if not overridden by EasyAdmin.
+        $moduleManager->getEventManager()->attach(
+            ModuleEvent::EVENT_MERGE_CONFIG,
+            [$this, 'onEventMergeConfig'],
+            -100
+        );
+    }
+
+    /**
+     * Take over the "Omeka\File\Thumbnailer" alias so it can be overridden.
+     */
+    public function onEventMergeConfig(ModuleEvent $event): void
+    {
+        /** @var \Laminas\ModuleManager\Listener\ConfigListener $configListener */
+        $configListener = $event->getParam('configListener');
+        $config = $configListener->getMergedConfig(false);
+
+        $current = $config['service_manager']['aliases']['Omeka\File\Thumbnailer']
+            ?? \Omeka\File\Thumbnailer\ImageMagick::class;
+        if ($current === 'EasyAdmin\File\Thumbnailer\Configured') {
+            return;
+        }
+
+        $config['easyadmin']['thumbnailer_default'] = $current;
+        $config['service_manager']['aliases']['Omeka\File\Thumbnailer'] = 'EasyAdmin\File\Thumbnailer\Configured';
+
+        $configListener->setMergedConfig($config);
     }
 
     public function getConfig()

@@ -151,6 +151,26 @@ class SettingsFieldset extends Fieldset
             ])
 
             ->add([
+                'name' => 'easyadmin_thumbnailer',
+                'type' => Element\Select::class,
+                'options' => [
+                    'element_group' => 'easy_admin',
+                    'label' => 'Thumbnailer for derivative images', // @translate
+                    'info' => 'Override the default thumbnailer set in the config if needed, for example to skip temporarily creation of derivatives.', // @translate
+                    'value_options' => [
+                        '' => 'Default (keep current)', // @translate
+                        'imagemagick' => 'ImageMagick (command line)', // @translate
+                        'imagick' => 'Imagick (php extension)', // @translate
+                        'gd' => 'GD (php extension)', // @translate
+                        'nothumbnail' => 'No thumbnail', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'easyadmin_thumbnailer',
+                    'value' => '',
+                ],
+            ])
+            ->add([
                 'name' => 'easyadmin_local_path',
                 'type' => Element\Text::class,
                 'options' => [
