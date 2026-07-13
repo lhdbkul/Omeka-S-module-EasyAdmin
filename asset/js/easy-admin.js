@@ -107,6 +107,34 @@ $(document).ready(function () {
         }
     };
 
+    /**
+     * (c) Live filter: hide the task groups that do not match the query.
+     */
+    const filterTasks = function () {
+        const query = $(this).val().trim().toLowerCase();
+        // Filter by group when grouping applied, else fall back to single radio
+        // labels, so the feature works whatever the exact radio markup.
+        let units = $('.check-and-fix .task-group');
+        if (!units.length) {
+            units = $('.check-and-fix .fieldset-process').map(function () {
+                return $(this).closest('label')[0];
+            });
+        }
+        units.each(function () {
+            const match = !query || $(this).text().toLowerCase().indexOf(query) !== -1;
+            $(this).toggleClass('task-hidden-filter', !match);
+        });
+    };
+
+    const addFilter = function () {
+        const placeholder = $('#check-and-fix-form').data('filter-placeholder') || 'Filter tasks…';
+        const $filter = $('<div class="task-filter">'
+            + '<input type="search" class="task-filter-input" placeholder="'
+            + placeholder + '" aria-label="' + placeholder + '"></div>');
+        $filter.insertAfter('#page-actions');
+        $filter.find('input').on('input', filterTasks);
+    };
+
     /* Init */
 
     if (!$('body').hasClass('check-and-fix')) {
@@ -115,6 +143,7 @@ $(document).ready(function () {
 
     groupTasks();
     $('.check-and-fix fieldset.field-container').find('fieldset').hide();
+    addFilter();
 
     $('.check-and-fix .fieldset-process').on('click', function () {
         showProcessTask(this);

@@ -424,6 +424,18 @@
         width: initial;
     }
 
+    /* Check and fix: live filter */
+    .check-and-fix .task-filter {
+        margin: 0 0 1em;
+    }
+    .check-and-fix .task-filter-input {
+        width: 100%;
+        padding: .4em .6em;
+    }
+    .check-and-fix .task-hidden-filter {
+        display: none !important;
+    }
+
     /* Check and fix: subject grouping (pairs check/fix as one unit) */
     .check-and-fix .task-group {
         margin: 0 0 .6em;

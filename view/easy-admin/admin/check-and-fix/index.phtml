@@ -9,6 +9,7 @@ $assetUrl = $plugins->get('assetUrl');
 $translate = $plugins->get('translate');
 
 $form->setAttribute('data-db-loop-warning', $translate('A query combined with “All” resource types is applied identically to every type; filters unsupported by a type are ignored.'));
+$form->setAttribute('data-filter-placeholder', $translate('Filter tasks…'));
 
 $form->prepare();
 
