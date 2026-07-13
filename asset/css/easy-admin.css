@@ -513,11 +513,6 @@
         width: 100%;
     }
 
-    /* Submit pinned at the bottom of the sidebar (Omeka confirm-panel pattern) */
-    #cf-sidebar {
-        padding-bottom: 60px;
-    }
-
     /* "Display dangerous tasks" toggle in the sidebar help (ui-only, no form). */
     #cf-sidebar .task-help .task-toggle-dangerous {
         margin: 1em 0 0;
@@ -529,7 +524,19 @@
         cursor: pointer;
     }
 
-    #cf-sidebar .cf-sidebar-footer {
+    /* Pinned submit, using the core confirm-main/confirm-panel pattern. These
+       rules are a fallback for Omeka versions whose core css does not yet style
+       them; on recent cores they merely match the core values. */
+    #cf-sidebar .confirm-main {
+        position: absolute;
+        top: 0;
+        bottom: 60px;
+        left: 0;
+        right: 0;
+        overflow-y: auto;
+        padding: 12px 12px 0;
+    }
+    #cf-sidebar .confirm-panel {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -539,7 +546,7 @@
         background-color: #f7f7f7;
         border-top: 1px solid #dfdfdf;
     }
-    #cf-sidebar .cf-sidebar-footer .button {
+    #cf-sidebar .confirm-panel .button {
         display: block;
         width: 100%;
         margin: 0;

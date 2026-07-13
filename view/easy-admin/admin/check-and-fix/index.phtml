@@ -51,24 +51,26 @@ $this->headScript()
 <?= $this->formCollection($form) ?>
 
 <aside class="sidebar always-open" id="cf-sidebar">
-    <div class="task-help">
-        <h3><?= $escape($translate('How it works')) ?></h3>
-        <p><?= $escape($translate('Select a task on the left. Most tasks offer a “Check” action and a “Fix” action. The check is always safe, but it is recommended to do a backup when processing deep fixes.')) ?></p>
-        <p><?= $escape($translate('Normal tasks are listed by default. Tick the box below to list only the dangerous tasks and risky options instead.')) ?></p>
-        <p class="task-toggle-dangerous">
-            <label>
-                <input type="checkbox" id="toggle_tasks_with_warning">
-                <?= $escape($translate('Show only dangerous tasks and risky options')) ?>
-            </label>
-        </p>
+    <div class="confirm-main">
+        <div class="task-help">
+            <h3><?= $escape($translate('How it works')) ?></h3>
+            <p><?= $escape($translate('Select a task on the left. Most tasks offer a “Check” action and a “Fix” action. The check is always safe, but it is recommended to do a backup when processing deep fixes.')) ?></p>
+            <p><?= $escape($translate('Normal tasks are listed by default. Tick the box below to list only the dangerous tasks and risky options instead.')) ?></p>
+            <p class="task-toggle-dangerous">
+                <label>
+                    <input type="checkbox" id="toggle_tasks_with_warning">
+                    <?= $escape($translate('Show only dangerous tasks and risky options')) ?>
+                </label>
+            </p>
+        </div>
+        <div class="task-recap" hidden>
+            <h3 class="task-recap-name"></h3>
+            <p class="task-recap-desc"></p>
+            <div class="task-recap-actions"></div>
+            <div class="task-recap-options"></div>
+        </div>
     </div>
-    <div class="task-recap" hidden>
-        <h3 class="task-recap-name"></h3>
-        <p class="task-recap-desc"></p>
-        <div class="task-recap-actions"></div>
-        <div class="task-recap-options"></div>
-    </div>
-    <div class="cf-sidebar-footer">
+    <div class="confirm-panel">
         <button type="submit" class="button"><?= $translate('Submit') ?></button>
     </div>
 </aside>
