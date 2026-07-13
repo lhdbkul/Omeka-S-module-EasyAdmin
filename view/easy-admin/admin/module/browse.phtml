@@ -134,7 +134,12 @@ $states = [
 
 <div id="page-actions">
     <?php $refreshForm->prepare(); echo $this->form()->openTag($refreshForm->setAttribute('class', 'refresh-form')); ?>
-    <button type="submit" class="button"><?= $escape($translate('Refresh catalogue')) ?></button>
+    <button type="submit" class="button"<?= $cataloguePending ? ' disabled="disabled"' : '' ?>>
+        <?php if ($cataloguePending): ?>
+        <span class="fas fa-sync fa-spin" aria-hidden="true" style="margin-right: .4em;"></span>
+        <?php endif ?>
+        <?= $escape($translate('Refresh catalogue')) ?>
+    </button>
     <?= $this->form()->closeTag($refreshForm) ?>
     <button type="button" class="button sidebar-content" data-sidebar-selector="#sidebar-install"><?= $escape($translate('Install new module')) ?></button>
 </div>

@@ -187,6 +187,20 @@ class Addons extends AbstractPlugin
     }
 
     /**
+     * Clear the cached addon lists and selections from the session, so the next
+     * page load fetches them again (asynchronously).
+     */
+    public function clearCache(): self
+    {
+        $container = new Container('EasyAdmin');
+        unset($container->addons);
+        unset($container->selections);
+        $this->addons = [];
+        $this->selections = [];
+        return $this;
+    }
+
+    /**
      * Check if the lists of addons are empty before init.
      */
     public function isEmpty(): bool

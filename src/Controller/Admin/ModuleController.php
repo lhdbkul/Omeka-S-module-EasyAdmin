@@ -144,14 +144,12 @@ class ModuleController extends AbstractActionController
             );
         }
 
+        // Just clear the cache and reload: the catalogue is fetched again
+        // asynchronously on the next page render, so the button returns
+        // immediately instead of blocking on external http requests.
         /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
         $addons = $this->easyAdminAddons();
-        $addons->getAddons(true);
-        $addons->getSelections(true);
-
-        $this->messenger()->addSuccess(
-            'The catalogue of addons and selections has been refreshed.' // @translate
-        );
+        $addons->clearCache();
 
         return $this->redirect()->toRoute(
             'admin/easy-admin/default',
