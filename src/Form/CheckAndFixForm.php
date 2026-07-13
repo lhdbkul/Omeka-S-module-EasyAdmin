@@ -244,7 +244,7 @@ class CheckAndFixForm extends Form
                 'name' => 'entity_types',
                 'type' => CommonElement\OptionalMultiCheckbox::class,
                 'options' => [
-                    'label' => 'Entities to process (file tasks)', // @translate
+                    'label' => 'Resources to process', // @translate
                     'info' => 'Most file tasks apply to medias and, when the module is present, to digital objects.', // @translate
                     'value_options' => array_filter([
                         'media' => 'Media', // @translate
@@ -766,16 +766,15 @@ class CheckAndFixForm extends Form
             ])
             ->add([
                 'name' => 'resource_types',
-                'type' => CommonElement\OptionalMultiCheckbox::class,
+                'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Types of resources to process', // @translate
+                    'label' => 'Type of resources to process', // @translate
                     'value_options' => $resourceTypeOptions,
                 ],
                 'attributes' => [
                     'id' => 'db_value_clean-resource_types',
-                    'value' => [
-                        'all',
-                    ],
+                    'value' => 'items',
+                    'required' => false,
                 ],
             ])
             ->add([
@@ -783,8 +782,8 @@ class CheckAndFixForm extends Form
                 'type' => OmekaElement\Query::class,
                 'options' => [
                     'label' => 'Query to limit resources to process', // @translate
-                    'info' => 'It is not recommended to use the query when multiple resource types are selected.', // @translate
-                    'query_resource_type' => null,
+                    'info' => 'The query is scoped to the selected resource type. With "All", it is applied identically to every type and unsupported filters are ignored.', // @translate
+                    'query_resource_type' => 'items',
                 ],
                 'attributes' => [
                     'id' => 'db_value_clean-query',

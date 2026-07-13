@@ -53,7 +53,12 @@ class DbValueClean extends AbstractCheck
             'digital_objects',
         ];
 
+        // Accept a single type (form radio), an array of types (programmatic
+        // dispatch), or "all".
         $resourceTypes = $this->getArg('resource_types') ?: [];
+        if (!is_array($resourceTypes)) {
+            $resourceTypes = [$resourceTypes];
+        }
         if (!$resourceTypes) {
             $this->logger->warn(
                 'No resource type defined.' // @translate

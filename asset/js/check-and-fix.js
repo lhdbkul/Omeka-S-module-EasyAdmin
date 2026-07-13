@@ -13,14 +13,23 @@
  *   others fall back to items.
  */
 (function ($) {
-    $(document).ready(function () {
-        var $radios = $('input[name="resource_values[db_loop_save][resource_types]"]');
+    var TYPED = [
+        'items',
+        'item_sets',
+        'media',
+    ];
+    var FIELDSETS = [
+        'db_loop_save',
+        'db_value_clean',
+    ];
+
+    function setup(prefix, warningText) {
+        var $radios = $('input[name="resource_values[' + prefix + '][resource_types]"]');
         if (!$radios.length) {
             return;
         }
 
-        var $query = $('#db_loop_save-query').closest('.query-form-element');
-        var warningText = $('#check-and-fix-form').data('dbLoopWarning') || '';
+        var $query = $('#' + prefix + '-query').closest('.query-form-element');
         var $warning = $('<p>')
             .addClass('messages warning db-loop-query-warning')
             .text(warningText)
@@ -29,13 +38,10 @@
             $query.after($warning);
         }
 
-        var typed = ['items', 'item_sets', 'media'];
         function sync() {
             var value = $radios.filter(':checked').val();
             if ($query.length) {
-                // The Query element only scopes items/item_sets/media; the
-                // others fall back to items.
-                var resourceType = typed.indexOf(value) !== -1 ? value : 'items';
+                var resourceType = TYPED.indexOf(value) !== -1 ? value : 'items';
                 $query.data('resourceType', resourceType);
                 // Reload the open advanced search form for the new type, so the
                 // available filters match the selected resource type.
@@ -54,5 +60,12 @@
 
         $radios.on('change', sync);
         sync();
+    }
+
+    $(document).ready(function () {
+        var warningText = $('#check-and-fix-form').data('dbLoopWarning') || '';
+        FIELDSETS.forEach(function (prefix) {
+            setup(prefix, warningText);
+        });
     });
 })(jQuery);

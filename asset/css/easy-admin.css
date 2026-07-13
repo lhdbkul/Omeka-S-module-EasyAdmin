@@ -419,7 +419,8 @@
         align-items: flex-start;
     }
 
-    #db_loop_save-query_field.field .inputs .messages {
+    #db_loop_save-query_field.field .inputs .messages,
+    #db_value_clean-query_field.field .inputs .messages {
         width: initial;
     }
 }
