@@ -1,11 +1,54 @@
 'use strict';
 
-$(document).ready(function() {
+$(document).ready(function () {
 
+    /**
+     * Derive the "subject" of a task from its process value, by stripping the
+     * trailing action verb. So files_hash_check and files_hash_fix share the
+     * subject files_hash and can be grouped visually (check/fix pairing).
+     */
+    const subjectOf = function (value) {
+        return (value || '').replace(
+            /_(check_full|check|fix_all|fix_db|fix|clean|move|recreate|index|save)$/,
+            ''
+        );
+    };
+
+    /**
+     * (a) Pairing: wrap consecutive radios sharing a subject in a group box, so
+     * check/fix (and other actions of the same subject) read as one unit.
+     */
+    const groupTasks = function () {
+        // The process radios render as a sequence of contiguous <label> (the
+        // "Tasks" label is removed, so there is no .inputs wrapper). Group them
+        // per section by subject.
+        $('.check-and-fix fieldset.field-container').each(function () {
+            const labels = $(this).find('input.fieldset-process')
+                .map(function () {
+                    return $(this).closest('label')[0];
+                });
+            let i = 0;
+            while (i < labels.length) {
+                const subject = subjectOf($(labels[i]).find('input.fieldset-process').val());
+                let j = i + 1;
+                while (j < labels.length
+                    && subjectOf($(labels[j]).find('input.fieldset-process').val()) === subject
+                ) {
+                    j++;
+                }
+                $(labels.slice(i, j)).wrapAll('<div class="task-group"></div>');
+                i = j;
+            }
+        });
+    };
+
+    /**
+     * Hide the dangerous tasks unless the dedicated checkbox is ticked.
+     */
     const hideTasksWarning = function () {
-        const tasksWarning = $('#check-and-fix-form').data('tasks-warning').split(',');
+        const tasksWarning = ($('#check-and-fix-form').data('tasks-warning') || '').split(',');
         $('.check-and-fix .fieldset-process')
-            .filter((index, el) =>  tasksWarning.includes($(el).val()))
+            .filter((index, el) => tasksWarning.includes($(el).val()))
             .each(function () {
                 $(this).prop('disabled', !$(this).prop('disabled'));
                 $(this).closest('label').css('opacity', $(this).prop('disabled') ? '0.5' : '1');
@@ -13,36 +56,72 @@ $(document).ready(function() {
             });
     };
 
-    const showProcessTask = function () {
-        const currentTask = $('input[type=radio].fieldset-process:checked');
+    /**
+     * All option panels (sub-fieldsets), wherever they currently are (they get
+     * moved around by showProcessTask).
+     */
+    const optionFieldsets = function () {
+        return $('.check-and-fix fieldset.field-container').find('fieldset');
+    };
+
+    /**
+     * (b) Show the selected task and move its option panel (and the shared
+     * entity_types field, when relevant) right under the selected radio,
+     * instead of leaving them at the bottom of the section.
+     */
+    const showProcessTask = function (clicked) {
+        // Sections are separate radio groups, so several radios may be checked
+        // at once. Keep a single task: the clicked one, else the first checked.
+        // Using a single element as anchor below is required, otherwise
+        // insertAfter() clones the moved panel for each anchor (duplication).
+        const currentTask = clicked
+            ? $(clicked)
+            : $('input[type=radio].fieldset-process:checked').first();
         const currentTaskVal = currentTask.val();
-        // Get the current value and reset and hide all of them.
-        const radioTasks = $('input[type=radio].fieldset-process');
-        radioTasks.prop('checked', false);
-        $('fieldset.field-container > fieldset').hide();
-        // Show the selected container if any.
-        if (currentTaskVal && currentTaskVal !== '') {
-            currentTask.prop('checked', true);
-            $('fieldset.field-container > fieldset.' + currentTaskVal).show();
-        }
-        // The "entity_types" option is a plain field (not a sub-fieldset), so
-        // toggle it explicitly: shown only for the tasks that support it.
+
+        // Only one task at a time across all sections.
+        $('input[type=radio].fieldset-process').prop('checked', false);
+        optionFieldsets().hide();
+
         const entityTypesTasks = ($('#check-and-fix-form').data('entity-types-tasks') || '').split(',');
-        $('#files_checkfix-entity_types_field').toggle(
-            !!currentTaskVal && entityTypesTasks.includes(currentTaskVal)
-        );
-    }
+        const $entityField = $('#files_checkfix-entity_types_field');
+        $entityField.hide();
 
-    $('.check-and-fix fieldset.field-container > fieldset').hide();
+        if (!currentTaskVal) {
+            return;
+        }
 
-    $('.check-and-fix .fieldset-process').on('click', showProcessTask);
+        currentTask.prop('checked', true);
+        const $label = currentTask.closest('label').first();
 
-    $('input[name="toggle_tasks_with_warning"]').on('click', hideTasksWarning);
+        // Option panel(s) of this task carry its process value as a css class.
+        const $options = $('.check-and-fix fieldset.field-container')
+            .find('fieldset.' + currentTaskVal);
+        let $anchor = $label;
+        if ($options.length) {
+            $options.insertAfter($anchor).show();
+            $anchor = $options.last();
+        }
+        if (entityTypesTasks.includes(currentTaskVal)) {
+            $entityField.insertAfter($anchor).show();
+        }
+    };
 
     /* Init */
 
-    hideTasksWarning();
+    if (!$('body').hasClass('check-and-fix')) {
+        return;
+    }
 
+    groupTasks();
+    $('.check-and-fix fieldset.field-container').find('fieldset').hide();
+
+    $('.check-and-fix .fieldset-process').on('click', function () {
+        showProcessTask(this);
+    });
+    $('input[name="toggle_tasks_with_warning"]').on('click', hideTasksWarning);
+
+    hideTasksWarning();
     showProcessTask();
 
 });

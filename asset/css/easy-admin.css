@@ -423,4 +423,26 @@
     #db_value_clean-query_field.field .inputs .messages {
         width: initial;
     }
+
+    /* Check and fix: subject grouping (pairs check/fix as one unit) */
+    .check-and-fix .task-group {
+        margin: 0 0 .6em;
+        padding: .3em .6em;
+        border-left: 3px solid #dfdfdf;
+    }
+    .check-and-fix .task-group > label {
+        display: block;
+        margin: .15em 0;
+    }
+    .check-and-fix .task-group:hover {
+        border-left-color: #6b6b6b;
+    }
+
+    /* Check and fix: option panel moved under the selected task */
+    .check-and-fix .task-group > fieldset,
+    .check-and-fix .task-group > .field {
+        margin: .4em 0 .6em 1.6em;
+        padding-left: .8em;
+        border-left: 2px solid #e3a21a;
+    }
 }

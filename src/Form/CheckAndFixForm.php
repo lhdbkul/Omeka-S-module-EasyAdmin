@@ -238,9 +238,7 @@ class CheckAndFixForm extends Form
                 'name' => 'process',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Tasks', // @translate
-                    // Fix the formatting issue of the label in Omeka.
-                    'label_attributes' => ['style' => 'display: inline-block'],
+                    'label' => '',
                     'value_options' => [
                         'files_excess_check' => 'List files that are present in "/files/", but not in database', // @translate
                         'files_excess_move' => 'Move files that are present in "/files/", but not in database, into "/files/check/"', // @translate
@@ -575,9 +573,7 @@ class CheckAndFixForm extends Form
                 'name' => 'process',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Tasks', // @translate
-                    // Fix the formatting issue of the label in Omeka.
-                    'label_attributes' => ['style' => 'display: inline-block'],
+                    'label' => '',
                     'value_options' => [
                         'files_media_no_original' => 'Check media rendered as "file", but without original', // @translate
                         'files_media_no_original_fix' => 'Remove media rendered as "file", but without original (WARNING: export your media first)', // @translate
@@ -668,9 +664,7 @@ class CheckAndFixForm extends Form
                 'name' => 'process',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Tasks', // @translate
-                    // Fix the formatting issue of the label in Omeka.
-                    'label_attributes' => ['style' => 'display: inline-block'],
+                    'label' => '',
                     'value_options' => $processOptions,
                 ],
                 'attributes' => [
@@ -882,9 +876,7 @@ class CheckAndFixForm extends Form
                 'name' => 'process',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Tasks', // @translate
-                    // Fix the formatting issue of the label in Omeka.
-                    'label_attributes' => ['style' => 'display: inline-block'],
+                    'label' => '',
                     'value_options' => [
                         'db_job_check' => 'Check dead jobs (living in database, but non-existent in system)', // @translate
                         'db_job_fix' => 'Set status "stopped" for jobs that never started, and "error" for the jobs that never ended', // @translate
@@ -1036,9 +1028,7 @@ class CheckAndFixForm extends Form
                 'name' => 'process',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Tasks', // @translate
-                    // Fix the formatting issue of the label in Omeka.
-                    'label_attributes' => ['style' => 'display: inline-block'],
+                    'label' => '',
                     'value_options' => [
                         'theme_templates_check' => 'Check templates to migrate in themes for Omeka S v4.1', // @translate
                         'theme_templates_fix' => 'Migrate templates in themes for Omeka S v4.1 (WARNING: backup themes first)', // @translate
@@ -1127,9 +1117,7 @@ class CheckAndFixForm extends Form
                 'name' => 'process',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Tasks', // @translate
-                    // Fix the formatting issue of the label in Omeka.
-                    'label_attributes' => ['style' => 'display: inline-block'],
+                    'label' => '',
                     'value_options' => [
                         'install_check' => 'Run installation checks (after a copy of the database on a new server)', // @translate
                         'cache_check' => 'Check caches', // @translate
@@ -1287,9 +1275,7 @@ class CheckAndFixForm extends Form
                 'name' => 'process',
                 'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Tasks', // @translate
-                    // Fix the formatting issue of the label in Omeka.
-                    'label_attributes' => ['style' => 'display: inline-block'],
+                    'label' => '',
                     'value_options' => [
                         'db_fulltext_index' => 'Omeka: Index full-text search', // @translate
                     ],
