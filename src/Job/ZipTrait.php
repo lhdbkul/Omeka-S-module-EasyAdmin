@@ -99,6 +99,7 @@ trait ZipTrait
 
             // Compression configuration is commented; deflate used by default.
             // ZipArchive::setCompressionIndex() may be used per-file if needed.
+            // Disabled because only Deflate is supported universally by unzippers.
             /*
             $compressions = [
                 -1 => ZipArchive::CM_DEFAULT,
@@ -113,7 +114,7 @@ trait ZipTrait
                 8 => ZipArchive::CM_BZIP2,
                 9 => ZipArchive::CM_LZMA,
             ];
-            $compressionName = $compressions[$compressioName] ?? ZipArchive::CM_DEFAULT;
+            $compressionName = $compressions[$compressionName] ?? ZipArchive::CM_DEFAULT;
              */
             $compressionName = ZipArchive::CM_DEFAULT;
 
