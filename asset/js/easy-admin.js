@@ -217,6 +217,7 @@ $(document).ready(function () {
         optionFieldsets().hide();
         $('.task-actions').hide();
         $entityField.hide();
+        $sidebar.removeClass('has-selection');
     };
 
     // Return to the default sidebar (help + dangerous-tasks toggle).
@@ -273,6 +274,7 @@ $(document).ready(function () {
 
         $help.prop('hidden', true);
         $recap.prop('hidden', false);
+        $sidebar.addClass('has-selection');
     };
 
     // Click a subject header: select it, preselecting its first action. The

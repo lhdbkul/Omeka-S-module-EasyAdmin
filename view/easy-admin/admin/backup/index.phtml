@@ -17,7 +17,7 @@ $escapeAttr = $plugins->get('escapeHtmlAttr');
 
 $this->headLink()->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
 $this->headScript()->appendFile($assetUrl('js/backup.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
-$this->htmlElement('body')->appendAttribute('class', 'easy-admin backup');
+$this->htmlElement('body')->appendAttribute('class', 'easy-admin backup browse');
 
 $formatSize = function ($bytes) {
     if ($bytes < 1024) return $bytes . ' B';
@@ -25,6 +25,9 @@ $formatSize = function ($bytes) {
     if ($bytes < 1073741824) return round($bytes / 1048576, 1) . ' MB';
     return round($bytes / 1073741824, 2) . ' GB';
 };
+
+$urlDatabase = $url(null, ['action' => 'backup-database'], true);
+$urlFiles = $url(null, ['action' => 'backup-files'], true);
 ?>
 
 <?= $this->pageTitle($translate('Backup'), 1, $translate('Easy Admin')) ?>
@@ -33,191 +36,180 @@ $formatSize = function ($bytes) {
     <?= $this->navigation('Laminas\Navigation\EasyAdmin')->menu() ?>
 </nav>
 
-<div id="page-actions">
-    <a href="#backup-database" class="button"><?= $translate('Backup database') ?></a>
-    <a href="#backup-files" class="button"><?= $translate('Backup files') ?></a>
-</div>
+<form method="post" id="backup-form" action="<?= $escapeAttr($urlDatabase) ?>">
+    <?= $this->formElement($formBackup->get('form_csrf')) ?>
 
-<?php // Database backup form ?>
-<div id="backup-database" class="block">
-    <h2><?= $translate('Database backup') ?></h2>
-    <p><?= $translate('Create a backup of the database (sql dump).') ?></p>
+    <div class="backup-tasks">
+        <div class="backup-task" data-task="database" data-action="<?= $escapeAttr($urlDatabase) ?>" data-submit="<?= $escapeAttr($translate('Start database backup')) ?>">
+            <button type="button" class="backup-task-head" aria-pressed="false">
+                <span class="backup-task-name"><?= $escape($translate('Database backup')) ?></span>
+                <span class="backup-task-desc"><?= $escape($translate('Create a backup of the database (sql dump).')) ?></span>
+            </button>
+            <div class="backup-task-config" data-task="database">
+                <fieldset>
+                    <legend><?= $translate('Content') ?></legend>
+                    <div class="inputs">
+                        <label>
+                            <input type="checkbox" name="include_structure" value="1" checked>
+                            <?= $translate('Structure of tables') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include_data" value="1" checked>
+                            <?= $translate('Data') ?>
+                        </label>
+                    </div>
+                </fieldset>
 
-    <form method="post" action="<?= $escapeAttr($url(null, ['action' => 'backup-database'], true)) ?>">
-        <?= $this->formElement($formBackup->get('form_csrf')) ?>
-        <fieldset>
-            <legend><?= $translate('Content') ?></legend>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include_structure" value="1" checked>
-                    <?= $translate('Structure of tables') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include_data" value="1" checked>
-                    <?= $translate('Data') ?>
-                </label>
-            </div>
-        </fieldset>
+                <fieldset>
+                    <legend><?= $translate('Include') ?></legend>
+                    <div class="inputs">
+                        <label>
+                            <input type="checkbox" name="include_views" value="1" checked>
+                            <?= $translate('Views') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include_routines" value="1" checked>
+                            <?= $translate('Routines (procedures and functions)') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include_triggers" value="1" checked>
+                            <?= $translate('Triggers') ?>
+                        </label>
+                    </div>
+                </fieldset>
 
-        <fieldset>
-            <legend><?= $translate('Include') ?></legend>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include_views" value="1" checked>
-                    <?= $translate('Views') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include_routines" value="1" checked>
-                    <?= $translate('Routines (procedures and functions)') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include_triggers" value="1" checked>
-                    <?= $translate('Triggers') ?>
-                </label>
-            </div>
-        </fieldset>
+                <fieldset>
+                    <legend><?= $translate('Skip data for tables (structure only)') ?></legend>
+                    <p class="explanation"><?= $translate('These tables can be very large. Only their structure will be exported, not data.') ?></p>
+                    <div class="inputs">
+                        <label>
+                            <input type="checkbox" name="skip_data_tables[]" value="session" checked>
+                            session
+                        </label>
+                        <label>
+                            <input type="checkbox" name="skip_data_tables[]" value="fulltext_search" checked>
+                            fulltext_search
+                        </label>
+                        <label>
+                            <input type="checkbox" name="skip_data_tables[]" value="job">
+                            job
+                        </label>
+                        <label>
+                            <input type="checkbox" name="skip_data_tables[]" value="hit">
+                            hit (module Analytics)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="skip_data_tables[]" value="log">
+                            log (module Log)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="skip_data_tables[]" value="triplestore_*" checked>
+                            triplestore_* <?= $translate('(all triplestore tables, module Sparql)') ?>
+                        </label>
+                    </div>
+                </fieldset>
 
-        <fieldset>
-            <legend><?= $translate('Skip data for tables (structure only)') ?></legend>
-            <p class="explanation"><?= $translate('These tables can be very large. Only their structure will be exported, not data.') ?></p>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="skip_data_tables[]" value="session" checked>
-                    session
-                </label>
+                <fieldset>
+                    <legend><?= $translate('Options') ?></legend>
+                    <div class="inputs">
+                        <label>
+                            <input type="checkbox" name="compress" value="1" checked>
+                            <?= $translate('Compress with gzip') ?>
+                        </label>
+                    </div>
+                </fieldset>
             </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="skip_data_tables[]" value="fulltext_search" checked>
-                    fulltext_search
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="skip_data_tables[]" value="job">
-                    job
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="skip_data_tables[]" value="log">
-                    log
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="skip_data_tables[]" value="triplestore_*" checked>
-                    triplestore_* <?= $translate('(all triplestore tables)') ?>
-                </label>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend><?= $translate('Options') ?></legend>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="compress" value="1" checked>
-                    <?= $translate('Compress with gzip') ?>
-                </label>
-            </div>
-        </fieldset>
-
-        <button type="submit" class="button"><?= $translate('Start database backup') ?></button>
-    </form>
-</div>
-
-<?php // Files backup form ?>
-<div id="backup-files" class="block">
-    <h2><?= $translate('Files backup') ?></h2>
-    <p><?= $translate('Create a backup of Omeka files (modules, themes, configuration). The /files directory is not included due to its potential size.') ?></p>
-
-    <form method="post" action="<?= $escapeAttr($url(null, ['action' => 'backup-files'], true)) ?>">
-        <?= $this->formElement($formBackup->get('form_csrf')) ?>
-        <fieldset>
-            <legend><?= $translate('Include in backup') ?></legend>
-
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="core" checked>
-                    <?= $translate('Omeka core') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="modules" checked>
-                    <?= $translate('Modules') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="themes" checked>
-                    <?= $translate('Themes') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="local_config" checked>
-                    <?= $translate('Local configuration (local.config.php)') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="database_ini" checked>
-                    <?= $translate('Database configuration (database.ini)') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="logs">
-                    <?= $translate('Logs') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="htaccess">
-                    <?= $translate('.htaccess') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="htpasswd">
-                    <?= $translate('.htpasswd') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="hidden">
-                    <?= $translate('Hidden files (dot files)') ?>
-                </label>
-            </div>
-            <div class="field">
-                <label>
-                    <input type="checkbox" name="include[]" value="zip">
-                    <?= $translate('Compressed files (with extension bzip, bz2, tar, gz, xz, zip)') ?>
-                </label>
-            </div>
-        </fieldset>
-
-        <div class="field">
-            <label for="compression"><?= $translate('Compression level') ?></label>
-            <select name="compression" id="compression">
-                <option value="0"><?= $translate('None (faster)') ?></option>
-                <option value="1">1</option>
-                <option value="3">3</option>
-                <option value="6" selected>6 (<?= $translate('default') ?>)</option>
-                <option value="9">9 (<?= $translate('maximum') ?>)</option>
-            </select>
         </div>
 
-        <button type="submit" class="button"><?= $translate('Start files backup') ?></button>
-    </form>
-</div>
+        <div class="backup-task" data-task="files" data-action="<?= $escapeAttr($urlFiles) ?>" data-submit="<?= $escapeAttr($translate('Start files backup')) ?>">
+            <button type="button" class="backup-task-head" aria-pressed="false">
+                <span class="backup-task-name"><?= $escape($translate('Files backup')) ?></span>
+                <span class="backup-task-desc"><?= $escape($translate('Backup of Omeka files (modules, themes, configuration). The /files directory is not included due to its potential size.')) ?></span>
+            </button>
+            <div class="backup-task-config" data-task="files">
+                <fieldset>
+                    <legend><?= $translate('Include in backup') ?></legend>
+                    <div class="inputs">
+                        <label>
+                            <input type="checkbox" name="include[]" value="core" checked>
+                            <?= $translate('Omeka core') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="modules" checked>
+                            <?= $translate('Modules') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="themes" checked>
+                            <?= $translate('Themes') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="local_config" checked>
+                            <?= $translate('Local configuration (local.config.php)') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="database_ini" checked>
+                            <?= $translate('Database configuration (database.ini)') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="logs">
+                            <?= $translate('Logs') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="htaccess">
+                            <?= $translate('.htaccess') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="htpasswd">
+                            <?= $translate('.htpasswd') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="hidden">
+                            <?= $translate('Hidden files (dot files)') ?>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="include[]" value="zip">
+                            <?= $translate('Compressed files (with extension bzip, bz2, tar, gz, xz, zip)') ?>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend><?= $translate('Compression level') ?></legend>
+                    <div class="inputs">
+                        <select name="compression" id="compression">
+                            <option value="0"><?= $translate('None (faster)') ?></option>
+                            <option value="1">1</option>
+                            <option value="3">3</option>
+                            <option value="6" selected>6 (<?= $translate('default') ?>)</option>
+                            <option value="9">9 (<?= $translate('maximum') ?>)</option>
+                        </select>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+    <aside class="sidebar always-open" id="backup-sidebar">
+        <div class="confirm-main">
+            <div class="task-help">
+                <h3><?= $escape($translate('How it works')) ?></h3>
+                <p><?= $escape($translate('Select a backup on the left, choose its options, then start it. The backup runs in the background and appears in the list below when ready.')) ?></p>
+                <?php if ($backupDir): ?>
+                <h4><?= $escape($translate('Backup folder')) ?></h4>
+                <pre class="backup-dir"><?= $escape($backupDir) ?></pre>
+                <?php endif; ?>
+            </div>
+            <div class="task-recap" hidden>
+                <h3 class="task-recap-name"></h3>
+                <p class="task-recap-desc"></p>
+                <div class="task-recap-options"></div>
+            </div>
+        </div>
+        <div class="confirm-panel">
+            <button type="submit" class="button backup-submit"><?= $escape($translate('Start backup')) ?></button>
+        </div>
+    </aside>
+</form>
 
 <?php // Existing backups list ?>
 <div id="backup-list" class="block">

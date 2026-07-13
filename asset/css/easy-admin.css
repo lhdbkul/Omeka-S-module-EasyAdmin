@@ -503,12 +503,15 @@
         margin: .15em 0;
     }
 
-    /* Check and fix: right sidebar recap (task config + options) */
+    /* Recap sidebar (task config + options), shared by check-and-fix and backup. */
     #cf-sidebar .task-help h3,
-    #cf-sidebar .task-recap-name {
+    #cf-sidebar .task-recap-name,
+    #backup-sidebar .task-help h3,
+    #backup-sidebar .task-recap-name {
         margin-top: 0;
     }
-    #cf-sidebar .task-recap-desc {
+    #cf-sidebar .task-recap-desc,
+    #backup-sidebar .task-recap-desc {
         color: #555;
     }
     #cf-sidebar .task-recap-actions {
@@ -518,7 +521,8 @@
         display: inline-block;
         margin: 0 1.2em .3em 0;
     }
-    #cf-sidebar .task-recap-options .field {
+    #cf-sidebar .task-recap-options .field,
+    #backup-sidebar .task-recap-options .field {
         display: block;
     }
     #cf-sidebar .task-recap-options .field-meta,
@@ -540,7 +544,8 @@
     /* Pinned submit, using the core confirm-main/confirm-panel pattern. These
        rules are a fallback for Omeka versions whose core css does not yet style
        them; on recent cores they merely match the core values. */
-    #cf-sidebar .confirm-main {
+    #cf-sidebar .confirm-main,
+    #backup-sidebar .confirm-main {
         position: absolute;
         top: 0;
         bottom: 60px;
@@ -549,7 +554,8 @@
         overflow-y: auto;
         padding: 12px 12px 0;
     }
-    #cf-sidebar .confirm-panel {
+    #cf-sidebar .confirm-panel,
+    #backup-sidebar .confirm-panel {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -559,9 +565,103 @@
         background-color: #f7f7f7;
         border-top: 1px solid #dfdfdf;
     }
-    #cf-sidebar .confirm-panel .button {
+    #cf-sidebar .confirm-panel .button,
+    #backup-sidebar .confirm-panel .button {
         display: block;
         width: 100%;
         margin: 0;
+    }
+
+    /* Backup: master-detail (task list + options sidebar), like check-and-fix. */
+    .backup .backup-tasks {
+        margin: 0 0 1em;
+    }
+    .backup .backup-task {
+        margin: 0 0 .3em;
+        border-left: 3px solid #dfdfdf;
+    }
+    .backup .backup-task.selected {
+        border-left-color: #2f6f9f;
+    }
+    .backup .backup-task.selected > .backup-task-head {
+        background-color: rgba(47, 111, 159, .08);
+    }
+    .backup .backup-task-head {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding: .5em .6em;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        font: inherit;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+    .backup .backup-task-head:hover {
+        background-color: rgba(0, 0, 0, .04);
+    }
+    .backup .backup-task-head:focus-visible {
+        outline: 2px solid #2f6f9f;
+        outline-offset: -2px;
+    }
+    .backup .backup-task-name {
+        font-weight: bold;
+    }
+    .backup .backup-task-desc {
+        display: block;
+        color: #666;
+        font-size: .92em;
+    }
+    .backup .backup-task > .backup-task-config {
+        display: none;
+    }
+    #backup-sidebar .task-recap-options > .backup-task-config {
+        display: block;
+    }
+    /* Backup-specific option content: plain fieldsets (not core form rendering). */
+    #backup-sidebar .task-help h4 {
+        margin: 1em 0 .3em;
+    }
+    #backup-sidebar .backup-dir {
+        white-space: pre-wrap;
+        word-break: break-all;
+        padding: .5em;
+        background: #f0f0f0;
+        font-size: .85em;
+    }
+    #backup-sidebar fieldset {
+        margin: 0 0 1em;
+        padding: 0;
+        border: 0;
+    }
+    /* Keep the core ".sidebar legend" styling (full-width divider) so section
+       headers look like the check-and-fix ones; only the top margin is reset. */
+    #backup-sidebar legend {
+        margin-top: 0;
+    }
+    #backup-sidebar .task-recap-options .inputs label {
+        display: block;
+        margin: .3em 0;
+    }
+    #backup-sidebar .task-recap-options .inputs select {
+        margin-top: .2em;
+    }
+    #backup-sidebar .explanation {
+        margin: .2em 0 .5em;
+        color: #666;
+        font-size: .9em;
+    }
+
+    /* The pinned submit is only useful once a task is selected: hide it (and let
+       the scroll area take the full height) while the default help is shown. */
+    #cf-sidebar:not(.has-selection) .confirm-panel,
+    #backup-sidebar:not(.has-selection) .confirm-panel {
+        display: none;
+    }
+    #cf-sidebar:not(.has-selection) .confirm-main,
+    #backup-sidebar:not(.has-selection) .confirm-main {
+        bottom: 0;
     }
 }
