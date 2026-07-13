@@ -43,6 +43,35 @@ $(document).ready(function () {
 
     var $entityField = $('#files_checkfix-entity_types_field');
 
+    // A single checkbox is rendered with its label in ".field-meta" and a bare
+    // box in ".inputs", which reads as unlabeled once stacked in the sidebar.
+    // Move the label next to the box (with the description) when the box has no
+    // inline label of its own. Multi-checkboxes already label each option.
+    var labelBareCheckboxes = function () {
+        // Match any field holding a single bare checkbox (the ".checkbox" class
+        // on the row is not always present), not multi-checkboxes.
+        optionFieldsets().find('.field').each(function () {
+            var $field = $(this);
+            var $inputs = $field.find('> .inputs');
+            var $box = $inputs.children('input[type="checkbox"]');
+            if ($box.length !== 1 || $inputs.find('label').length) {
+                return;
+            }
+            var $meta = $field.find('> .field-meta');
+            var label = $meta.find('> label').text().trim();
+            if (!label) {
+                return;
+            }
+            // Wrap the box in a label with the text after it, mirroring how
+            // multi-checkboxes render inline (a bare sibling label would
+            // stack).
+            $box.wrap('<label></label>').after(document.createTextNode(' ' + label));
+            $meta.find('> label').remove();
+            $meta.children().appendTo($inputs);
+            $meta.remove();
+        });
+    };
+
     /**
      * Build subject blocks (known tasks) and legacy groups (others), per
      * section, so tasks added by modules still appear.
@@ -236,6 +265,7 @@ $(document).ready(function () {
     /* Init */
 
     buildSubjects();
+    labelBareCheckboxes();
     optionFieldsets().hide();
     $('.check-and-fix .task-actions').hide();
     addFilter();
