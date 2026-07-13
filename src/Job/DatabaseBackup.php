@@ -156,9 +156,10 @@ class DatabaseBackup extends AbstractJob
 
         $filename = basename($filepath);
         $size = filesize($filepath);
-        $store = $this->getServiceLocator()->get('Omeka\File\Store');
-        $storagePath = 'backup/' . $filename;
-        $fileUrl = $store->getUri($storagePath);
+        // Link to the authenticated download action: the backup directory is
+        // protected by a .htaccess that denies direct web access.
+        $url = $this->getServiceLocator()->get('ViewHelperManager')->get('url');
+        $fileUrl = $url('admin/easy-admin/backup', ['action' => 'download'], ['query' => ['file' => $filename]]);
 
         $this->logger->notice(
             'Database backup completed: {link} (size: {size}).', // @translate

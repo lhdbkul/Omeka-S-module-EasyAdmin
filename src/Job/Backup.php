@@ -86,13 +86,10 @@ class Backup extends AbstractCheck
 
         $backupDir = $this->basePath . '/backup';
         if (mb_strpos($filepath, $backupDir . '/') === 0) {
-            // The path between store and filename is the prefix.
-            $dir = pathinfo($filepath, PATHINFO_DIRNAME);
-            $filename = pathinfo($filepath, PATHINFO_FILENAME);
-            $extension = pathinfo($filepath, PATHINFO_EXTENSION);
-            $storagePath = sprintf('%s/%s.%s', mb_substr($dir, mb_strlen($this->basePath) + 1), $filename, $extension);
-            $store = $services->get('Omeka\File\Store');
-            $fileUrl = $store->getUri($storagePath);
+            // Link to the authenticated download action: the backup directory
+            // is protected by a .htaccess that denies direct web access.
+            $url = $services->get('ViewHelperManager')->get('url');
+            $fileUrl = $url('admin/easy-admin/backup', ['action' => 'download'], ['query' => ['file' => basename($filepath)]]);
             $this->logger->notice(
                 'The backup is available at {link} (size: {size} bytes).', // @translate
                 [
