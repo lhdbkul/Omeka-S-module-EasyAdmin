@@ -110,12 +110,15 @@ $urlFiles = $url(null, ['action' => 'backup-files'], true);
                 </fieldset>
 
                 <fieldset>
-                    <legend><?= $translate('Options') ?></legend>
+                    <legend><?= $translate('Compression level') ?></legend>
                     <div class="inputs">
-                        <label>
-                            <input type="checkbox" name="compress" value="1" checked>
-                            <?= $translate('Compress with gzip') ?>
-                        </label>
+                        <select name="compress" id="db-compression">
+                            <option value="0"><?= $translate('None (faster)') ?></option>
+                            <option value="1">1</option>
+                            <option value="3">3</option>
+                            <option value="6" selected>6 (<?= $translate('default') ?>)</option>
+                            <option value="9">9 (<?= $translate('maximum') ?>)</option>
+                        </select>
                     </div>
                 </fieldset>
             </div>

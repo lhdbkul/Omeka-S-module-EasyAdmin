@@ -171,6 +171,15 @@ class DatabaseBackup extends AbstractJob
     }
 
     /**
+     * The gzip compression level flag (" -1" to " -9"), empty for the default.
+     */
+    protected function gzipLevelFlag(): string
+    {
+        $level = (int) $this->getArg('compression_level', 6);
+        return ($level >= 1 && $level <= 9) ? ' -' . $level : '';
+    }
+
+    /**
      * Backup using mysqldump command with shell streaming for performance.
      *
      * Uses shell pipes (mysqldump | gzip > file) for efficient streaming
@@ -243,7 +252,7 @@ class DatabaseBackup extends AbstractJob
         if ($compress) {
             $gzip = $this->cli->getCommandPath('gzip');
             if ($gzip) {
-                $cmd .= ' | ' . escapeshellcmd($gzip) . ' -c';
+                $cmd .= ' | ' . escapeshellcmd($gzip) . ' -c' . $this->gzipLevelFlag();
             } else {
                 $this->logger->warn('gzip not available, backup will not be compressed.'); // @translate
                 $filepath = str_replace('.sql.gz', '.sql', $filepath);
@@ -341,7 +350,7 @@ class DatabaseBackup extends AbstractJob
             if ($compress) {
                 $gzip = $this->cli->getCommandPath('gzip');
                 if ($gzip) {
-                    $cmd = escapeshellcmd($gzip) . ' -c ' . escapeshellarg($tempFile)
+                    $cmd = escapeshellcmd($gzip) . ' -c' . $this->gzipLevelFlag() . ' ' . escapeshellarg($tempFile)
                         . ' > ' . escapeshellarg($filepath);
                     $result = $this->cli->execute($cmd);
                     @unlink($tempFile);

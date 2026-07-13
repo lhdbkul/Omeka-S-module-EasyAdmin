@@ -58,8 +58,9 @@ class BackupController extends AbstractActionController
             return $this->redirect()->toRoute(null, ['action' => 'index'], true);
         }
 
-        // Get backup options.
-        $compress = (bool) $this->params()->fromPost('compress', true);
+        // Get backup options. "compress" is now a gzip level (0 = none).
+        $compressLevel = (int) $this->params()->fromPost('compress', 6);
+        $compress = $compressLevel > 0;
         $includeStructure = (bool) $this->params()->fromPost('include_structure', true);
         $includeData = (bool) $this->params()->fromPost('include_data', true);
         $includeViews = (bool) $this->params()->fromPost('include_views', true);
@@ -81,6 +82,7 @@ class BackupController extends AbstractActionController
         $dispatcher = $this->jobDispatcher();
         $job = $dispatcher->dispatch(DatabaseBackup::class, [
             'compress' => $compress,
+            'compression_level' => $compressLevel,
             'include_structure' => $includeStructure,
             'include_data' => $includeData,
             'include_views' => $includeViews,
