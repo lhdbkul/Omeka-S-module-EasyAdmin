@@ -24,12 +24,6 @@ class ThemeController extends AbstractActionController
         /** @var \EasyAdmin\Mvc\Controller\Plugin\Addons $addons */
         $addons = $this->easyAdminAddons();
 
-        $catalogueAddons = $addons->getAddons();
-        $addons->enrichWithLocalState($catalogueAddons);
-
-        $omekaThemes = $catalogueAddons['omekatheme'] ?? [];
-        $webThemes = $catalogueAddons['theme'] ?? [];
-
         // Scan both local and composer-addons theme directories.
         $localThemes = [];
         foreach ($this->getThemesDirs() as $themesDir) {
@@ -70,6 +64,31 @@ class ThemeController extends AbstractActionController
             return $this->handlePost($addons);
         }
 
+        // The catalogue requires several sequential external http requests
+        // (omeka.org and github), so on the first load (empty cache) it is
+        // fetched asynchronously: the page is rendered immediately without it,
+        // then a background request (catalogue=1) re-renders the content. When
+        // already cached, or on that async request, it is served synchronously.
+        $isCatalogueRequest = $request->isXmlHttpRequest()
+            && $this->params()->fromQuery('catalogue') === '1';
+        $cataloguePending = false;
+        if ($isCatalogueRequest || $addons->isCached()) {
+            $catalogueAddons = $addons->getAddons();
+            $addons->enrichWithLocalState($catalogueAddons);
+        } else {
+            $catalogueAddons = [];
+            $cataloguePending = true;
+        }
+        $omekaThemes = $catalogueAddons['omekatheme'] ?? [];
+        $webThemes = $catalogueAddons['theme'] ?? [];
+
+        // Url of the background request that fetches and renders the catalogue.
+        $catalogueUrl = $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'theme', 'action' => 'index'],
+            ['query' => ['catalogue' => '1'] + $this->params()->fromQuery()]
+        );
+
         $manageForm = $this->getForm(
             \EasyAdmin\Form\AddonManageForm::class
         );
@@ -98,6 +117,14 @@ class ThemeController extends AbstractActionController
         );
         $installCatalogueForm->setAttribute('method', 'post');
 
+        // Build the refresh form (CSRF only).
+        $refreshForm = $this->getForm(ModuleStateForm::class);
+        $refreshForm->setAttribute('action', $this->url()->fromRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'theme', 'action' => 'refresh-catalogue']
+        ));
+        $refreshForm->setAttribute('method', 'post');
+
         // Get sites grouped by theme for usage indicator.
         $connection = $this->getEvent()->getApplication()
             ->getServiceManager()->get('Omeka\Connection');
@@ -118,9 +145,39 @@ class ThemeController extends AbstractActionController
             'manageForm' => $manageForm,
             'stateForm' => $stateForm,
             'installCatalogueForm' => $installCatalogueForm,
+            'refreshForm' => $refreshForm,
+            'cataloguePending' => $cataloguePending,
+            'catalogueUrl' => $catalogueUrl,
         ]);
         $view->setTemplate('easy-admin/admin/theme/browse');
+
+        // The async catalogue request returns only the content, swapped into
+        // the page by javascript, so render without the admin layout.
+        if ($isCatalogueRequest) {
+            $view->setTerminal(true);
+        }
+
         return $view;
+    }
+
+    public function refreshCatalogueAction()
+    {
+        if (!$this->getRequest()->isPost()) {
+            return $this->redirect()->toRoute(
+                'admin/easy-admin/default',
+                ['controller' => 'theme']
+            );
+        }
+
+        // Just clear the cache and reload: the catalogue is fetched again
+        // asynchronously on the next page render, so the button returns
+        // immediately instead of blocking on external http requests.
+        $this->easyAdminAddons()->clearCache();
+
+        return $this->redirect()->toRoute(
+            'admin/easy-admin/default',
+            ['controller' => 'theme']
+        );
     }
 
     public function installAction()

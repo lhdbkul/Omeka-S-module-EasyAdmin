@@ -9,7 +9,13 @@
  * @var \EasyAdmin\Form\AddonManageForm $manageForm
  * @var callable $stateForm
  * @var \EasyAdmin\Form\ModuleStateForm $installCatalogueForm
+ * @var \EasyAdmin\Form\ModuleStateForm $refreshForm
+ * @var bool $cataloguePending
+ * @var string $catalogueUrl
  */
+
+$cataloguePending = $cataloguePending ?? false;
+$catalogueUrl = $catalogueUrl ?? '';
 
 $plugins = $this->getHelperPluginManager();
 $url = $plugins->get('url');
@@ -35,7 +41,11 @@ $catalogueThemes = array_merge($omekaThemes, $webThemes);
     <?= $this->navigation('Laminas\Navigation\EasyAdmin')->menu() ?>
 </nav>
 
-<?php if (!$catalogueThemes): ?>
+<?php if ($cataloguePending): ?>
+<div class="messages info" id="catalogue-loading">
+    <p><?= $escape($translate('Loading the theme catalogue from omeka.org and github… Update detection and installation from catalogue will appear shortly. If it does not, refresh the catalogue.')) ?></p>
+</div>
+<?php elseif (!$catalogueThemes): ?>
 <div class="messages warning">
     <p><?= $escape($translate('The theme catalogue could not be loaded. Update detection is unavailable. Check the server internet access or refresh the catalogue.')) ?></p>
 </div>
@@ -48,6 +58,14 @@ $catalogueThemes = array_merge($omekaThemes, $webThemes);
 <?php endif ?>
 
 <div id="page-actions">
+    <?php $refreshForm->prepare(); echo $this->form()->openTag($refreshForm->setAttribute('class', 'refresh-form')); ?>
+    <button type="submit" class="button"<?= $cataloguePending ? ' disabled="disabled"' : '' ?>>
+        <?php if ($cataloguePending): ?>
+        <span class="fas fa-sync fa-spin" aria-hidden="true" style="margin-right: .4em;"></span>
+        <?php endif ?>
+        <?= $escape($translate('Refresh catalogue')) ?>
+    </button>
+    <?= $this->form()->closeTag($refreshForm) ?>
     <button type="button" class="button sidebar-content" data-sidebar-selector="#sidebar-install"><?= $escape($translate('Install new theme')) ?></button>
 </div>
 
@@ -277,3 +295,45 @@ uasort($catalogueList, function ($a, $b) {
         <?= $this->form()->closeTag($installCatalogueForm) ?>
     </div>
 </div>
+
+<?php if ($cataloguePending): ?>
+<script>
+// First load with an empty cache: fetch and render the catalogue in the
+// background, then swap the page content so the slow external http requests do
+// not block the initial render.
+(function () {
+    var url = <?= json_encode($catalogueUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+    fetch(url, {
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        credentials: 'same-origin'
+    })
+        .then(function (response) {
+            return response.ok ? response.text() : Promise.reject(response.status);
+        })
+        .then(function (html) {
+            var content = document.getElementById('content');
+            if (!content) {
+                return;
+            }
+            content.innerHTML = html;
+            // innerHTML does not execute scripts: re-inject them so any
+            // behaviour bound inline is rebound.
+            content.querySelectorAll('script').forEach(function (old) {
+                var script = document.createElement('script');
+                if (old.src) {
+                    script.src = old.src;
+                } else {
+                    script.textContent = old.textContent;
+                }
+                old.parentNode.replaceChild(script, old);
+            });
+        })
+        .catch(function () {
+            var loading = document.getElementById('catalogue-loading');
+            if (loading) {
+                loading.className = 'messages warning';
+            }
+        });
+})();
+</script>
+<?php endif ?>
