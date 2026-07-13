@@ -672,13 +672,15 @@ class CheckAndFixForm extends Form
             ->get('db_loop_save')
             ->add([
                 'name' => 'resource_types',
-                'type' => CommonElement\OptionalMultiCheckbox::class,
+                'type' => Element\Radio::class,
                 'options' => [
-                    'label' => 'Types of resources to process', // @translate
+                    'label' => 'Type of resources to process', // @translate
                     'value_options' => $resourceTypeOptions,
                 ],
                 'attributes' => [
                     'id' => 'db_loop_save-resource_types',
+                    'value' => 'items',
+                    'required' => false,
                 ],
             ])
             ->add([
@@ -686,8 +688,8 @@ class CheckAndFixForm extends Form
                 'type' => OmekaElement\Query::class,
                 'options' => [
                     'label' => 'Query to limit resources to process', // @translate
-                    'info' => 'It is not recommended to use the query when multiple resource types are selected.', // @translate
-                    'query_resource_type' => null,
+                    'info' => 'The query is scoped to the selected resource type. With "All", it is applied identically to every type and unsupported filters are ignored.', // @translate
+                    'query_resource_type' => 'items',
                 ],
                 'attributes' => [
                     'id' => 'db_loop_save-query',

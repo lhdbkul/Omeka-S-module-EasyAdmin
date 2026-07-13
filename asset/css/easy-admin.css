@@ -418,4 +418,8 @@
         flex-direction: column;
         align-items: flex-start;
     }
+
+    #db_loop_save-query_field.field .inputs .messages {
+        width: initial;
+    }
 }

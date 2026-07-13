@@ -8,6 +8,8 @@ $plugins = $this->getHelperPluginManager();
 $assetUrl = $plugins->get('assetUrl');
 $translate = $plugins->get('translate');
 
+$form->setAttribute('data-db-loop-warning', $translate('A query combined with “All” resource types is applied identically to every type; filters unsupported by a type are ignored.'));
+
 $form->prepare();
 
 $this->htmlElement('body')->appendAttribute('class', 'easy-admin check-and-fix browse');
@@ -16,6 +18,7 @@ $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
 $this->headScript()
     ->appendFile($assetUrl('js/easy-admin.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer'])
+    ->appendFile($assetUrl('js/check-and-fix.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer'])
 ;
 ?>
 

@@ -59,8 +59,15 @@ class DbLoopResources extends AbstractJob
             'annotations',
             'digital_objects',
         ];
+        // Accept a single type (form radio), an array of types (programmatic
+        // dispatch), or "all" to expand to every supported type.
         $resourceTypes = $this->getArg('resource_types') ?: [];
-        $resourceTypes = array_intersect($allowedResourceTypes, $resourceTypes);
+        if (!is_array($resourceTypes)) {
+            $resourceTypes = [$resourceTypes];
+        }
+        $resourceTypes = in_array('all', $resourceTypes, true)
+            ? $allowedResourceTypes
+            : array_values(array_intersect($allowedResourceTypes, $resourceTypes));
         if (!count($resourceTypes)) {
             $this->logger->warn(
                 'No resource types defined.' // @translate
