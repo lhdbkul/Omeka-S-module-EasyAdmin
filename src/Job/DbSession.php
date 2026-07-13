@@ -9,6 +9,27 @@ class DbSession extends AbstractCheck
      */
     protected $table = 'session';
 
+    /**
+     * Number of seconds for a session-age param value (clean value, without the
+     * legacy "session_" prefix). Shared by every cron executor.
+     */
+    public static function secondsForAge(string $age): ?int
+    {
+        $map = [
+            '1h' => 3600,
+            '2h' => 7200,
+            '4h' => 14400,
+            '12h' => 43200,
+            '1d' => 86400,
+            '2d' => 172800,
+            '8d' => 691200,
+            '30d' => 2592000,
+        ];
+        // Tolerate a still-prefixed legacy value ("session_8d").
+        $age = strncmp($age, 'session_', 8) === 0 ? substr($age, 8) : $age;
+        return $map[$age] ?? null;
+    }
+
     public function perform(): void
     {
         parent::perform();

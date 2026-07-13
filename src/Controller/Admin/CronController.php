@@ -150,24 +150,18 @@ class CronController extends AbstractActionController
      */
     protected function executeSessionCleanupLegacy(array $enabledTasks): void
     {
-        $sessionSecondsMap = [
-            'session_1h' => 3600,
-            'session_2h' => 7200,
-            'session_4h' => 14400,
-            'session_12h' => 43200,
-            'session_1d' => 86400,
-            'session_2d' => 172800,
-            'session_8d' => 691200,
-            'session_30d' => 2592000,
-        ];
-
         $services = $this->getServiceLocator();
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = $services->get('Omeka\Connection');
         $time = time();
 
         foreach ($enabledTasks as $taskId => $taskSettings) {
-            $seconds = $sessionSecondsMap[$taskId] ?? null;
+            if ($taskId !== 'session' && strncmp($taskId, 'session_', 8) !== 0) {
+                continue;
+            }
+            $params = $taskSettings['params'] ?? [];
+            $age = $params['age'] ?? (strncmp($taskId, 'session_', 8) === 0 ? substr($taskId, 8) : '');
+            $seconds = \EasyAdmin\Job\DbSession::secondsForAge((string) $age);
             if ($seconds === null) {
                 continue;
             }

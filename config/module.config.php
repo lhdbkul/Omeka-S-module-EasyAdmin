@@ -358,17 +358,22 @@ return [
             'task_type' => 'builtin',
             'frequencies' => ['hourly', 'daily', 'weekly'],
             'default_frequency' => 'daily',
-            'options' => [
-                'session_1h' => 'older than 1 hour', // @translate
-                'session_2h' => 'older than 2 hours', // @translate
-                'session_4h' => 'older than 4 hours', // @translate
-                'session_12h' => 'older than 12 hours', // @translate
-                'session_1d' => 'older than 1 day', // @translate
-                'session_2d' => 'older than 2 days', // @translate
-                'session_8d' => 'older than 8 days', // @translate
-                'session_30d' => 'older than 30 days', // @translate
+            'params' => [
+                'age' => [
+                    'label' => 'Session age', // @translate
+                    'options' => [
+                        '1h' => 'older than 1 hour', // @translate
+                        '2h' => 'older than 2 hours', // @translate
+                        '4h' => 'older than 4 hours', // @translate
+                        '12h' => 'older than 12 hours', // @translate
+                        '1d' => 'older than 1 day', // @translate
+                        '2d' => 'older than 2 days', // @translate
+                        '8d' => 'older than 8 days', // @translate
+                        '30d' => 'older than 30 days', // @translate
+                    ],
+                    'default' => '8d',
+                ],
             ],
-            'default_option' => 'session_8d',
         ],
         'backup_database' => [
             'label' => 'Backup database', // @translate
@@ -376,11 +381,16 @@ return [
             'task_type' => 'job',
             'frequencies' => ['daily', 'weekly', 'monthly'],
             'default_frequency' => 'weekly',
-            'options' => [
-                'backup_db_compressed' => 'Compressed (gzip)', // @translate
-                'backup_db_plain' => 'Plain SQL', // @translate
+            'params' => [
+                'format' => [
+                    'label' => 'Format', // @translate
+                    'options' => [
+                        'compressed' => 'Compressed (gzip)', // @translate
+                        'plain' => 'Plain SQL', // @translate
+                    ],
+                    'default' => 'compressed',
+                ],
             ],
-            'default_option' => 'backup_db_compressed',
         ],
         'backup_files' => [
             'label' => 'Backup files (modules, themes, config)', // @translate
@@ -388,11 +398,16 @@ return [
             'task_type' => 'job',
             'frequencies' => ['weekly', 'monthly'],
             'default_frequency' => 'weekly',
-            'options' => [
-                'backup_files_full' => 'Full backup (core, modules, themes, config)', // @translate
-                'backup_files_config' => 'Configuration only', // @translate
+            'params' => [
+                'scope' => [
+                    'label' => 'Scope', // @translate
+                    'options' => [
+                        'full' => 'Full backup (core, modules, themes, config)', // @translate
+                        'config' => 'Configuration only', // @translate
+                    ],
+                    'default' => 'full',
+                ],
             ],
-            'default_option' => 'backup_files_full',
         ],
     ],
 ];

@@ -118,17 +118,22 @@ class CronForm extends Form
                 'task_type' => 'builtin',
                 'frequencies' => ['hourly', 'daily'],
                 'default_frequency' => 'daily',
-                'options' => [
-                    'session_1h' => 'older than 1 hour', // @translate
-                    'session_2h' => 'older than 2 hours', // @translate
-                    'session_4h' => 'older than 4 hours', // @translate
-                    'session_12h' => 'older than 12 hours', // @translate
-                    'session_1d' => 'older than 1 day', // @translate
-                    'session_2d' => 'older than 2 days', // @translate
-                    'session_8d' => 'older than 8 days', // @translate
-                    'session_30d' => 'older than 30 days', // @translate
+                'params' => [
+                    'age' => [
+                        'label' => 'Session age', // @translate
+                        'options' => [
+                            '1h' => 'older than 1 hour', // @translate
+                            '2h' => 'older than 2 hours', // @translate
+                            '4h' => 'older than 4 hours', // @translate
+                            '12h' => 'older than 12 hours', // @translate
+                            '1d' => 'older than 1 day', // @translate
+                            '2d' => 'older than 2 days', // @translate
+                            '8d' => 'older than 8 days', // @translate
+                            '30d' => 'older than 30 days', // @translate
+                        ],
+                        'default' => '8d',
+                    ],
                 ],
-                'default_option' => 'session_8d',
             ],
         ];
 
@@ -146,22 +151,30 @@ class CronForm extends Form
     {
         $options = [];
 
-        // TODO Translate labels and option label.
+        // One entry per real task; sub-options (params) are not exposed in the
+        // basic fallback form, only in the Cron module ui. The default params
+        // are applied on save.
         foreach ($this->registeredTasks as $taskId => $task) {
             $module = $task['module'] ?? 'Unknown';
             $label = $task['label'] ?? $taskId;
-
-            // For tasks with sub-options (like session cleanup).
-            if (!empty($task['options'])) {
-                foreach ($task['options'] as $optionId => $optionLabel) {
-                    $options[$optionId] = sprintf('[%s] %s (%s)', $module, $label, $optionLabel);
-                }
-            } else {
-                $options[$taskId] = sprintf('[%s] %s', $module, $label);
-            }
+            $options[$taskId] = sprintf('[%s] %s', $module, $label);
         }
 
         return $options;
+    }
+
+    /**
+     * Default value of each param of a task (clean values).
+     */
+    protected function defaultParams(array $task): array
+    {
+        $params = [];
+        foreach ($task['params'] ?? [] as $key => $definition) {
+            if (isset($definition['default'])) {
+                $params[$key] = $definition['default'];
+            }
+        }
+        return $params;
     }
 
     /**
@@ -186,25 +199,18 @@ class CronForm extends Form
 
         $enabledTasks = $data['cron_tasks'] ?? [];
         foreach ($this->registeredTasks as $taskId => $task) {
-            // Handle tasks with sub-options.
-            if (!empty($task['options'])) {
-                foreach ($task['options'] as $optionId => $optionLabel) {
-                    if (in_array($optionId, $enabledTasks)) {
-                        $settings['tasks'][$optionId] = [
-                            'enabled' => true,
-                            'frequency' => $data['cron_frequency'] ?? $task['default_frequency'] ?? 'daily',
-                            'parent_task' => $taskId,
-                        ];
-                    }
-                }
-            } else {
-                if (in_array($taskId, $enabledTasks)) {
-                    $settings['tasks'][$taskId] = [
-                        'enabled' => true,
-                        'frequency' => $data['cron_frequency'] ?? $task['default_frequency'] ?? 'daily',
-                    ];
-                }
+            if (!in_array($taskId, $enabledTasks, true)) {
+                continue;
             }
+            $entry = [
+                'enabled' => true,
+                'frequency' => $data['cron_frequency'] ?? $task['default_frequency'] ?? 'daily',
+            ];
+            $params = $this->defaultParams($task);
+            if ($params) {
+                $entry['params'] = $params;
+            }
+            $settings['tasks'][$taskId] = $entry;
         }
 
         return $settings;

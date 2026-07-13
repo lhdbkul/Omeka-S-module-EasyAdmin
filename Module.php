@@ -499,29 +499,31 @@ class Module extends AbstractModule
         $taskSettings = $event->getParam('task_settings') ?: [];
 
         // New contract: real task id ("session", "backup_database",
-        // "backup_files") + an "option" in the task settings. Legacy contract:
-        // the flattened option id as the task id (kept for compatibility until
-        // settings are migrated). The sub-methods key on the option id.
-        $realIds = ['session', 'backup_database', 'backup_files'];
-        $option = $taskSettings['option'] ?? (in_array($taskId, $realIds, true) ? null : $taskId);
+        // "backup_files") + a "params" map of clean values. Legacy contract:
+        // the flattened id as the task id, whose suffix is the clean value
+        // (e.g. "session_8d" -> "8d"), kept until settings are migrated.
+        $params = $taskSettings['params'] ?? [];
 
         // Handle session cleanup tasks.
-        if ($taskId === 'session' || strpos($taskId, 'session_') === 0) {
-            $this->executeSessionCleanup((string) $option);
+        if ($taskId === 'session' || strncmp($taskId, 'session_', 8) === 0) {
+            $age = $params['age'] ?? (strncmp($taskId, 'session_', 8) === 0 ? substr($taskId, 8) : '');
+            $this->executeSessionCleanup((string) $age);
             $event->setParam('handled', true);
             return;
         }
 
         // Handle database backup tasks.
-        if ($taskId === 'backup_database' || strpos($taskId, 'backup_db_') === 0) {
-            $this->executeBackupDatabase((string) $option);
+        if ($taskId === 'backup_database' || strncmp($taskId, 'backup_db_', 10) === 0) {
+            $format = $params['format'] ?? (strncmp($taskId, 'backup_db_', 10) === 0 ? substr($taskId, 10) : '');
+            $this->executeBackupDatabase((string) $format);
             $event->setParam('handled', true);
             return;
         }
 
         // Handle files backup tasks.
-        if ($taskId === 'backup_files' || strpos($taskId, 'backup_files_') === 0) {
-            $this->executeBackupFiles((string) $option);
+        if ($taskId === 'backup_files' || strncmp($taskId, 'backup_files_', 13) === 0) {
+            $scope = $params['scope'] ?? (strncmp($taskId, 'backup_files_', 13) === 0 ? substr($taskId, 13) : '');
+            $this->executeBackupFiles((string) $scope);
             $event->setParam('handled', true);
             return;
         }
@@ -530,20 +532,9 @@ class Module extends AbstractModule
     /**
      * Execute session cleanup.
      */
-    protected function executeSessionCleanup(string $taskId): void
+    protected function executeSessionCleanup(string $age): void
     {
-        $sessionSecondsMap = [
-            'session_1h' => 3600,
-            'session_2h' => 7200,
-            'session_4h' => 14400,
-            'session_12h' => 43200,
-            'session_1d' => 86400,
-            'session_2d' => 172800,
-            'session_8d' => 691200,
-            'session_30d' => 2592000,
-        ];
-
-        $seconds = $sessionSecondsMap[$taskId] ?? null;
+        $seconds = \EasyAdmin\Job\DbSession::secondsForAge($age);
         if ($seconds === null) {
             return;
         }
@@ -579,12 +570,12 @@ class Module extends AbstractModule
     /**
      * Execute database backup via Cron.
      */
-    protected function executeBackupDatabase(string $taskId): void
+    protected function executeBackupDatabase(string $format): void
     {
         $services = $this->getServiceLocator();
         $dispatcher = $services->get(\Omeka\Job\Dispatcher::class);
 
-        $compress = ($taskId === 'backup_db_compressed');
+        $compress = ($format !== 'plain');
 
         $dispatcher->dispatch(\EasyAdmin\Job\DatabaseBackup::class, [
             'compress' => $compress,
@@ -594,12 +585,12 @@ class Module extends AbstractModule
     /**
      * Execute files backup via Cron.
      */
-    protected function executeBackupFiles(string $taskId): void
+    protected function executeBackupFiles(string $scope): void
     {
         $services = $this->getServiceLocator();
         $dispatcher = $services->get(\Omeka\Job\Dispatcher::class);
 
-        if ($taskId === 'backup_files_full') {
+        if ($scope === 'full') {
             $include = ['core', 'modules', 'themes', 'local_config', 'database_ini', 'htaccess'];
         } else {
             // Config only.

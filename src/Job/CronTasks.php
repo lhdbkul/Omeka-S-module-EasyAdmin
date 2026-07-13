@@ -33,30 +33,6 @@ class CronTasks extends AbstractJob
      */
     protected $dispatcher;
 
-    /**
-     * Map of task option to seconds for session cleanup.
-     *
-     * @var array
-     */
-    protected $sessionSecondsMap = [
-        'session_1h' => 3600,
-        'session_2h' => 7200,
-        'session_4h' => 14400,
-        'session_12h' => 43200,
-        'session_1d' => 86400,
-        'session_2d' => 172800,
-        'session_8d' => 691200,
-        'session_30d' => 2592000,
-        // Deprecated keys for backward compatibility.
-        'session_40d' => 3456000,
-        'session_100d' => 8640000,
-        'session_1' => 86400,
-        'session_2' => 172800,
-        'session_8' => 691200,
-        'session_40' => 3456000,
-        'session_100' => 8640000,
-    ];
-
     public function perform(): void
     {
         $services = $this->getServiceLocator();
@@ -120,9 +96,12 @@ class CronTasks extends AbstractJob
             ['task' => $taskId]
         );
 
-        // Built-in session cleanup tasks.
-        if (isset($this->sessionSecondsMap[$taskId])) {
-            $this->executeSessionCleanup($taskId);
+        // Built-in session cleanup task (real id + "age" param, or legacy
+        // flattened id whose suffix is the clean value).
+        if ($taskId === 'session' || strncmp($taskId, 'session_', 8) === 0) {
+            $params = $taskSettings['params'] ?? [];
+            $age = $params['age'] ?? (strncmp($taskId, 'session_', 8) === 0 ? substr($taskId, 8) : '');
+            $this->executeSessionCleanup((string) $age);
             return;
         }
 
@@ -152,9 +131,9 @@ class CronTasks extends AbstractJob
     /**
      * Execute session cleanup task.
      */
-    protected function executeSessionCleanup(string $taskId): void
+    protected function executeSessionCleanup(string $age): void
     {
-        $seconds = $this->sessionSecondsMap[$taskId] ?? null;
+        $seconds = \EasyAdmin\Job\DbSession::secondsForAge($age);
         if ($seconds === null) {
             return;
         }
