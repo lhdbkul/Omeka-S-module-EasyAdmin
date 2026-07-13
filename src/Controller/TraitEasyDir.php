@@ -103,29 +103,91 @@ trait TraitEasyDir
     /**
      * Ensure the .htaccess file exists in the userdata base directory.
      *
-     * Denies direct HTTP access to user directories. PHP filesystem access
-     * is not affected, so sideload imports still work.
+     * Denies direct HTTP access to user directories. PHP filesystem access is
+     * not affected, so sideload imports still work.
      */
     protected function ensureUserDataHtaccess(): void
     {
-        $userDataBase = $this->getUserDataBasePath();
-        if (!is_dir($userDataBase)) {
-            @mkdir($userDataBase, 0775, true);
+        $this->ensureDenyHtaccess($this->getUserDataBasePath());
+    }
+
+    /**
+     * Ensure a "deny all" .htaccess exists in a private base directory.
+     *
+     * Private directories (backup, userdata) hold sensitive files that must
+     * only be downloaded through an authenticated controller action. PHP
+     * filesystem access is not affected, so backups and sideload imports still
+     * work.
+     */
+    protected function ensureDenyHtaccess(string $dirBasePath): void
+    {
+        if (!is_dir($dirBasePath)) {
+            @mkdir($dirBasePath, 0775, true);
         }
-        $htaccessPath = $userDataBase . '/.htaccess';
+        $htaccessPath = rtrim($dirBasePath, '/') . '/.htaccess';
         if (!file_exists($htaccessPath)) {
-            $content = <<<'HTACCESS'
-                # Deny direct access to user directories.
-                <IfModule mod_authz_core.c>
-                    Require all denied
-                </IfModule>
-                <IfModule !mod_authz_core.c>
-                    Order deny,allow
-                    Deny from all
-                </IfModule>
-                HTACCESS;
-            @file_put_contents($htaccessPath, $content);
+            @file_put_contents($htaccessPath, $this->denyHtaccessContent());
         }
+    }
+
+    /**
+     * The .htaccess content denying direct web access to private files.
+     */
+    protected function denyHtaccessContent(): string
+    {
+        return <<<'HTACCESS'
+            # Deny direct access to private files.
+            # They contain sensitive data (database credentials, API keys, user
+            # passwords, private uploads) and must only be downloaded through the
+            # authenticated admin controller.
+            <IfModule mod_authz_core.c>
+                Require all denied
+            </IfModule>
+            <IfModule !mod_authz_core.c>
+                Order deny,allow
+                Deny from all
+            </IfModule>
+            HTACCESS;
+    }
+
+    /**
+     * Stream a file from a private directory as an authenticated download.
+     *
+     * Confines the file to the allowed base directory (defense against path
+     * traversal), sets the content type from the extension and streams it with
+     * the SendFile plugin (supports http range requests for resumable
+     * downloads). Access control (who may download) is the caller's
+     * responsibility.
+     *
+     * @return \Laminas\Stdlib\ResponseInterface|null Null when the file is
+     * outside the allowed directory or cannot be sent.
+     */
+    protected function sendPrivateFile(string $filepath, string $allowedBaseDir)
+    {
+        $safeFilename = basename($filepath);
+        $realBaseDir = realpath($allowedBaseDir);
+        $realFilepath = realpath($filepath);
+        if ($realBaseDir === false || $realFilepath === false
+            || strpos($realFilepath, $realBaseDir . DIRECTORY_SEPARATOR) !== 0
+        ) {
+            return null;
+        }
+
+        $contentTypes = [
+            'sql' => 'application/sql',
+            'gz' => 'application/gzip',
+            'zip' => 'application/zip',
+            'tar' => 'application/x-tar',
+            'bz2' => 'application/x-bzip2',
+        ];
+        $extension = strtolower(pathinfo($safeFilename, PATHINFO_EXTENSION));
+
+        return $this->sendFile($filepath, [
+            'content_type' => $contentTypes[$extension] ?? null,
+            'filename' => $safeFilename,
+            'disposition_mode' => 'attachment',
+            'cache' => false,
+        ]) ?: null;
     }
 
     protected function checkFile(?string $filepath, ?string &$errorMessage = null): bool

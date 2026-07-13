@@ -2,6 +2,7 @@
 
 namespace EasyAdmin\Controller\Admin;
 
+use EasyAdmin\Controller\TraitEasyDir;
 use EasyAdmin\Job\Backup as BackupJob;
 use EasyAdmin\Job\DatabaseBackup;
 use Laminas\Form\Form;
@@ -11,6 +12,8 @@ use Omeka\Form\ConfirmForm;
 
 class BackupController extends AbstractActionController
 {
+    use TraitEasyDir;
+
     /**
      * @var string
      */
@@ -72,6 +75,9 @@ class BackupController extends AbstractActionController
             return $this->redirect()->toRoute(null, ['action' => 'index'], true);
         }
 
+        // Protect the backup directory before any file is written.
+        $this->ensureDenyHtaccess($this->basePath . '/backup');
+
         $dispatcher = $this->jobDispatcher();
         $job = $dispatcher->dispatch(DatabaseBackup::class, [
             'compress' => $compress,
@@ -123,6 +129,9 @@ class BackupController extends AbstractActionController
         }
 
         $compression = (int) $this->params()->fromPost('compression', 6);
+
+        // Protect the backup directory before any file is written.
+        $this->ensureDenyHtaccess($this->basePath . '/backup');
 
         $dispatcher = $this->jobDispatcher();
         $job = $dispatcher->dispatch(BackupJob::class, [
@@ -242,41 +251,11 @@ class BackupController extends AbstractActionController
             return $this->redirect()->toRoute(null, ['action' => 'index'], true);
         }
 
-        // Security: use basename to prevent directory traversal.
-        $safeFilename = basename($filename);
-        $backupDir = $this->basePath . '/backup';
-        $filepath = $backupDir . '/' . $safeFilename;
-
-        // Verify the file is actually in the backup directory (paranoid check).
-        $realBackupDir = realpath($backupDir);
-        $realFilepath = realpath($filepath);
-        if ($realBackupDir === false || $realFilepath === false
-            || strpos($realFilepath, $realBackupDir . DIRECTORY_SEPARATOR) !== 0
-        ) {
-            $this->messenger()->addError('Invalid file path.'); // @translate
-            return $this->redirect()->toRoute(null, ['action' => 'index'], true);
-        }
-
-        // Determine content type based on extension.
-        $extension = strtolower(pathinfo($safeFilename, PATHINFO_EXTENSION));
-        $contentTypes = [
-            'sql' => 'application/sql',
-            'gz' => 'application/gzip',
-            'zip' => 'application/zip',
-            'tar' => 'application/x-tar',
-            'bz2' => 'application/x-bzip2',
-        ];
-
-        // Use SendFile plugin for streaming large files.
-        $response = $this->sendFile($filepath, [
-            'content_type' => $contentTypes[$extension] ?? null,
-            'filename' => $safeFilename,
-            'disposition_mode' => 'attachment',
-            'cache' => false,
-        ]);
-
+        // Stream the file, confined to the backup directory.
+        $filepath = $this->basePath . '/backup/' . basename($filename);
+        $response = $this->sendPrivateFile($filepath, $this->basePath . '/backup');
         if (!$response) {
-            $this->messenger()->addError('File not found.'); // @translate
+            $this->messenger()->addError('Invalid file path.'); // @translate
             return $this->redirect()->toRoute(null, ['action' => 'index'], true);
         }
 

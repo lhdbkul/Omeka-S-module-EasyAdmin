@@ -212,29 +212,11 @@ class FileManagerController extends AbstractActionController
             }
         }
 
-        // Security: use basename to prevent directory traversal.
-        $safeFilename = basename($filename);
-        $filepath = rtrim($dirPath, '/') . '/' . $safeFilename;
-
-        // Verify the file is actually in a userdata directory (paranoid check).
-        $realUserDataBase = realpath($this->getUserDataBasePath());
-        $realFilepath = realpath($filepath);
-        if ($realUserDataBase === false || $realFilepath === false
-            || strpos($realFilepath, $realUserDataBase . DIRECTORY_SEPARATOR) !== 0
-        ) {
-            $this->messenger()->addError('Invalid file path.'); // @translate
-            return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
-        }
-
-        // Use SendFile plugin for streaming.
-        $response = $this->sendFile($filepath, [
-            'filename' => $safeFilename,
-            'disposition_mode' => 'attachment',
-            'cache' => false,
-        ]);
-
+        // Stream the file, confined to the userdata directory.
+        $filepath = rtrim($dirPath, '/') . '/' . basename($filename);
+        $response = $this->sendPrivateFile($filepath, $this->getUserDataBasePath());
         if (!$response) {
-            $this->messenger()->addError('File not found.'); // @translate
+            $this->messenger()->addError('Invalid file path.'); // @translate
             return $this->redirect()->toRoute('admin/easy-admin/file-manager', ['action' => 'browse']);
         }
 
