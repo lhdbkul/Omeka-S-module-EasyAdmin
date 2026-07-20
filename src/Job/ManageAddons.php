@@ -110,15 +110,20 @@ class ManageAddons extends AbstractJob
         $messenger,
         array $options
     ): void {
-        // Update the dependencies before the modules that require them.
-        $addonList = $addons->sortByDependencies($this->getArg('addons', []));
+        $type = $this->getArg('type', 'module');
+        $addonList = $this->getArg('addons', []);
+        // Update the dependencies before the modules that require them. Only
+        // modules have dependencies.
+        if ($type === 'module') {
+            $addonList = $addons->sortByDependencies($addonList);
+        }
         $autoUpgrade = !empty($options['auto_upgrade']);
 
         $errors = [];
         $updated = [];
         foreach ($addonList as $addonName) {
-            $addon = $addons->dataFromNamespace($addonName)
-                ?: $addons->dataFromNamespace($addonName, 'module');
+            $addon = $addons->dataFromNamespace($addonName, $type)
+                ?: $addons->dataFromNamespace($addonName);
             if (!$addon) {
                 $this->logger->warn(
                     'Unknown addon for update: {name}.', // @translate
@@ -182,17 +187,22 @@ class ManageAddons extends AbstractJob
 
     protected function performRemove($addons, $messenger): void
     {
+        $type = $this->getArg('type', 'module');
+        $addonList = $this->getArg('addons', []);
         // Remove the modules that require a dependency before the dependency.
-        $addonList = $addons->sortByDependencies($this->getArg('addons', []), true);
+        // Only modules have dependencies.
+        if ($type === 'module') {
+            $addonList = $addons->sortByDependencies($addonList, true);
+        }
 
         $errors = [];
         $removed = [];
         foreach ($addonList as $addonName) {
-            $addon = $addons->dataFromNamespace($addonName)
-                ?: $addons->dataFromNamespace($addonName, 'module');
+            $addon = $addons->dataFromNamespace($addonName, $type)
+                ?: $addons->dataFromNamespace($addonName);
             if (!$addon) {
                 $addon = [
-                    'type' => 'module',
+                    'type' => $type,
                     'name' => $addonName,
                     'dir' => $addonName,
                     'basename' => $addonName,

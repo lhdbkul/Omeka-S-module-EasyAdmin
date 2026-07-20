@@ -828,6 +828,7 @@ class ModuleController extends AbstractActionController
                 $dispatcher = $this->jobDispatcher();
                 $args = [
                     'operation' => $action,
+                    'type' => 'module',
                     'addons' => $selected,
                     'options' => [
                         'auto_upgrade' => !empty(

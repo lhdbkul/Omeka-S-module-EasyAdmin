@@ -611,6 +611,42 @@ class ThemeController extends AbstractActionController
         $selected = $post['themes'] ?? [];
 
         if ($action && $selected) {
+            // For large selections, dispatch as job.
+            if (count($selected) > 3
+                && in_array($action, ['update', 'remove'])
+            ) {
+                $job = $this->jobDispatcher()->dispatch(
+                    \EasyAdmin\Job\ManageAddons::class,
+                    [
+                        'operation' => $action,
+                        'type' => 'theme',
+                        'addons' => $selected,
+                        'options' => [],
+                    ]
+                );
+                $urlPlugin = $this->url();
+                $message = new PsrMessage(
+                    'Processing {action} in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+                    [
+                        'action' => $action,
+                        'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                        'job_id' => $job->getId(),
+                        'link_end' => '</a>',
+                        'link_log' => class_exists('Log\Module', false)
+                            ? sprintf('<a href="%1$s">', htmlspecialchars($urlPlugin->fromRoute('admin/default', ['controller' => 'log'], ['query' => ['job_id' => $job->getId()]])))
+                            : sprintf('<a href="%1$s" target="_blank" rel="noopener noreferrer">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()]))),
+                    ]
+                );
+                $message->setEscapeHtml(false);
+                $this->messenger()->addSuccess($message);
+                return $this->redirect()->toRoute(
+                    'admin/easy-admin/default',
+                    ['controller' => 'theme']
+                );
+            }
+
+            $done = [];
+            $errors = [];
             foreach ($selected as $themeId) {
                 switch ($action) {
                     case 'update':
@@ -618,8 +654,10 @@ class ThemeController extends AbstractActionController
                             $themeId,
                             'theme'
                         ) ?: $addons->dataFromNamespace($themeId);
-                        if ($addon) {
-                            $addons->updateAddon($addon);
+                        if ($addon && $addons->updateAddon($addon)) {
+                            $done[] = $themeId;
+                        } else {
+                            $errors[] = $themeId;
                         }
                         break;
 
@@ -640,9 +678,30 @@ class ThemeController extends AbstractActionController
                                 'dependencies' => [],
                             ];
                         }
-                        $addons->removeAddon($addon);
+                        if ($addons->removeAddon($addon)) {
+                            $done[] = $themeId;
+                        } else {
+                            $errors[] = $themeId;
+                        }
                         break;
                 }
+            }
+
+            if ($done) {
+                $this->messenger()->addSuccess(new PsrMessage(
+                    $action === 'remove'
+                        ? 'Removed themes: {themes}.' // @translate
+                        : 'Updated themes: {themes}.', // @translate
+                    ['themes' => implode(', ', $done)]
+                ));
+            }
+            if ($errors) {
+                $this->messenger()->addError(new PsrMessage(
+                    $action === 'remove'
+                        ? 'Failed to remove themes: {themes}.' // @translate
+                        : 'Failed to update themes: {themes}.', // @translate
+                    ['themes' => implode(', ', $errors)]
+                ));
             }
         }
 
