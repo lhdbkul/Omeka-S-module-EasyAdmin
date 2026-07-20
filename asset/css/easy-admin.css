@@ -185,8 +185,7 @@
         border-radius: 4px;
     }
 
-    /* Chosen v2: button.search-choice-close compatibility with Omeka's style.css.
-     * Omeka's style.css targets "abbr" but the fork uses <button> for accessibility. */
+    /* Chosen v2: compatibility with Omeka that uses <abbr> instead of standard <button> */
     .chosen-container-single .chosen-single button.search-choice-close {
         top: 12px;
     }
@@ -230,6 +229,15 @@
     .col-version.version-mismatch {
         background-color: #fff4c2;
         white-space: normal;
+    }
+
+    /* Addon browse: installed files ahead of database, upgrade pending */
+    .col-version.needs-upgrade {
+        background-color: #fff4c2;
+    }
+    .col-version .pending-upgrade {
+        color: #8a6d00;
+        font-weight: bold;
     }
     .col-version .version-rollback {
         display: block;

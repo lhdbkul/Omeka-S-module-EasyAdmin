@@ -230,6 +230,14 @@ echo $this->form()->openTag($manageForm);
             && $dbVersion
             && version_compare($dbVersion, $version, '>');
 
+        // A module awaiting its upgrade: the installed files are ahead of the
+        // database. Display both versions, since the version alone would show
+        // the target and hide the one actually in use.
+        $needsUpgrade = $state === Manager::STATE_NEEDS_UPGRADE
+            && $version
+            && $dbVersion
+            && version_compare($dbVersion, $version, '<');
+
         $catalogueVersion = null;
         $catalogueVersionCompatible = null;
         $hasVersionConstraints = false;
@@ -402,8 +410,13 @@ echo $this->form()->openTag($manageForm);
                     ]) ?></li>
                 </ul>
             </td>
-            <td class="col-version<?= $hasUpdate ? ' has-update' : '' ?><?= $versionMismatch ? ' version-mismatch' : '' ?>">
+            <td class="col-version<?= $hasUpdate ? ' has-update' : '' ?><?= $versionMismatch ? ' version-mismatch' : '' ?><?= $needsUpgrade ? ' needs-upgrade' : '' ?>">
+                <?php if ($needsUpgrade): ?>
+                <span class="current-version"><?= $escape($dbVersion) ?></span>
+                <span class="pending-upgrade" title="<?= $escapeAttr(sprintf($translate('The database is on version %1$s and the files are on version %2$s: an upgrade is pending.'), $dbVersion, $version)) ?>"> → <?= $escape($version) ?></span>
+                <?php else: ?>
                 <span class="current-version"><?= $escape($version) ?></span>&nbsp;
+                <?php endif ?>
                 <?php if ($versionMismatch): ?>
                 <span class="error version-rollback" title="<?= $escapeAttr(sprintf(
                     $translate('The database is on version %1$s but the installed files are on version %2$s. The module files were probably rolled back without rolling back the database. Re-install a version that matches the database, or upgrade the files again.'),
