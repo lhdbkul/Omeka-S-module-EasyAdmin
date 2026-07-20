@@ -581,6 +581,8 @@ class Addons extends AbstractPlugin
             return false;
         }
 
+        $this->warnIfMissingDependencies($addonDir, $addon);
+
         // Generate checksums for the new version.
         $this->generateChecksums($addon);
 
@@ -734,6 +736,61 @@ class Addons extends AbstractPlugin
     /**
      * Generate SHA-256 checksums for an addon and store as JSON.
      */
+
+    /**
+     * Warn when the installed addon misses its php dependencies.
+     *
+     * The zip fetched from a git archive has no dependencies. It is the
+     * fallback when the catalogue has no download_url.
+     *
+     * @param string $addonDir The final directory of the addon.
+     */
+    protected function warnIfMissingDependencies(string $addonDir, array $addon): void
+    {
+        $composerFile = $addonDir . '/composer.json';
+        if (!file_exists($composerFile) || !is_readable($composerFile)) {
+            return;
+        }
+
+        $data = json_decode((string) file_get_contents($composerFile), true);
+        $require = is_array($data) ? ($data['require'] ?? []) : [];
+
+        // Skip composer plugins.
+        $buildPlugins = [
+            'sempia/external-assets',
+            'sempia/common-symlink',
+            'sempia/display-warnings',
+            'cweagans/composer-patches',
+            'slowprog/composer-copy-file',
+        ];
+
+        // Keep only the real php libraries.
+        $libraries = [];
+        foreach ($require as $package => $constraint) {
+            $package = (string) $package;
+            if ($package === 'php'
+                || strpos($package, 'ext-') === 0
+                || strpos($package, 'lib-') === 0
+                || in_array($package, $buildPlugins, true)
+            ) {
+                continue;
+            }
+            $libraries[] = $package;
+        }
+
+        if (!$libraries || file_exists($addonDir . '/vendor/autoload.php')) {
+            return;
+        }
+
+        $this->messenger->addWarning(new PsrMessage(
+            'The addon "{name}" was installed from a source archive without its dependencies ({libraries}), so it may not work. Install a release zip that bundles the directory "vendor/", or run "composer install --no-dev" in the addon directory on the server.', // @translate
+            [
+                'name' => $addon['name'],
+                'libraries' => implode(', ', $libraries),
+            ]
+        ));
+    }
+
     public function generateChecksums(array $addon): bool
     {
         $type = $addon['type'] ?? '';
@@ -1444,6 +1501,11 @@ class Addons extends AbstractPlugin
         $this->messenger->addNotice(new PsrMessage(
             'It is always recommended to read the original readme or help of the addon.' // @translate
         ));
+
+        $this->warnIfMissingDependencies(
+            $destination . '/' . $addon['dir'],
+            $addon
+        );
 
         // Generate checksums for integrity checking.
         $this->generateChecksums($addon);
