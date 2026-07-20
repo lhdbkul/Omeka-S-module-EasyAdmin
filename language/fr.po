@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 00:00+0000\n"
-"PO-Revision-Date: 2026-07-13 00:00+0000\n"
+"POT-Creation-Date: 2026-07-20 00:00+0000\n"
+"PO-Revision-Date: 2026-07-20 00:00+0000\n"
 "Last-Translator: Daniel Berthereau <Daniel.fr@Berthereau.net>\n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Generated-By: Babel 2.18.0\n"
 "X-Generator: Poedit 3.6\n"
 
-#: data/scripts/upgrade.php:42 Module.php:210
+#: data/scripts/upgrade.php:42 Module.php:215
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr "Le module %1$s doit être mis à niveau à la version %2$s ou supérieure."
@@ -36,15 +36,15 @@ msgstr ""
 "Ce module ne peut pas installer ses tables car elles existent déjà. Essayez "
 "de les supprimer manuellement."
 
-#: Module.php:349
+#: Module.php:354
 msgid "WARNING:"
 msgstr "ATTENTION :"
 
-#: Module.php:361
+#: Module.php:366
 msgid "Remove directory \"files/check\""
 msgstr "Supprimer le dossier \"files/check\""
 
-#: Module.php:1221
+#: Module.php:1226
 msgid "[not in site]"
 msgstr "[aucun site]"
 
@@ -272,9 +272,9 @@ msgstr "Sauvegarde"
 #: view/easy-admin/admin/check-and-fix/index.phtml:44
 #: view/easy-admin/admin/cron/index.phtml:28
 #: view/easy-admin/admin/file-manager/browse.phtml:58
-#: view/easy-admin/admin/module/browse.phtml:113
+#: view/easy-admin/admin/module/browse.phtml:115
 #: view/easy-admin/admin/module/integrity-report.phtml:19
-#: view/easy-admin/admin/theme/browse.phtml:38
+#: view/easy-admin/admin/theme/browse.phtml:40
 #: view/easy-admin/admin/theme/integrity-report.phtml:19
 msgid "Easy Admin"
 msgstr "Easy Admin"
@@ -653,20 +653,20 @@ msgstr "Dossier : %s"
 msgid "File: %s"
 msgstr "Fichier : %s"
 
-#: view/easy-admin/admin/module/browse.phtml:113
+#: view/easy-admin/admin/module/browse.phtml:115
 msgid "Manage modules"
 msgstr "Gestion des modules"
 
-#: view/easy-admin/admin/module/browse.phtml:121
-#: view/easy-admin/admin/module/browse.phtml:144
-#: view/easy-admin/admin/theme/browse.phtml:46
-#: view/easy-admin/admin/theme/browse.phtml:69
+#: view/easy-admin/admin/module/browse.phtml:123
+#: view/easy-admin/admin/module/browse.phtml:146
+#: view/easy-admin/admin/theme/browse.phtml:48
+#: view/easy-admin/admin/theme/browse.phtml:71
 msgid "The catalogue could not be loaded (connection problem). Click to retry."
 msgstr ""
 "Le catalogue n'a pas pu être chargé (problème de connexion). Cliquez ici "
 "pour réessayer."
 
-#: view/easy-admin/admin/module/browse.phtml:122
+#: view/easy-admin/admin/module/browse.phtml:124
 msgid ""
 "Loading the module catalogue from omeka.org and github… Update detection and "
 "installation from catalogue will appear shortly. If it does not, refresh the "
@@ -676,7 +676,7 @@ msgstr ""
 "jour vont apparaître dans quelques instants. Si ce n’est pas le cas, "
 "rafraîchir le catalogue."
 
-#: view/easy-admin/admin/module/browse.phtml:126
+#: view/easy-admin/admin/module/browse.phtml:128
 msgid ""
 "The module catalogue could not be loaded. Update detection is unavailable. "
 "Check the server internet access or refresh the catalogue."
@@ -685,7 +685,7 @@ msgstr ""
 "jour n'est pas disponible. Vérifiez la connexion Internet du serveur ou "
 "actualisez le catalogue."
 
-#: view/easy-admin/admin/module/browse.phtml:132
+#: view/easy-admin/admin/module/browse.phtml:134
 #, php-format
 msgid ""
 "The directory \"%s\" is not writeable. Module installation, update and "
@@ -694,71 +694,89 @@ msgstr ""
 "Le répertoire « %s » n'est pas accessible en écriture. L'installation, la "
 "mise à jour et la suppression de modules sont désactivées."
 
-#: view/easy-admin/admin/module/browse.phtml:150
-#: view/easy-admin/admin/theme/browse.phtml:75
+#: view/easy-admin/admin/module/browse.phtml:152
+#: view/easy-admin/admin/theme/browse.phtml:77
 msgid "Refresh catalogue"
 msgstr "Rafraîchir le catalogue"
 
-#: view/easy-admin/admin/module/browse.phtml:153
+#: view/easy-admin/admin/module/browse.phtml:155
 msgid "Install new module"
 msgstr "Installer un nouveau module"
 
-#: view/easy-admin/admin/module/browse.phtml:164
+#: view/easy-admin/admin/module/browse.phtml:161
+msgid "Filter modules…"
+msgstr "Filtrer les modules…"
+
+#: view/easy-admin/admin/module/browse.phtml:172
 msgid "Update available"
 msgstr "Mise à jour disponible"
 
-#: view/easy-admin/admin/module/browse.phtml:186
+#: view/easy-admin/admin/module/browse.phtml:177
+msgid "Filter by state"
+msgstr "Filtrer par état"
+
+#: view/easy-admin/admin/module/browse.phtml:200
 msgid "Activate selected"
 msgstr "Activer la sélection"
 
-#: view/easy-admin/admin/module/browse.phtml:187
+#: view/easy-admin/admin/module/browse.phtml:201
 msgid "Deactivate selected"
 msgstr "Désactiver la sélection"
 
-#: view/easy-admin/admin/module/browse.phtml:188
-#: view/easy-admin/admin/theme/browse.phtml:98
-msgid "Update selected"
-msgstr "Mise à jour sélectionnée"
+#: view/easy-admin/admin/module/browse.phtml:202
+msgid "Download the new version of selected"
+msgstr "Télécharger la nouvelle version de la sélection"
 
-#: view/easy-admin/admin/module/browse.phtml:189
-#: view/easy-admin/admin/theme/browse.phtml:99
+#: view/easy-admin/admin/module/browse.phtml:203
+msgid "Upgrade selected"
+msgstr "Mettre à jour la sélection"
+
+#: view/easy-admin/admin/module/browse.phtml:204
+#: view/easy-admin/admin/theme/browse.phtml:108
 msgid "Remove selected"
 msgstr "Supprimer la sélection"
 
-#: view/easy-admin/admin/module/browse.phtml:205
+#: view/easy-admin/admin/module/browse.phtml:221
 #: view/easy-admin/admin/module/integrity-report.phtml:35
 msgid "Module"
 msgstr "Module"
 
-#: view/easy-admin/admin/module/browse.phtml:207
-#: view/easy-admin/admin/theme/browse.phtml:115
+#: view/easy-admin/admin/module/browse.phtml:223
+#: view/easy-admin/admin/theme/browse.phtml:124
 msgid "Version"
 msgstr "Version"
 
-#: view/easy-admin/admin/module/browse.phtml:208
+#: view/easy-admin/admin/module/browse.phtml:224
 #: view/easy-admin/admin/module/show-details.phtml:32
 msgid "State"
 msgstr "État"
 
-#: view/easy-admin/admin/module/browse.phtml:287
-#: view/easy-admin/admin/theme/browse.phtml:148
+#: view/easy-admin/admin/module/browse.phtml:307
+#: view/easy-admin/admin/theme/browse.phtml:157
 #, php-format
 msgid "Select %s"
 msgstr "Choisir %s"
 
-#: view/easy-admin/admin/module/browse.phtml:368
-#: view/easy-admin/admin/module/browse.phtml:369
-#: view/easy-admin/admin/theme/browse.phtml:184
-#: view/easy-admin/admin/theme/browse.phtml:185
-msgid "Update files"
-msgstr "Mettre à jour les fichiers"
+#: view/easy-admin/admin/module/browse.phtml:401
+#: view/easy-admin/admin/module/browse.phtml:402
+msgid "Download the new version"
+msgstr "Télécharger la nouvelle version"
 
-#: view/easy-admin/admin/module/browse.phtml:393
-#: view/easy-admin/admin/theme/browse.phtml:199
+#: view/easy-admin/admin/module/browse.phtml:426
+#: view/easy-admin/admin/theme/browse.phtml:208
 msgid "Managed by Composer"
 msgstr "Géré par Composer"
 
-#: view/easy-admin/admin/module/browse.phtml:409
+#: view/easy-admin/admin/module/browse.phtml:441
+#, php-format
+msgid ""
+"The database is on version %1$s and the files are on version %2$s: an "
+"upgrade is pending."
+msgstr ""
+"La version dans la base est %1$s et les fichiers sont en version %2$s : une "
+"mise à jour est en cours."
+
+#: view/easy-admin/admin/module/browse.phtml:447
 #, php-format
 msgid ""
 "The database is on version %1$s but the installed files are on version %2$s. "
@@ -772,68 +790,92 @@ msgstr ""
 "Réinstallez une version compatible avec la base de données ou mettez à jour "
 "les fichiers à nouveau."
 
-#: view/easy-admin/admin/module/browse.phtml:412
+#: view/easy-admin/admin/module/browse.phtml:450
 #, php-format
 msgid "⚠ DB: %s"
 msgstr "⚠ Base de données : %s"
 
-#: view/easy-admin/admin/module/browse.phtml:416
+#: view/easy-admin/admin/module/browse.phtml:454
 #, php-format
 msgid "Latest version compatible with Omeka S %s"
 msgstr "Dernière version compatible avec Omeka S %s"
 
-#: view/easy-admin/admin/module/browse.phtml:419
+#: view/easy-admin/admin/module/browse.phtml:457
 msgid "Latest version, not compatible with this Omeka S"
 msgstr "Dernière version, non compatible avec cette version d'Omeka S"
 
-#: view/easy-admin/admin/module/browse.phtml:419
+#: view/easy-admin/admin/module/browse.phtml:457
 #, php-format
 msgid "latest: %s"
 msgstr "dernier : %s"
 
-#: view/easy-admin/admin/module/browse.phtml:422
+#: view/easy-admin/admin/module/browse.phtml:460
 msgid "No compatible version available"
 msgstr "Aucune version compatible n'est disponible"
 
-#: view/easy-admin/admin/module/browse.phtml:422
+#: view/easy-admin/admin/module/browse.phtml:460
 msgid "(incompatible)"
 msgstr "(incompatible)"
 
-#: view/easy-admin/admin/module/browse.phtml:425
+#: view/easy-admin/admin/module/browse.phtml:463
 msgid "Compatibility unknown (github/gitlab list)"
 msgstr "Compatibilité inconnue (liste GitHub/GitLab)"
 
-#: view/easy-admin/admin/module/browse.phtml:431
+#: view/easy-admin/admin/module/browse.phtml:469
 msgid "Error: invalid Module.php"
 msgstr "Erreur : Module.php non valide"
 
-#: view/easy-admin/admin/module/browse.phtml:433
+#: view/easy-admin/admin/module/browse.phtml:471
 msgid "Error: invalid module.ini"
 msgstr "Erreur : module.ini non valide"
 
-#: view/easy-admin/admin/module/browse.phtml:435
-#: view/easy-admin/admin/theme/browse.phtml:217
+#: view/easy-admin/admin/module/browse.phtml:473
+#: view/easy-admin/admin/theme/browse.phtml:226
 #, php-format
 msgid "Requires Omeka S %s"
 msgstr "Requiert Omeka S %s"
 
-#: view/easy-admin/admin/module/browse.phtml:437
+#: view/easy-admin/admin/module/browse.phtml:475
 msgid "Not in filesystem"
 msgstr "Absent du serveur"
 
-#: view/easy-admin/admin/module/browse.phtml:458
+#: view/easy-admin/admin/module/browse.phtml:496
 msgid "No modules found."
 msgstr "Aucun module trouvé."
 
-#: view/easy-admin/admin/module/browse.phtml:485
+#: view/easy-admin/admin/module/browse.phtml:527
+msgid "Remove modules"
+msgstr "Supprimer les modules"
+
+#: view/easy-admin/admin/module/browse.phtml:528
+msgid "Are you sure you would like to remove the selected modules?"
+msgstr "Êtes-vous sûr de vouloir supprimer les modules sélectionnés ?"
+
+#: view/easy-admin/admin/module/browse.phtml:530
+#, php-format
+msgid ""
+"%1$s: this action will uninstall the modules from the database, so their "
+"data will be lost, and delete all their files. A backup of the files will be "
+"created."
+msgstr ""
+"%1$s : cette action désinstallera le module de la base : les données seront "
+"perdues et les fichiers seront supprimées. Une sauvegarde des fichiers sera "
+"créée."
+
+#: view/easy-admin/admin/module/browse.phtml:533
+#: view/easy-admin/admin/theme/browse.phtml:289
+msgid "Confirm remove"
+msgstr "Confirmer la suppression"
+
+#: view/easy-admin/admin/module/browse.phtml:545
 msgid "Install new module from catalogue"
 msgstr "Installer un nouveau module à partir du catalogue"
 
-#: view/easy-admin/admin/module/browse.phtml:487
+#: view/easy-admin/admin/module/browse.phtml:547
 msgid "Select the modules to install or use a curated selection."
 msgstr "Choisir les modules à installer ou utiliser une sélection prédéfinie."
 
-#: view/easy-admin/admin/module/browse.phtml:488
+#: view/easy-admin/admin/module/browse.phtml:548
 #, php-format
 msgid ""
 "For more information, see pages of known %1$smodules%2$s or "
@@ -842,16 +884,16 @@ msgstr ""
 "Pour plus d’informations, consultez les pages %1$smodules%2$s connus ou "
 "%3$sOmeka.org%2$s."
 
-#: view/easy-admin/admin/module/browse.phtml:494
+#: view/easy-admin/admin/module/browse.phtml:554
 msgid "Curated selection"
 msgstr "Sélection de modules"
 
-#: view/easy-admin/admin/module/browse.phtml:496
+#: view/easy-admin/admin/module/browse.phtml:556
 msgid "Select a selection…"
 msgstr "Choisir une sélection…"
 
-#: view/easy-admin/admin/module/browse.phtml:530
-#: view/easy-admin/admin/theme/browse.phtml:302
+#: view/easy-admin/admin/module/browse.phtml:590
+#: view/easy-admin/admin/theme/browse.phtml:333
 msgid "Install selected"
 msgstr "Installer la sélection"
 
@@ -981,7 +1023,7 @@ msgstr "Aucune somme de contrôle n'est disponible."
 #: view/easy-admin/admin/module/update-confirm.phtml:15
 #, php-format
 msgid "Update module \"%s\""
-msgstr "Mettre à jour le module %s"
+msgstr "Mettre à jour le module « %s »"
 
 #: view/easy-admin/admin/module/update-confirm.phtml:25
 #: view/easy-admin/admin/theme/update-confirm.phtml:25
@@ -1042,11 +1084,11 @@ msgstr "Exécuter automatiquement les migrations de base de données"
 msgid "Confirm update"
 msgstr "Confirmer la mise à jour"
 
-#: view/easy-admin/admin/theme/browse.phtml:38
+#: view/easy-admin/admin/theme/browse.phtml:40
 msgid "Manage themes"
 msgstr "Gérer les thèmes"
 
-#: view/easy-admin/admin/theme/browse.phtml:47
+#: view/easy-admin/admin/theme/browse.phtml:49
 msgid ""
 "Loading the theme catalogue from omeka.org and github… Update detection and "
 "installation from catalogue will appear shortly. If it does not, refresh the "
@@ -1056,7 +1098,7 @@ msgstr ""
 "jour et le catalogue s’afficheront sous peu. Si ce n’est pas le cas, "
 "actualisez le catalogue."
 
-#: view/easy-admin/admin/theme/browse.phtml:51
+#: view/easy-admin/admin/theme/browse.phtml:53
 msgid ""
 "The theme catalogue could not be loaded. Update detection is unavailable. "
 "Check the server internet access or refresh the catalogue."
@@ -1065,7 +1107,7 @@ msgstr ""
 "n'est pas disponible. Vérifiez la connexion Internet du serveur ou "
 "actualisez le catalogue."
 
-#: view/easy-admin/admin/theme/browse.phtml:57
+#: view/easy-admin/admin/theme/browse.phtml:59
 #, php-format
 msgid ""
 "The directory \"%s\" is not writeable. Theme installation, update and "
@@ -1074,32 +1116,62 @@ msgstr ""
 "Le répertoire « %s » n'est pas accessible en écriture. L'installation, la "
 "mise à jour et la suppression des thèmes sont désactivées."
 
-#: view/easy-admin/admin/theme/browse.phtml:78
+#: view/easy-admin/admin/theme/browse.phtml:80
 msgid "Install new theme"
 msgstr "Installer un nouveau thème"
 
-#: view/easy-admin/admin/theme/browse.phtml:116
+#: view/easy-admin/admin/theme/browse.phtml:87
+msgid "Filter themes…"
+msgstr "Filtrer les thèmes…"
+
+#: view/easy-admin/admin/theme/browse.phtml:107
+msgid "Update selected"
+msgstr "Mettre à jour la sélection"
+
+#: view/easy-admin/admin/theme/browse.phtml:125
 msgid "Design"
 msgstr "Design"
 
-#: view/easy-admin/admin/theme/browse.phtml:214
+#: view/easy-admin/admin/theme/browse.phtml:193
+#: view/easy-admin/admin/theme/browse.phtml:194
+msgid "Update files"
+msgstr "Mettre à jour les fichiers"
+
+#: view/easy-admin/admin/theme/browse.phtml:223
 #, php-format
 msgid "→ %s"
 msgstr "→ %s"
 
-#: view/easy-admin/admin/theme/browse.phtml:243
+#: view/easy-admin/admin/theme/browse.phtml:252
 msgid "No themes found."
 msgstr "Aucun thème trouvé."
 
-#: view/easy-admin/admin/theme/browse.phtml:270
+#: view/easy-admin/admin/theme/browse.phtml:283
+msgid "Remove themes"
+msgstr "Supprimer les thèmes"
+
+#: view/easy-admin/admin/theme/browse.phtml:284
+msgid "Are you sure you would like to remove the selected themes?"
+msgstr "Êtes-vous sûr de vouloir supprimer les thèmes sélectionnés ?"
+
+#: view/easy-admin/admin/theme/browse.phtml:286
+#, php-format
+msgid ""
+"%1$s: this action will delete all files of the themes. A backup of the files "
+"will be created."
+msgstr ""
+"%1$s : cette action supprimera tous les fichiers des thèmes. Une sauvegarde "
+"sera créée."
+
+#: view/easy-admin/admin/theme/browse.phtml:301
 msgid "Install new theme from catalogue"
 msgstr "Installer un nouveau thème à partir du catalogue"
 
-#: view/easy-admin/admin/theme/browse.phtml:272
+#: view/easy-admin/admin/theme/browse.phtml:303
 msgid "Select the themes to install."
 msgstr "Sélectionnez les thèmes à installer."
 
-#: view/easy-admin/admin/theme/browse.phtml:273
+#: view/easy-admin/admin/theme/browse.phtml:304
 #, php-format
 msgid ""
 "For more information, see pages of known %1$sthemes%2$s or %3$sOmeka.org%2$s."
@@ -1250,7 +1322,7 @@ msgstr ""
 "Une {link}option{link_end} permet d’afficher un lien depuis la page "
 "d’administration de chaque ressource vers la page publique."
 
-#: data/scripts/upgrade.php:212 Module.php:317
+#: data/scripts/upgrade.php:212 Module.php:322
 msgid ""
 "The module \"{module}\" was upgraded by module \"{module_2}\" and "
 "uninstalled."
@@ -1648,18 +1720,18 @@ msgstr "Tâche terminée."
 msgid "Task \"%1$s\" ended."
 msgstr "Tâche « %1$s » terminée."
 
-#: Module.php:142
+#: Module.php:147
 msgid "Fatal error: {message} in {file}:{line}"
 msgstr "Erreur fatale : {message} dans {file} : {line}"
 
-#: Module.php:221
+#: Module.php:226
 msgid ""
 "The libraries should be installed. See module’s installation documentation."
 msgstr ""
 "Les dépendances doivent être installées. Consulter la documentation "
 "d’installation du module."
 
-#: Module.php:279
+#: Module.php:284
 msgid ""
 "Upgrading module BulkCheck: Unable to rename directory \"files/bulk_check\" "
 "into \"files/check\". Trying to create it."
@@ -1667,7 +1739,7 @@ msgstr ""
 "Mise à niveau du module BulkCheck : impossible de renommer le dossier "
 "\"files/bulk_check\" en \"files/check\". Essai de création."
 
-#: Module.php:297
+#: Module.php:302
 msgid ""
 "These directories are not writeable: {dirs}. Related features (check, "
 "backup, bulk import) are disabled until permissions are fixed."
@@ -1676,7 +1748,7 @@ msgstr ""
 "fonctionnalités associées (vérification, sauvegarde, importation en masse) "
 "sont désactivées jusqu'à ce que les autorisations soient corrigées."
 
-#: Module.php:355
+#: Module.php:360
 msgid ""
 "All stored files from checks and fixes, if any, will be removed from folder "
 "\"{folder}\"."
@@ -1684,72 +1756,72 @@ msgstr ""
 "Tous les enregistrements issus des vérifications seront supprimés du dossier "
 "« {folder} »."
 
-#: Module.php:1217
+#: Module.php:1222
 msgid "View this {resource_type} in \"{site}\""
 msgstr "Afficher le {resource_type} dans « {site} »"
 
-#: Module.php:1398
+#: Module.php:1403
 msgid "File successfuly uploaded."
 msgstr "Fichier téléversé avec succès."
 
-#: Module.php:1399
+#: Module.php:1404
 msgid "The total of file sizes exceeds the the server limit directive."
 msgstr "La taille des fichiers excède la valeur limite du serveur."
 
-#: Module.php:1400
+#: Module.php:1405
 msgid "The file size exceeds the specified limit."
 msgstr "La taille du fichier excède la taille maximale."
 
-#: Module.php:1401
+#: Module.php:1406
 msgid "The file was only partially uploaded."
 msgstr "Le fichier a été partiellement chargé."
 
-#: Module.php:1402
+#: Module.php:1407
 msgid "No file was uploaded."
 msgstr "Aucun fichier n’a été téléchargé."
 
-#: Module.php:1403
+#: Module.php:1408
 msgid "The temporary folder to store the file is missing."
 msgstr "Le dossier temporaire pour les fichiers est absent."
 
-#: Module.php:1404
+#: Module.php:1409
 msgid "Failed to write file to disk."
 msgstr "Impossible d’écrire le fichier sur le disque."
 
-#: Module.php:1405
+#: Module.php:1410
 msgid "A PHP extension stopped the file upload."
 msgstr "Une extension php a arrêté le téléchargement du fichier."
 
-#: Module.php:1424 Module.php:1429
+#: Module.php:1429 Module.php:1434
 msgid "There is no uploaded files."
 msgstr "Il n’y a aucun fichier téléchargé."
 
-#: Module.php:1448
+#: Module.php:1453
 msgid "File #{index} \"{filename}\" has an error: {error}."
 msgstr "Le fichier #{index} « {filename} » a une erreur : {error}."
 
-#: Module.php:1455
+#: Module.php:1460
 msgid "File #{index} \"{filename}\" must not start with a \".\"."
 msgstr ""
 "Le fichier #{index} « {filename} » ne doit pas commencer avec un « . »."
 
-#: Module.php:1462
+#: Module.php:1467
 msgid "File #{index} \"{filename}\" must not contain a reserved character."
 msgstr ""
 "Le fichier #{index} « {filename} » ne doit pas avoir de caractère réservé."
 
-#: Module.php:1469
+#: Module.php:1474
 msgid ""
 "File #{index} temp name \"{filename}\" must not contain a reserved character."
 msgstr ""
 "Le fichier #{index} temporaire avec le nom « {filename} » ne doit pas "
 "contenir de caractère réservé."
 
-#: Module.php:1477
+#: Module.php:1482
 msgid "File #{index} \"{filename}\" is an empty file."
 msgstr "Le fichier #{index} « {filename} » est vide."
 
-#: Module.php:1648
+#: Module.php:1653
 msgid ""
 "An error occurred when fetching asset \"{asset_filename}\" (#{asset_id}): "
 "{errors}"
@@ -1757,7 +1829,7 @@ msgstr ""
 "Une erreur est survenue lors de la récupération du fichier "
 "« {asset_filename} » (#{asset_id}): {errors}"
 
-#: Module.php:1663
+#: Module.php:1668
 msgid ""
 "An error occurred when optimizing asset \"{asset_filename}\" (#{asset_id}): "
 "{error}"
@@ -1765,7 +1837,7 @@ msgstr ""
 "Une erreur est survenue lors de l’optimisation du fichier "
 "« {asset_filename} » (#{asset_id}): {error}"
 
-#: Module.php:1692
+#: Module.php:1697
 msgid ""
 "An error occurred when storing asset \"{asset_filename}\" (#{asset_id}): "
 "{error}"
@@ -1773,7 +1845,7 @@ msgstr ""
 "Une erreur est survenue lors de l’enregistrement du fichier "
 "« {asset_filename} » (#{asset_id}): {error}."
 
-#: Module.php:1728
+#: Module.php:1733
 msgid ""
 "The asset \"{asset_filename}\" (#{asset_id}) has been successfully optimized "
 "by {percent}%, from {size_1} to {size_2} bytes."
@@ -1781,7 +1853,7 @@ msgstr ""
 "Le fichier « {asset_filename} » (#{asset_id}) a été optimisé de {percent}%, "
 "de {size_1} à {size_2} octets."
 
-#: Module.php:1776
+#: Module.php:1781
 msgid ""
 "Asset #{asset_id}: cannot rename, file \"{filename}\" not found in asset "
 "directory."
@@ -1789,7 +1861,7 @@ msgstr ""
 "Ressource n° {asset_id} : impossible de renommer ; le fichier « {filename} » "
 "est introuvable dans le répertoire des ressources."
 
-#: Module.php:1822
+#: Module.php:1827
 msgid ""
 "Unable to rename asset file from \"{old}\" to \"{new}\": {error}. Check that "
 "the web server has write permission on the directory \"{dir}\"."
@@ -1797,38 +1869,56 @@ msgstr ""
 "Impossible de renommer le fichier \"{old}\" en \"{new}\": {error}. Vérifiez "
 "que le serveur web a les permissions d’écriture dans le dossier \"{dir}\"."
 
-#: Module.php:1879
+#: Module.php:1884
 msgid "Store with original name"
 msgstr "Conserver sous le nom d'origine"
 
-#: src/Mvc/Controller/Plugin/Addons.php:410
-msgid "The addon \"{name}\" is managed by Composer and cannot be updated here."
+#: src/Mvc/Controller/Plugin/Addons.php:441
+msgid ""
+"The addon \"{name}\" is managed by Composer and cannot be updated here. Run "
+"the command \"{command}\" on the server instead."
 msgstr ""
 "L'extension « {name} » est gérée par Composer et ne peut pas être mise à "
-"jour ici."
+"jour ici. Lancer la commande \"{command}\" sur le serveur à la place."
 
-#: src/Mvc/Controller/Plugin/Addons.php:424
-#: src/Mvc/Controller/Plugin/Addons.php:581
-#: src/Mvc/Controller/Plugin/Addons.php:1251
+#: src/Mvc/Controller/Plugin/Addons.php:445
+msgid ""
+"The addon \"{name}\" is managed by Composer and cannot be updated here. Run "
+"the command \"composer update\" on the server instead."
+msgstr ""
+"L'extension « {name} » est gérée par Composer et ne peut pas être mise à "
+"jour ici. Lancer la commande \"composer update\" sur le serveur à la place."
+
+#: src/Mvc/Controller/Plugin/Addons.php:459
+#: src/Mvc/Controller/Plugin/Addons.php:658
+#: src/Mvc/Controller/Plugin/Addons.php:1393
 msgid "The {type} directory is not writeable by the server."
 msgstr "Le dossier {type} est protégé en écriture par le serveur."
 
-#: src/Mvc/Controller/Plugin/Addons.php:432
-#: src/Mvc/Controller/Plugin/Addons.php:589
+#: src/Mvc/Controller/Plugin/Addons.php:467
+#: src/Mvc/Controller/Plugin/Addons.php:666
 msgid "The addon \"{name}\" is not installed."
 msgstr "L’extension \"{name}\" n’est pas installée."
 
-#: src/Mvc/Controller/Plugin/Addons.php:451
-#: src/Mvc/Controller/Plugin/Addons.php:1286
+#: src/Mvc/Controller/Plugin/Addons.php:486
+#: src/Mvc/Controller/Plugin/Addons.php:1428
 msgid "No version of \"{name}\" is compatible with this Omeka S."
 msgstr ""
 "Aucune version de « {name} » n'est compatible avec cette version d'Omeka S."
 
-#: src/Mvc/Controller/Plugin/Addons.php:462
+#: src/Mvc/Controller/Plugin/Addons.php:506
+msgid ""
+"The addon \"{name}\" is already in version {version_installed} and was not "
+"updated to version {version_new}."
+msgstr ""
+"L’extension \"{name}\" est déjà dans la même version {version_installed} et "
+"ne sera pas mise à jour à la version {version_new}."
+
+#: src/Mvc/Controller/Plugin/Addons.php:522
 msgid "No download URL available for \"{name}\"."
 msgstr "Aucune URL de téléchargement n'est disponible pour « {name} »."
 
-#: src/Mvc/Controller/Plugin/Addons.php:472
+#: src/Mvc/Controller/Plugin/Addons.php:532
 msgid ""
 "Unable to fetch the update for \"{name}\" from {url}. Check the server "
 "internet access and that \"allow_url_fopen\" is enabled."
@@ -1837,20 +1927,34 @@ msgstr ""
 "Vérifiez la connexion Internet du serveur et assurez-vous que "
 "« allow_url_fopen » est activé."
 
-#: src/Mvc/Controller/Plugin/Addons.php:485
+#: src/Mvc/Controller/Plugin/Addons.php:545
 msgid "An error occurred during the unzipping of \"{name}\"."
 msgstr "Une erreur est survenue durant la décompression de « {name} »."
 
-#: src/Mvc/Controller/Plugin/Addons.php:497
-msgid "Unable to backup the current version of \"{name}\"."
-msgstr "Impossible de sauvegarder la version actuelle de « {name} »."
+#: src/Mvc/Controller/Plugin/Addons.php:557
+msgid ""
+"Unable to backup the current version of \"{name}\": check that the directory "
+"\"files/backup/\" is writeable and that the php extension \"zip\" or the "
+"command \"zip\" is available."
+msgstr ""
+"Impossible de sauvegarder la version en cours de \"{name}\" : vérifier que "
+"le dossier \"files/backup/\" est inscriptible et que l’extension \"zip\" ou "
+"la commande \"zip\" est disponible."
 
-#: src/Mvc/Controller/Plugin/Addons.php:518
-#: src/Mvc/Controller/Plugin/Addons.php:1326
+#: src/Mvc/Controller/Plugin/Addons.php:568
+msgid ""
+"Unable to remove the current directory of \"{name}\": check the rights of "
+"the server on it."
+msgstr ""
+"Impossible de supprimer le dossier en cours de « {name} » : vérifier les "
+"droits sur le serveur."
+
+#: src/Mvc/Controller/Plugin/Addons.php:587
+#: src/Mvc/Controller/Plugin/Addons.php:1468
 msgid "The archive for \"{name}\" does not contain a directory."
 msgstr "Le zip de « {name} » ne contient pas de dossier."
 
-#: src/Mvc/Controller/Plugin/Addons.php:538
+#: src/Mvc/Controller/Plugin/Addons.php:607
 msgid ""
 "Failed to install the update for \"{name}\" (move from temp failed). The "
 "previous version has been restored."
@@ -1859,7 +1963,7 @@ msgstr ""
 "déplacement depuis le répertoire temporaire). La version précédente a été "
 "restaurée."
 
-#: src/Mvc/Controller/Plugin/Addons.php:548
+#: src/Mvc/Controller/Plugin/Addons.php:619
 msgid ""
 "The addon \"{name}\" was successfully updated. A backup is stored in "
 "\"{backup}\"."
@@ -1867,41 +1971,81 @@ msgstr ""
 "L'extension « {name} » a été mise à jour avec succès. Une sauvegarde est "
 "stockée dans « {backup} »."
 
-#: src/Mvc/Controller/Plugin/Addons.php:567
-msgid "The addon \"{name}\" is managed by Composer and cannot be removed here."
+#: src/Mvc/Controller/Plugin/Addons.php:640
+msgid ""
+"The addon \"{name}\" is managed by Composer and cannot be removed here. Run "
+"the command \"{command}\" on the server instead."
 msgstr ""
 "L'extension « {name} » est gérée par Composer et ne peut pas être supprimée "
-"ici."
+"ici. Lancer la commande \"{command}\" sur le serveur à la place."
 
-#: src/Mvc/Controller/Plugin/Addons.php:616
+#: src/Mvc/Controller/Plugin/Addons.php:644
+msgid ""
+"The addon \"{name}\" is managed by Composer and cannot be removed here. Run "
+"the command \"composer remove\" on the server instead."
+msgstr ""
+"L'extension « {name} » est gérée par Composer et ne peut pas être supprimée "
+"ici. La commande \"composer remove\" sur le serveur à la place."
+
+#: src/Mvc/Controller/Plugin/Addons.php:693
 msgid "Error during uninstall of \"{name}\": {error}"
 msgstr "Erreur lors de la désinstallation de \"{name}\" : {error}"
 
-#: src/Mvc/Controller/Plugin/Addons.php:636
+#: src/Mvc/Controller/Plugin/Addons.php:713
 msgid "The theme \"{name}\" is used by site \"{site}\" and cannot be removed."
 msgstr ""
 "Le thème « {name} » est utilisé par le site « {site} » et ne peut pas être "
 "supprimé."
 
-#: src/Mvc/Controller/Plugin/Addons.php:653
-msgid "Unable to backup \"{name}\" before removal."
-msgstr "Impossible de sauvegarder « {name} » avant la suppression."
+#: src/Mvc/Controller/Plugin/Addons.php:730
+msgid ""
+"Unable to backup \"{name}\" before removal: check that the directory \"files/"
+"backup/\" is writeable and that the php extension \"zip\" or the command "
+"\"zip\" is available."
+msgstr ""
+"Impossible de sauvegarder \"{name}\" avant suppression : vérifier que le "
+"dossier \"files/backup/\" est inscriptible et que l’extension \"zip\" ou la "
+"commande \"zip\" est disponible."
 
-#: src/Mvc/Controller/Plugin/Addons.php:662
-msgid "Unable to remove the directory of \"{name}\"."
-msgstr "Impossible de supprimer le dossier de « {name} »."
+#: src/Mvc/Controller/Plugin/Addons.php:739
+msgid ""
+"Unable to remove the directory of \"{name}\": check the rights of the server "
+"on it."
+msgstr ""
+"Impossible de supprimer le dossier de « {name} » : vérifier les droits sur "
+"le serveur."
 
-#: src/Mvc/Controller/Plugin/Addons.php:678
+#: src/Mvc/Controller/Plugin/Addons.php:755
 msgid "The addon \"{name}\" was removed. A backup is stored in \"{backup}\"."
 msgstr ""
 "L'extension « {name} » a été supprimée. Une sauvegarde est stockée dans "
 "« {backup} »."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1034
+#: src/Mvc/Controller/Plugin/Addons.php:815
+msgid ""
+"The addon \"{name}\" was installed from a source archive without its "
+"dependencies ({libraries}), so it may not work. Install a release zip that "
+"bundles the directory \"vendor/\", or run \"composer install --no-dev\" in "
+"the addon directory on the server."
+msgstr ""
+"L’extension \"{name}\" a été installée depuis une archive sans les "
+"dépendances ({libraries} et peut ne pas fonctionner. Installer le zip "
+"\"livraison\" qui contient le dossier \"vendor/\" ou lancer \"composer "
+"install --no-dev\" dans le dossier de l’extension sur le serveur."
+
+#: src/Mvc/Controller/Plugin/Addons.php:1166
 msgid "Unable to fetch the url {url}."
 msgstr "Impossible de charger l’url {url}."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1242
+#: src/Mvc/Controller/Plugin/Addons.php:1363
+msgid ""
+"The addon \"{name}\" is managed by Composer: the local version installed "
+"here will override it and it will not be updated by Composer any more."
+msgstr ""
+"L'extension « {name} » est gérée par Composer : la version locale installée "
+"va la cacher et elle ne pourra plus être mise à jour avec Composer."
+
+#: src/Mvc/Controller/Plugin/Addons.php:1384
 msgid ""
 "The module \"{module}\" requires the dependencies \"{names}\" installed and "
 "enabled first."
@@ -1909,18 +2053,18 @@ msgstr ""
 "Le module « {module} » nécessite les dépendances \"{names}\" installées et "
 "activées."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1258
+#: src/Mvc/Controller/Plugin/Addons.php:1400
 msgid ""
 "Don’t forget to protect the {type} directory from writing after installation."
 msgstr ""
 "N’oubliez pas de protéger le dossier {type} contre l’écriture après "
 "installation."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1265
+#: src/Mvc/Controller/Plugin/Addons.php:1407
 msgid "The {type} \"{name}\" already exists. Use update instead."
 msgstr "Le {type} « {name} » existe déjà. Utiliser la mise à jour."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1297
+#: src/Mvc/Controller/Plugin/Addons.php:1439
 msgid ""
 "Unable to fetch the {type} \"{name}\". Check the server internet access and "
 "that \"allow_url_fopen\" is enabled."
@@ -1928,15 +2072,15 @@ msgstr ""
 "Impossible de récupérer le {type} « {name} ». Vérifiez la connexion Internet "
 "du serveur et assurez-vous que « allow_url_fopen » est activé."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1308
+#: src/Mvc/Controller/Plugin/Addons.php:1450
 msgid "An error occurred during the unzipping of the {type} \"{name}\"."
 msgstr "Une erreur est survenue durant la décompression de {type} « {name} »."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1342
+#: src/Mvc/Controller/Plugin/Addons.php:1484
 msgid "Failed to install the {type} \"{name}\"."
 msgstr "Erreur lors de l’installation du {type} « {name} »."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1363
+#: src/Mvc/Controller/Plugin/Addons.php:1505
 msgid ""
 "The module \"{name}\" requires the dependency \"Generic\" version \"{version}"
 "\" available first."
@@ -1944,7 +2088,7 @@ msgstr ""
 "Le module « {name} » a besoin que la dépendance « Generic » version "
 "« {version} » soit installée."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1376
+#: src/Mvc/Controller/Plugin/Addons.php:1518
 msgid ""
 "If \"{name}\" doesn’t appear in the list of {type}, its directory may need "
 "to be renamed."
@@ -1952,22 +2096,22 @@ msgstr ""
 "Si « {name} » n’apparaît pas dans la liste de {type}, le dossier doit être "
 "renommé."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1384
+#: src/Mvc/Controller/Plugin/Addons.php:1526
 msgid "{type} uploaded successfully"
 msgstr "{type} téléchargé correctement"
 
-#: src/Mvc/Controller/Plugin/Addons.php:1389
+#: src/Mvc/Controller/Plugin/Addons.php:1531
 msgid ""
 "It is always recommended to read the original readme or help of the addon."
 msgstr ""
 "Il est toujours recommandé de lire le fichier lisez-moi (readme) original ou "
 "l’aide de l’extension."
 
-#: src/Mvc/Controller/Plugin/Addons.php:1503
+#: src/Mvc/Controller/Plugin/Addons.php:1782
 msgid "/^[a-zA-Z]:/"
 msgstr "/^[a-zA-Z]:/"
 
-#: src/Mvc/Controller/Plugin/Addons.php:1698
+#: src/Mvc/Controller/Plugin/Addons.php:1977
 msgid "Failed to execute command: {command}"
 msgstr "Échec de la commande : {command}"
 
@@ -2451,47 +2595,50 @@ msgstr "Les {count} tâches suivantes sont abandonnées : {job_ids}."
 msgid "A total of {count} dead jobs have been cleaned."
 msgstr "Un total de {count} tâches abandonnées ont été nettoyées."
 
-#: src/Job/ManageAddons.php:114
+#: src/Job/ManageAddons.php:129
 msgid "Unknown addon for update: {name}."
 msgstr "Module inconnu à mettre à jour : {name}."
 
-#: src/Job/ManageAddons.php:137
+#: src/Job/ManageAddons.php:155
 msgid "Failed to update: {addons}."
 msgstr "Échec de la mise à jour : {addons}"
 
-#: src/Job/ManageAddons.php:143
+#: src/Job/ManageAddons.php:161
 msgid "Updated: {addons}."
 msgstr "Mise à jour effectuée : {addons}."
 
-#: src/Job/ManageAddons.php:185
+#: src/Job/ManageAddons.php:233
 msgid "Failed to remove: {addons}."
 msgstr "Échec de la suppression : {addons}"
 
-#: src/Job/ManageAddons.php:191
+#: src/Job/ManageAddons.php:239
 msgid "Removed: {addons}."
 msgstr "Supprimés : {addons}."
 
-#: src/Job/ManageAddons.php:209
-msgid "Database upgraded for {name}."
-msgstr "Base de données mise à jour pour {name}."
+#: src/Job/ManageAddons.php:257 src/Controller/Admin/ModuleController.php:443
+#: src/Controller/Admin/ModuleController.php:598
+#: src/Controller/Admin/ModuleController.php:927
+msgid "Upgrade of module \"{name}\" finalized."
+msgstr "Mise à jour du module \"{name}\" finalisée."
 
-#: src/Job/ManageAddons.php:214
-msgid "DB upgrade failed for {name}: {error}"
-msgstr "Échec de la mise à jour de la base de données pour {name} : {error}"
+#: src/Job/ManageAddons.php:262
+msgid "Upgrade of module \"{name}\" could not be finalized: {error}"
+msgstr ""
+"La mise à jour du module \"{name}\" n’a pas pu être finalisée : {error}"
 
-#: src/Job/ManageAddons.php:264
+#: src/Job/ManageAddons.php:316
 msgid "The following addons are unknown: {addons}."
 msgstr "Les modules suivants sont inconnus : {addons}."
 
-#: src/Job/ManageAddons.php:270
+#: src/Job/ManageAddons.php:322
 msgid "The following addons are already installed: {addons}."
 msgstr "Les modules suivants sont déjà installés : {addons}."
 
-#: src/Job/ManageAddons.php:279
+#: src/Job/ManageAddons.php:331
 msgid "The following addons failed to {operation}: {addons}."
 msgstr "Les modules suivants ont échoué dans « {operation} » : {addons}."
 
-#: src/Job/ManageAddons.php:288
+#: src/Job/ManageAddons.php:340
 msgid "The following addons were successfully with {operation}: {addons}."
 msgstr ""
 "Les modules suivants ont réalisé « {operation} » avec succès : {addons}."
@@ -5733,15 +5880,15 @@ msgstr ""
 "(port {port}). Une solution courante consiste à essayer « ssl » => "
 "« {alternative} » avec le port {alt_port}."
 
-#: src/Controller/Admin/ThemeController.php:198
+#: src/Controller/Admin/ThemeController.php:205
 msgid "No theme selected."
 msgstr "Aucun thème sélectionné."
 
-#: src/Controller/Admin/ThemeController.php:221
+#: src/Controller/Admin/ThemeController.php:228
 msgid "No new theme to install."
 msgstr "Aucun nouveau thème à installer."
 
-#: src/Controller/Admin/ThemeController.php:239
+#: src/Controller/Admin/ThemeController.php:246
 msgid ""
 "Installing {count} themes in background (job {link_job}#{job_id}{link_end}, "
 "{link_log}logs{link_end})."
@@ -5749,15 +5896,40 @@ msgstr ""
 "Installation de {count} thèmes en arrière-plan (tâche {link_job}#{job_id}"
 "{link_end}, {link_log}journaux{link_end})."
 
-#: src/Controller/Admin/ThemeController.php:280
-#: src/Controller/Admin/ThemeController.php:341
+#: src/Controller/Admin/ThemeController.php:287
+#: src/Controller/Admin/ThemeController.php:348
 msgid "Unknown theme \"{name}\"."
 msgstr "Thème inconnu \"{name}\"."
 
-#: src/Controller/Admin/ThemeController.php:327
-#: src/Controller/Admin/ThemeController.php:448
+#: src/Controller/Admin/ThemeController.php:334
+#: src/Controller/Admin/ThemeController.php:457
 msgid "No theme specified."
 msgstr "Aucun thème indiqué."
+
+#: src/Controller/Admin/ThemeController.php:629
+#: src/Controller/Admin/ModuleController.php:845
+msgid ""
+"Processing {action} in background (job {link_job}#{job_id}{link_end}, "
+"{link_log}logs{link_end})."
+msgstr ""
+"Lancement de {action} de en arrière-plan (tâche {link_job}#{job_id}"
+"{link_end}, {link_log}journaux{link_end})."
+
+#: src/Controller/Admin/ThemeController.php:693
+msgid "Removed themes: {themes}."
+msgstr "Thèmes supprimés : {themes}."
+
+#: src/Controller/Admin/ThemeController.php:694
+msgid "Updated themes: {themes}."
+msgstr "Thèmes mis à jour : {themes}."
+
+#: src/Controller/Admin/ThemeController.php:701
+msgid "Failed to remove themes: {themes}."
+msgstr "Échec de la suppression des thèmes : {themes}."
+
+#: src/Controller/Admin/ThemeController.php:702
+msgid "Failed to update themes: {themes}."
+msgstr "Échec de la mise à jour des thèmes : {themes}."
 
 #: src/Controller/Admin/CronController.php:99
 msgid "{count} tasks defined to be run regularly."
@@ -5775,65 +5947,57 @@ msgstr "Aucune tâche active."
 msgid "Cron tasks executed."
 msgstr "Tâches Cron exécutées."
 
-#: src/Controller/Admin/ModuleController.php:176
-#: src/Controller/Admin/ModuleController.php:381
+#: src/Controller/Admin/ModuleController.php:183
+#: src/Controller/Admin/ModuleController.php:388
 msgid "Unknown module \"{name}\"."
 msgstr "Module inconnu « {name} »."
 
-#: src/Controller/Admin/ModuleController.php:292
-#: src/Controller/Admin/ModuleController.php:326
-#: src/Controller/Admin/ModuleController.php:518
-#: src/Controller/Admin/ModuleController.php:549
-#: src/Controller/Admin/ModuleController.php:580
+#: src/Controller/Admin/ModuleController.php:299
+#: src/Controller/Admin/ModuleController.php:333
+#: src/Controller/Admin/ModuleController.php:527
+#: src/Controller/Admin/ModuleController.php:558
+#: src/Controller/Admin/ModuleController.php:589
 msgid "Module \"{name}\" not found."
 msgstr "Module « {name} » introuvable."
 
-#: src/Controller/Admin/ModuleController.php:301
+#: src/Controller/Admin/ModuleController.php:308
 msgid "Module \"{name}\" installed and activated."
 msgstr "Module « {name} » installé et activé."
 
-#: src/Controller/Admin/ModuleController.php:338
+#: src/Controller/Admin/ModuleController.php:345
 msgid "Module \"{name}\" uninstalled."
 msgstr "Le module \"{name}\" a été désinstallé."
 
-#: src/Controller/Admin/ModuleController.php:343
+#: src/Controller/Admin/ModuleController.php:350
 msgid "Error uninstalling \"{name}\": {error}"
 msgstr "Erreur lors de la désinstallation de \"{name}\" : {error}"
 
-#: src/Controller/Admin/ModuleController.php:367
-#: src/Controller/Admin/ModuleController.php:472
+#: src/Controller/Admin/ModuleController.php:374
+#: src/Controller/Admin/ModuleController.php:481
 msgid "No module specified."
 msgstr "Aucun module indiqué."
 
-#: src/Controller/Admin/ModuleController.php:434
-msgid "The module \"{name}\" was upgraded in database."
-msgstr "Le module « {name} » a été mis à niveau dans la base."
-
-#: src/Controller/Admin/ModuleController.php:441
+#: src/Controller/Admin/ModuleController.php:450
 msgid "Error upgrading database for \"{name}\": {error}"
 msgstr "Erreur lors de la mise à jour de la base pour \"{name}\" : {error}"
 
-#: src/Controller/Admin/ModuleController.php:527
+#: src/Controller/Admin/ModuleController.php:536
 msgid "Module \"{name}\" activated."
 msgstr "Module « {name} » activé."
 
-#: src/Controller/Admin/ModuleController.php:558
+#: src/Controller/Admin/ModuleController.php:567
 msgid "Module \"{name}\" deactivated."
 msgstr "Module « {name} » désactivé."
 
-#: src/Controller/Admin/ModuleController.php:589
-msgid "Module \"{name}\" upgraded."
-msgstr "Module « {name} » mis à jour."
-
-#: src/Controller/Admin/ModuleController.php:615
+#: src/Controller/Admin/ModuleController.php:624
 msgid "No module selected."
 msgstr "Aucun module sélectionné."
 
-#: src/Controller/Admin/ModuleController.php:639
+#: src/Controller/Admin/ModuleController.php:648
 msgid "No new module to install."
 msgstr "Aucun nouveau module à installer."
 
-#: src/Controller/Admin/ModuleController.php:655
+#: src/Controller/Admin/ModuleController.php:664
 msgid ""
 "Installing {count} modules in background (job {link_job}#{job_id}{link_end}, "
 "{link_log}logs{link_end})."
@@ -5841,7 +6005,7 @@ msgstr ""
 "Installation de {count} modules en arrière-plan (tâche {link_job}#{job_id}"
 "{link_end}, {link_log}journaux{link_end})."
 
-#: src/Controller/Admin/ModuleController.php:769
+#: src/Controller/Admin/ModuleController.php:778
 msgid ""
 "To learn how to see more detailed information about this error, see the "
 "Omeka S User Manual page on {link}retrieving error messages{link_end}."
@@ -5850,17 +6014,13 @@ msgstr ""
 "erreur, consultez la page du manuel d'utilisation d'Omeka S consacrée à la "
 "{link}consultation des messages d'erreur{link_end}."
 
-#: src/Controller/Admin/ModuleController.php:776
+#: src/Controller/Admin/ModuleController.php:785
 msgid "{name}{class}: {message}"
 msgstr "{name}{class}: {message}"
 
-#: src/Controller/Admin/ModuleController.php:828
-msgid ""
-"Processing {action} in background (job {link_job}#{job_id}{link_end}, "
-"{link_log}logs{link_end})."
-msgstr ""
-"Lancement de {action} de en arrière-plan (tâche {link_job}#{job_id}"
-"{link_end}, {link_log}journaux{link_end})."
+#: src/Controller/Admin/ModuleController.php:919
+msgid "The module \"{name}\" does not need to be upgraded."
+msgstr "Le module \"{name}\" n’a pas besoin d’être mis à jour."
 
 #: src/Controller/TraitEasyDir.php:215
 msgid "The file does not exist."
@@ -5937,6 +6097,50 @@ msgstr "Sauvegarde complète (noyau, modules, thèmes, configuration)"
 #: config/module.config.php:407
 msgid "Configuration only"
 msgstr "Configuration uniquement"
+
+#~ msgid "Download and replace files of selected"
+#~ msgstr "Télécharger et remplacer les fichiers de la sélection"
+
+#~ msgid "Upgrade database of selected"
+#~ msgstr "Mettre à jour dans la base la sélection"
+
+#~ msgid "Database upgraded for {name}."
+#~ msgstr "Base de données mise à jour pour {name}."
+
+#~ msgid "DB upgrade failed for {name}: {error}"
+#~ msgstr "Échec de la mise à jour de la base de données pour {name} : {error}"
+
+#~ msgid "The module \"{name}\" was upgraded in database."
+#~ msgstr "Le module « {name} » a été mis à niveau dans la base."
+
+#~ msgid "Module \"{name}\" upgraded."
+#~ msgstr "Module « {name} » mis à jour."
+
+#~ msgid "The module \"{name}\" does not need an upgrade of the database."
+#~ msgstr "Le module « {name} » n’a pas besoin de mise à jour dans la base."
+
+#~ msgid ""
+#~ "%1$s: this action will permanently delete the files of the modules and "
+#~ "cannot be undone. The data of the modules are kept in the database."
+#~ msgstr ""
+#~ "%1$s : cette action supprimera définitivement les fichiers des modules et "
+#~ "ne pourra pas être annulée. Les données des modules sont conservés dans "
+#~ "la base."
+
+#, php-format
+#~ msgid ""
+#~ "%1$s: this action will permanently delete the files of the themes and "
+#~ "cannot be undone. The sites using them will need another theme."
+#~ msgstr ""
+#~ "%1$s : cette action supprimera définitivement les fichiers des thèmes et "
+#~ "ne pourra pas être annulée. Les sites les utilisant devront choisir un "
+#~ "autre thème."
+
+#~ msgid "Unable to backup the current version of \"{name}\"."
+#~ msgstr "Impossible de sauvegarder la version actuelle de « {name} »."
+
+#~ msgid "Unable to backup \"{name}\" before removal."
+#~ msgstr "Impossible de sauvegarder « {name} » avant la suppression."
 
 #~ msgid "Compress with gzip"
 #~ msgstr "Compresser avec gzip"
@@ -6239,13 +6443,6 @@ msgstr "Configuration uniquement"
 
 #~ msgid "Belonging to these users"
 #~ msgstr "Appartenant à ces utilisateurs"
-
-#~ msgid ""
-#~ "%1$sWarning%2$s: this action will permanently delete %3$s%4$s%5$s files "
-#~ "and cannot be undone."
-#~ msgstr ""
-#~ "%1$sAttention%2$s : cette action supprimera %3$s fichiers de manière "
-#~ "définitive et ne pourra pas être annulée."
 
 #~ msgid "Select either a module or a theme."
 #~ msgstr "Choisir un module ou un thème."
