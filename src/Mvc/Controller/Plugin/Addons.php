@@ -500,8 +500,17 @@ class Addons extends AbstractPlugin
             $this->rmDir($tempDir);
             return false;
         }
-        // Remove the original directory to make room for the new version.
-        $this->rmDir($addonDir);
+        // Remove the original directory to make room for the new version. Stop
+        // when it cannot be removed, else the new version would be extracted
+        // over the old one, or inside the target of a symlink.
+        if (!$this->rmDir($addonDir)) {
+            $this->messenger->addError(new PsrMessage(
+                'Unable to remove the current directory of "{name}": check the rights of the server on it.', // @translate
+                ['name' => $addon['name']]
+            ));
+            $this->rmDir($tempDir);
+            return false;
+        }
 
         // Find the extracted directory inside temp (the zip top-level dir may
         // have any name, e.g. "Foo-1.0.1").
@@ -659,7 +668,7 @@ class Addons extends AbstractPlugin
         $result = $this->rmDir($addonDir);
         if (!$result) {
             $this->messenger->addError(new PsrMessage(
-                'Unable to remove the directory of "{name}".', // @translate
+                'Unable to remove the directory of "{name}": check the rights of the server on it.', // @translate
                 ['name' => $addon['name']]
             ));
             return false;
@@ -1866,9 +1875,18 @@ class Addons extends AbstractPlugin
 
     protected function rmDir(string $dirPath): bool
     {
+        // A broken symlink does not exist, but must be removable anyway.
+        if (is_link($dirPath)) {
+            // Never follow a symlink: remove the link, not its target, that is
+            // generally a directory shared outside of Omeka and that may be
+            // read-only (deployment with a managed directory).
+            return @unlink($dirPath);
+        }
+
         if (!file_exists($dirPath)) {
             return true;
         }
+
         $real = realpath($dirPath);
         if ($real === false
             || $real === '/'
@@ -1877,16 +1895,24 @@ class Addons extends AbstractPlugin
             return false;
         }
         $dirPath = $real;
+
+        // Check the rights first: else each file would output a warning.
+        if (!is_writeable($dirPath)) {
+            return false;
+        }
+
+        $result = true;
         $files = array_diff(scandir($dirPath) ?: [], ['.', '..']);
         foreach ($files as $file) {
             $path = $dirPath . '/' . $file;
-            if (is_dir($path)) {
-                $this->rmDir($path);
+            if (is_link($path) || !is_dir($path)) {
+                $result = @unlink($path) && $result;
             } else {
-                unlink($path);
+                $result = $this->rmDir($path) && $result;
             }
         }
-        return rmdir($dirPath);
+
+        return @rmdir($dirPath) && $result;
     }
 
     /**
