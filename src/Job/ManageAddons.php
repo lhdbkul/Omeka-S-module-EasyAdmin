@@ -45,6 +45,9 @@ class ManageAddons extends AbstractJob
             case 'update':
                 $this->performUpdate($addons, $messenger, $options);
                 break;
+            case 'upgrade':
+                $this->performUpgrade($addons, $messenger);
+                break;
             case 'remove':
                 $this->performRemove($addons, $messenger);
                 break;
@@ -150,6 +153,26 @@ class ManageAddons extends AbstractJob
         }
     }
 
+    /**
+     * Upgrade the database of modules whose files are already updated.
+     *
+     * This is not the download of the new files, that is done by the operation
+     * "update".
+     */
+    protected function performUpgrade($addons, $messenger): void
+    {
+        // Upgrade the dependencies before the modules that require them.
+        $addonList = $addons->sortByDependencies(
+            $this->getArg('addons', [])
+        );
+
+        foreach ($addonList as $addonName) {
+            $this->tryUpgradeDb($addonName);
+        }
+
+        $this->flushMessages($messenger);
+    }
+
     protected function performRemove($addons, $messenger): void
     {
         // Remove the modules that require a dependency before the dependency.
@@ -211,12 +234,12 @@ class ManageAddons extends AbstractJob
             try {
                 $moduleManager->upgrade($module);
                 $this->logger->notice(
-                    'Database upgraded for {name}.', // @translate
+                    'Upgrade of module "{name}" finalized.', // @translate
                     ['name' => $moduleId]
                 );
             } catch (\Throwable $e) {
                 $this->logger->err(
-                    'DB upgrade failed for {name}: {error}', // @translate
+                    'Upgrade of module "{name}" could not be finalized: {error}', // @translate
                     [
                         'name' => $moduleId,
                         'error' => $e->getMessage(),

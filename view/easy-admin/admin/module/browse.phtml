@@ -194,7 +194,8 @@ echo $this->form()->openTag($manageForm);
         <option value="default"><?= $translate('Batch actions') ?></option>
         <option value="activate" disabled="disabled"><?= $escape($translate('Activate selected')) ?></option>
         <option value="deactivate" disabled="disabled"><?= $escape($translate('Deactivate selected')) ?></option>
-        <option value="update" disabled="disabled"><?= $escape($translate('Update selected')) ?></option>
+        <option value="update" disabled="disabled"><?= $escape($translate('Download the new version of selected')) ?></option>
+        <option value="upgrade" disabled="disabled"><?= $escape($translate('Upgrade selected')) ?></option>
         <option value="remove" disabled="disabled"><?= $escape($translate('Remove selected')) ?></option>
     </select>
     <div class="batch-actions">
@@ -202,6 +203,7 @@ echo $this->form()->openTag($manageForm);
         <button type="submit" class="activate" name="batch_submit" value="activate"><?= $translate('Go') ?></button>
         <button type="submit" class="deactivate" name="batch_submit" value="deactivate"><?= $translate('Go') ?></button>
         <button type="submit" class="update" name="batch_submit" value="update"><?= $translate('Go') ?></button>
+        <button type="submit" class="upgrade" name="batch_submit" value="upgrade"><?= $translate('Go') ?></button>
         <a class="delete button sidebar-content remove" data-sidebar-selector="#sidebar-remove-selected"><?= $translate('Go') ?></a>
     </div>
 </div>
@@ -382,8 +384,8 @@ echo $this->form()->openTag($manageForm);
                             'data-sidebar-selector' => '#sidebar',
                             'data-sidebar-content-url' => $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'update-confirm'], ['query' => ['id' => $moduleId]]),
                             'class' => 'o-icon-upgrade sidebar-content',
-                            'title' => $translate('Update files'),
-                            'aria-label' => $translate('Update files'),
+                            'title' => $translate('Download the new version'),
+                            'aria-label' => $translate('Download the new version'),
                         ]) ?></li>
                         <?php endif ?>
 

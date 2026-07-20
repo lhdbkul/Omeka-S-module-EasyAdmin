@@ -440,7 +440,7 @@ class ModuleController extends AbstractActionController
                         $this->moduleManager->upgrade($module);
                         $this->messenger()->addSuccess(
                             new PsrMessage(
-                                'The module "{name}" was upgraded in database.', // @translate
+                                'Upgrade of module "{name}" finalized.', // @translate
                                 ['name' => $addon['name']]
                             )
                         );
@@ -595,7 +595,7 @@ class ModuleController extends AbstractActionController
         try {
             $this->moduleManager->upgrade($module);
             $this->messenger()->addSuccess(new PsrMessage(
-                'Module "{name}" upgraded.', // @translate
+                'Upgrade of module "{name}" finalized.', // @translate
                 ['name' => $id]
             ));
         } catch (\Throwable $e) {
@@ -823,7 +823,7 @@ class ModuleController extends AbstractActionController
 
             // For large selections, dispatch as job.
             if (count($selected) > 3
-                && in_array($action, ['update', 'remove'])
+                && in_array($action, ['update', 'upgrade', 'remove'])
             ) {
                 $dispatcher = $this->jobDispatcher();
                 $args = [
@@ -903,6 +903,31 @@ class ModuleController extends AbstractActionController
                         ) ?: $addons->dataFromNamespace($moduleId);
                         if ($addon) {
                             $addons->updateAddon($addon);
+                        }
+                        break;
+
+                    case 'upgrade':
+                        // Upgrade the database of a module whose files are
+                        // already updated: this is not the download above.
+                        $module = $this->moduleManager->getModule($moduleId);
+                        if (!$module) {
+                            break;
+                        }
+                        if ($module->getState() !== OmekaModuleManager::STATE_NEEDS_UPGRADE) {
+                            $this->messenger()->addWarning(new PsrMessage(
+                                'The module "{name}" does not need to be upgraded.', // @translate
+                                ['name' => $moduleId]
+                            ));
+                            break;
+                        }
+                        try {
+                            $this->moduleManager->upgrade($module);
+                            $this->messenger()->addSuccess(new PsrMessage(
+                                'Upgrade of module "{name}" finalized.', // @translate
+                                ['name' => $moduleId]
+                            ));
+                        } catch (\Throwable $e) {
+                            $this->addModuleErrorMessage($e, $moduleId);
                         }
                         break;
 
