@@ -470,7 +470,7 @@ of the [Université des Antilles et de la Guyane].
 [Zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-Zip
 [Cron]: https://gitlab.com/Daniel-KM/Omeka-S-module-Cron
 [installing a module]: https://omeka.org/s/docs/user-manual/modules/
-[EasyAdmin.zip]: https://github.com/Daniel-KM/Omeka-S-module-EasyAdmin/releases
+[EasyAdmin.zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-EasyAdmin/-/releases
 [size or number of files]: https://github.com/omeka/omeka-s/issues/1785
 [Laminas help]: https://docs.laminas.dev/laminas-http/client/adapters
 [curl]: https://curl.se/libcurl/c/curl_easy_setopt.html

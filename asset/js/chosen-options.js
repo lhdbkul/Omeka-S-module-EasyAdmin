@@ -5,7 +5,7 @@
  * Typing "e" matches "é", "è", "ê", etc. and vice versa.
  *
  * @see https://harvesthq.github.io/chosen/
- * @see https://github.com/Daniel-KM/chosen-jquery
+ * @see https://gitlab.com/Daniel-KM/chosen-jquery
  */
 var chosenOptions = {
     allow_single_deselect: true,
