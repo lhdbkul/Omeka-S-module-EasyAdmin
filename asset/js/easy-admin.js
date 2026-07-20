@@ -166,8 +166,7 @@ $(document).ready(function () {
         return dangerousTasks.indexOf(value) !== -1;
     };
 
-    // Hide a section that has no visible subject/group (e.g. all its tasks
-    // filtered out, or all dangerous while listing normal ones).
+    // Hide a section that has no visible subject/group.
     var updateEmptySections = function () {
         $('.check-and-fix fieldset.field-container').each(function () {
             var hasVisible = $(this).find('.task-subject, .task-group').toArray().some(function (el) {

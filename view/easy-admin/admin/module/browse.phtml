@@ -158,22 +158,27 @@ $states = [
 <br/>
 
 <div class="addon-filters">
-<form method="get" class="state-filter">
-    <select name="state" aria-label="<?= $translate('Filter') ?>">
-        <option value=""><?= $translate('All modules') ?></option>
-        <?php foreach (['active', 'not_active', 'not_installed', 'needs_upgrade'] as $s): ?>
-        <option value="<?= $escape($s) ?>"<?= $filterState === $s ? ' selected' : '' ?>><?= $escape($states[$s] ?? $s) ?></option>
-        <?php endforeach ?>
-        <option value="update_available"<?= $filterState === 'update_available' ? ' selected' : '' ?>><?= $escape($translate('Update available')) ?></option>
-        <option value="error"<?= $filterState === 'error' ? ' selected' : '' ?>><?= $escape($translate('Error')) ?></option>
-    </select>
-    <button type="submit" class="screen-reader-text"><?= $escape($translate('Filter')) ?></button>
-</form>
-
 <?php $filterPlaceholder = $translate('Filter modules…'); ?>
 <div class="addon-filter">
     <input type="search" class="addon-filter-input" placeholder="<?= $escapeAttr($filterPlaceholder) ?>" aria-label="<?= $escapeAttr($filterPlaceholder) ?>">
 </div>
+
+<?php
+$stateFilters = [
+    'active' => $states['active'] ?? $translate('Active'),
+    'not_active' => $states['not_active'] ?? $translate('Not active'),
+    'not_installed' => $states['not_installed'] ?? $translate('Not installed'),
+    'needs_upgrade' => $states['needs_upgrade'] ?? $translate('Needs upgrade'),
+    'update_available' => $translate('Update available'),
+    'error' => $translate('Error'),
+];
+?>
+<fieldset class="state-filter">
+    <legend class="screen-reader-text"><?= $escape($translate('Filter by state')) ?></legend>
+    <?php foreach ($stateFilters as $value => $label): ?>
+    <label class="state-filter-check"><input type="checkbox" class="state-filter-input" value="<?= $escape($value) ?>"<?= $filterState === $value ? ' checked' : '' ?>> <?= $escape($label) ?></label>
+    <?php endforeach ?>
+</fieldset>
 </div>
 
 <?php if ($installedModules): ?>
@@ -292,15 +297,11 @@ echo $this->form()->openTag($manageForm);
             && $version
             && version_compare($version, $catalogueVersionCompatible, '<');
 
-        if ($filterState === 'error' && !in_array($state, $errorStates)) {
-            continue;
-        } elseif ($filterState === 'update_available' && !$hasUpdate) {
-            continue;
-        } elseif ($filterState && !in_array($filterState, ['error', 'update_available'], true) && $state !== $filterState) {
-            continue;
-        }
+        // The rows are not filtered here any more: the filter by state is done
+        // in the browser (js), without reload, like the filter by name.
+        $isError = in_array($state, $errorStates, true);
     ?>
-        <tr>
+        <tr data-state="<?= $escape($state) ?>" data-update-available="<?= $hasUpdate ? '1' : '0' ?>" data-error="<?= $isError ? '1' : '0' ?>">
             <td>
                 <?php if (!$isComposer): ?>
                 <input type="checkbox" name="modules[]" value="<?= $escape($moduleId) ?>" aria-label="<?= $escape(sprintf($translate('Select %s'), $name)) ?>">
@@ -593,9 +594,6 @@ uasort($catalogueList, function ($a, $b) {
 </div>
 
 <script>
-$('.state-filter select').change(function() {
-    $(this).closest('form').submit();
-});
 
 <?php if ($selections): ?>
 var selections = <?= json_encode($selections, JSON_UNESCAPED_UNICODE) ?>;

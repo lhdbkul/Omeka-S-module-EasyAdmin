@@ -213,7 +213,7 @@
         white-space: nowrap;
     }
 
-    /* Addon browse: filter by state (server) and by name (browser) on a row */
+    /* Addon browse: filter by state and by name, both in the browser, on a row */
     .themes.browse .addon-filters,
     .modules.browse .addon-filters {
         display: flex;
@@ -221,24 +221,45 @@
         gap: 12px;
         margin: 0 0 1em;
     }
-    .themes.browse .addon-filters .state-filter,
     .modules.browse .addon-filters .state-filter {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
+        gap: 4px 14px;
+        flex: 1 1 auto;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+    .modules.browse .addon-filters .state-filter .state-filter-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 0;
+        white-space: nowrap;
+        font-weight: normal;
+    }
+    .modules.browse .addon-filters .state-filter .state-filter-check input {
         margin: 0;
     }
-    .themes.browse .addon-filters .state-filter button,
-    .modules.browse .addon-filters .state-filter button {
-        position: absolute;
-    }
-    .themes.browse .addon-filters .state-filter select,
-    .modules.browse .addon-filters .state-filter select {
-        margin-bottom: 0;
-    }
-    .themes.browse .addon-filter,
-    .modules.browse .addon-filter {
+    .themes.browse .addon-filter {
         flex: 1 1 auto;
         margin: 0;
+    }
+    .modules.browse .addon-filter {
+        flex: 0 0 260px;
+        margin: 0;
+    }
+    /* Mobile: stack the state checkboxes below the text filter. */
+    @media (max-width: 640px) {
+        .modules.browse .addon-filters {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .modules.browse .addon-filter {
+            flex: 1 1 auto;
+        }
     }
     .themes.browse .addon-filter-input,
     .modules.browse .addon-filter-input {
@@ -308,6 +329,14 @@
     .themes.browse td:last-child,
     .themes.browse th:last-child {
         width: 142px
+    }
+    @media (max-width: 640px) {
+        .modules.browse .addon-filter-target td,
+        .modules.browse .addon-filter-target th,
+        .themes.browse .addon-filter-target td,
+        .themes.browse .addon-filter-target th {
+            width: 100%;
+        }
     }
 
     /* Addon browse: multi-line cells with tablesaw */
