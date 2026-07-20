@@ -347,17 +347,16 @@ echo $this->form()->openTag($manageForm);
                                 aria-label="<?= $escapeAttr($translate('Activate')) ?>"
                                 ><?= $translate('Activate') ?></button>
                         </li>
-                        <li>
-                            <button type="submit" name="state_action_id" value="uninstall:<?= $escape($moduleId) ?>"
-                                formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'uninstall'], ['query' => ['id' => $moduleId]])) ?>"
-                                class="o-icon-uninstall button"
-                                title="<?= $escapeAttr($translate('Uninstall')) ?>"
-                                aria-label="<?= $escapeAttr($translate('Uninstall')) ?>"
-                                ><?= $translate('Uninstall') ?></button>
-                        </li>
                         <?php endif ?>
 
                         <?php if (Manager::STATE_ACTIVE === $state): ?>
+                        <?php if ($module->getIni('configurable')): ?>
+                        <li><?= $hyperlink('', $url('admin/default', ['controller' => 'module', 'action' => 'configure'], ['query' => ['id' => $moduleId]]), [
+                            'class' => 'o-icon-configure',
+                            'title' => $translate('Configure'),
+                            'aria-label' => $translate('Configure'),
+                        ]) ?></li>
+                        <?php endif ?>
                         <li>
                             <button type="submit" name="state_action_id" value="deactivate:<?= $escape($moduleId) ?>"
                                 formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'deactivate'], ['query' => ['id' => $moduleId]])) ?>"
@@ -365,6 +364,20 @@ echo $this->form()->openTag($manageForm);
                                 title="<?= $escapeAttr($translate('Deactivate')) ?>"
                                 aria-label="<?= $escapeAttr($translate('Deactivate')) ?>"
                                 ><?= $translate('Deactivate') ?></button>
+                        </li>
+                        <?php endif ?>
+
+                        <?php // Uninstall removes the data from the database. The
+                        // core allows it on an active module too, not only on a
+                        // deactivated one. ?>
+                        <?php if (in_array($state, [Manager::STATE_ACTIVE, Manager::STATE_NOT_ACTIVE], true)): ?>
+                        <li>
+                            <button type="submit" name="state_action_id" value="uninstall:<?= $escape($moduleId) ?>"
+                                formaction="<?= $escape($url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'uninstall'], ['query' => ['id' => $moduleId]])) ?>"
+                                class="o-icon-uninstall button"
+                                title="<?= $escapeAttr($translate('Uninstall')) ?>"
+                                aria-label="<?= $escapeAttr($translate('Uninstall')) ?>"
+                                ><?= $translate('Uninstall') ?></button>
                         </li>
                         <?php endif ?>
 
