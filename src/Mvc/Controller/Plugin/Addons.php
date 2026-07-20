@@ -554,7 +554,7 @@ class Addons extends AbstractPlugin
         $backupPath = $this->backupAddonAsZip($addonDir, $addon);
         if (!$backupPath) {
             $this->messenger->addError(new PsrMessage(
-                'Unable to backup the current version of "{name}".', // @translate
+                'Unable to backup the current version of "{name}": check that the directory "files/backup/" is writeable and that the php extension "zip" or the command "zip" is available.', // @translate
                 ['name' => $addon['name']]
             ));
             $this->rmDir($tempDir);
@@ -727,7 +727,7 @@ class Addons extends AbstractPlugin
         );
         if (!$backupPath) {
             $this->messenger->addError(new PsrMessage(
-                'Unable to backup "{name}" before removal.', // @translate
+                'Unable to backup "{name}" before removal: check that the directory "files/backup/" is writeable and that the php extension "zip" or the command "zip" is available.', // @translate
                 ['name' => $addon['name']]
             ));
             return false;
@@ -2075,6 +2075,23 @@ class Addons extends AbstractPlugin
             . '-' . $version
             . '-' . date('Ymd_His') . '.zip';
         $zipPath = $backupDir . '/' . $zipName;
+
+        // The php extension "zip" is not available on all servers, so fallback
+        // to the command line, like the unzip above.
+        if (!class_exists('ZipArchive')) {
+            $command = 'cd ' . escapeshellarg(dirname($addonDir))
+                . ' && zip -r -q ' . escapeshellarg($zipPath)
+                . ' ' . escapeshellarg(basename($addonDir));
+            try {
+                $status = $output = $errors = null;
+                $this->executeCommand($command, $status, $output, $errors);
+            } catch (Exception $e) {
+                $status = 1;
+            }
+            return $status === 0 && file_exists($zipPath)
+                ? $zipPath
+                : null;
+        }
 
         $zip = new \ZipArchive();
         if ($zip->open($zipPath, \ZipArchive::CREATE) !== true) {
