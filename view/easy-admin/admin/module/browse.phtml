@@ -91,6 +91,8 @@ $escapeAttr = $plugins->get('escapeHtmlAttr');
 
 $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
+$this->headScript()
+    ->appendFile($assetUrl('js/addon-batch.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
 $this->htmlElement('body')->appendAttribute('class', 'modules browse easy-admin');
 
 // Merged catalogue for update detection.
@@ -190,10 +192,10 @@ echo $this->form()->openTag($manageForm);
     </select>
     <div class="batch-actions">
         <button type="button" class="default active" disabled="disabled"><?= $translate('Go') ?></button>
-        <button type="submit" class="activate" name="batch_submit" value="activate" style="display:none"><?= $translate('Go') ?></button>
-        <button type="submit" class="deactivate" name="batch_submit" value="deactivate" style="display:none"><?= $translate('Go') ?></button>
-        <button type="submit" class="update" name="batch_submit" value="update" style="display:none"><?= $translate('Go') ?></button>
-        <button type="button" class="delete button sidebar-content remove" data-sidebar-selector="#sidebar-remove-selected" style="display:none"><?= $translate('Go') ?></button>
+        <button type="submit" class="activate" name="batch_submit" value="activate"><?= $translate('Go') ?></button>
+        <button type="submit" class="deactivate" name="batch_submit" value="deactivate"><?= $translate('Go') ?></button>
+        <button type="submit" class="update" name="batch_submit" value="update"><?= $translate('Go') ?></button>
+        <a class="delete button sidebar-content remove" data-sidebar-selector="#sidebar-remove-selected"><?= $translate('Go') ?></a>
     </div>
 </div>
 
@@ -487,6 +489,28 @@ uasort($catalogueList, function ($a, $b) {
     return strcasecmp($a['name'], $b['name']);
 });
 ?>
+
+<?php // Confirmation of the batch removal. The submit belongs to the batch
+// form, that is closed above, so it is bound to it with the attribute "form".
+// ?>
+<div id="sidebar-remove-selected" class="sidebar">
+    <?= $hyperlink('', '#', [
+        'class' => 'sidebar-close o-icon-close',
+        'title' => $translate('Close'),
+        'aria-label' => $translate('Close'),
+    ]) ?>
+    <div class="sidebar-content">
+        <div id="sidebar-confirm">
+            <h3><?= $escape($translate('Remove modules')) ?></h3>
+            <p><?= $escape($translate('Are you sure you would like to remove the selected modules?')) ?></p>
+            <p class="error"><?= sprintf(
+                $translate('%1$s: this action will permanently delete the files of the modules and cannot be undone. The data of the modules are kept in the database.'),
+                sprintf('<strong>%s</strong>', $escape($translate('Warning')))
+            ) ?></p>
+            <button type="submit" form="batch-form" name="batch_submit" value="remove" class="button red"><?= $escape($translate('Confirm remove')) ?></button>
+        </div>
+    </div>
+</div>
 
 <div id="sidebar-install" class="sidebar">
     <?= $hyperlink('', '#', [
