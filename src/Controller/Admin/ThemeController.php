@@ -354,7 +354,9 @@ class ThemeController extends AbstractActionController
             );
         }
 
-        $addons->updateAddon($addon);
+        // The confirmation displays the installed and the new versions, so the
+        // update is forced, even to reinstall the same version.
+        $addons->updateAddon($addon, true);
 
         return $this->redirect()->toRoute(
             'admin/easy-admin/default',

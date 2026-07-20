@@ -394,7 +394,9 @@ class ModuleController extends AbstractActionController
             );
         }
 
-        $result = $addons->updateAddon($addon);
+        // The confirmation displays the installed and the new versions, so the
+        // update is forced, even to reinstall the same version.
+        $result = $addons->updateAddon($addon, true);
         if (!$result) {
             // updateAddon already added error details.
             return $this->redirect()->toRoute(

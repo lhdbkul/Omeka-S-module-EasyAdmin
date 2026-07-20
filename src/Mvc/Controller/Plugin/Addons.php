@@ -428,7 +428,11 @@ class Addons extends AbstractPlugin
      *
      * @return bool True on success.
      */
-    public function updateAddon(array $addon): bool
+    /**
+     * @param bool $force Update even when the installed version is already the
+     *   same or more recent than the one of the catalogue.
+     */
+    public function updateAddon(array $addon, bool $force = false): bool
     {
         if ($this->isComposerManaged($addon)) {
             $package = $this->composerPackageName($addon);
@@ -484,6 +488,31 @@ class Addons extends AbstractPlugin
             ));
             $this->rmDir($tempDir);
             return false;
+        }
+
+        // Skip the addons that are already up to date, else they would be
+        // downloaded and overwritten for nothing, and an addon more recent than
+        // the catalogue (development version, catalogue not up to date) would
+        // be silently downgraded. The single update confirmation displays both
+        // versions, so it forces the process.
+        if (!$force) {
+            $installedVersion = $this->getInstalledVersion($addon);
+            $newVersion = $addon['version'] ?? '';
+            if ($installedVersion
+                && $newVersion
+                && version_compare($installedVersion, $newVersion, '>=')
+            ) {
+                $this->messenger->addWarning(new PsrMessage(
+                    'The addon "{name}" is already in version {version_installed} and was not updated to version {version_new}.', // @translate
+                    [
+                        'name' => $addon['name'],
+                        'version_installed' => $installedVersion,
+                        'version_new' => $newVersion,
+                    ]
+                ));
+                $this->rmDir($tempDir);
+                return true;
+            }
         }
 
         // Download new version.
