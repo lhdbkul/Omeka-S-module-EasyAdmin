@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e5e394d8da79d087a4b0d4f0ef2325e4",
+    "content-hash": "cff6582248b4eb6da1d3221c2a995a5e",
     "packages": [
         {
             "name": "flowjs/flow-php-server",

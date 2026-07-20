@@ -22,13 +22,16 @@
         "issues": "https://gitlab.com/Daniel-KM/Omeka-S-module-EasyAdmin/-/issues",
         "forum": "https://forum.omeka.org/"
     },
-    "_require (not set until Omeka S merges PR #2412)": {
+    "_require (not set until Omeka S merges PR #2432)": {
         "omeka/omeka-s": "^4.0",
         "daniel-km/omeka-s-module-common": "*"
     },
     "require": {
         "flowjs/flow-php-server": "^1.2",
         "sempia/external-assets": "^1.1"
+    },
+    "suggest": {
+        "ext-zip": "To install, update and backup modules and themes without the commands \"zip\" and \"unzip\"."
     },
     "autoload": {
         "psr-4": {
@@ -50,9 +53,9 @@
     },
     "extra": {
         "external-assets": {
-            "asset/vendor/flow.js/flow.min.js": "https://github.com/Daniel-KM/Omeka-S-module-EasyAdmin/releases/download/3.4.18/flow.min.js",
-            "asset/vendor/chosen-js/chosen.jquery.js": "https://raw.githubusercontent.com/Daniel-KM/chosen-jquery/master/docs/chosen.jquery.js",
-            "asset/vendor/chosen-js/chosen.css": "https://raw.githubusercontent.com/Daniel-KM/chosen-jquery/master/docs/chosen.css"
+            "asset/vendor/flow.js/flow.min.js": "https://cdn.jsdelivr.net/npm/@flowjs/flow.js@2.14.1/dist/flow.min.js",
+            "asset/vendor/chosen-js/chosen.jquery.js": "https://gitlab.com/Daniel-KM/chosen-jquery/-/raw/master/docs/chosen.jquery.js",
+            "asset/vendor/chosen-js/chosen.css": "https://gitlab.com/Daniel-KM/chosen-jquery/-/raw/master/docs/chosen.css"
         },
         "installer-name": "EasyAdmin",
         "configurable": true
