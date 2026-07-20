@@ -1421,12 +1421,24 @@ class Addons extends AbstractPlugin
             return $moduleIds;
         }
 
+        // Common is a hard dependency of most modules, but it is never set in
+        // the property $dependencies: it is loaded before the autoloader, so it
+        // is checked with checkModuleActiveVersion() during install and
+        // upgrade. So make it an implicit dependency of all other modules.
+        $hasCommon = in_array('Common', $moduleIds, true);
+
         $dependencies = [];
         foreach ($moduleIds as $moduleId) {
             $dependencies[$moduleId] = array_intersect(
                 $this->moduleDependencies($moduleId),
                 $moduleIds
             );
+            if ($hasCommon
+                && $moduleId !== 'Common'
+                && !in_array('Common', $dependencies[$moduleId], true)
+            ) {
+                $dependencies[$moduleId][] = 'Common';
+            }
         }
 
         $sorted = [];
