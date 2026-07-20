@@ -89,6 +89,9 @@ class ManageAddons extends AbstractJob
                 } else {
                     $errors[] = $addonName;
                 }
+                // Log after each addon: the messages would be lost when the
+                // job is stopped or fails in the middle of the process.
+                $this->flushMessages($messenger);
             }
         }
 
@@ -132,6 +135,9 @@ class ManageAddons extends AbstractJob
             } else {
                 $errors[] = $addonName;
             }
+            // Log after each addon: the messages would be lost when the job is
+            // stopped or fails in the middle of the process.
+            $this->flushMessages($messenger);
         }
 
         $this->flushMessages($messenger);
@@ -168,6 +174,7 @@ class ManageAddons extends AbstractJob
 
         foreach ($addonList as $addonName) {
             $this->tryUpgradeDb($addonName);
+            $this->flushMessages($messenger);
         }
 
         $this->flushMessages($messenger);
@@ -201,6 +208,9 @@ class ManageAddons extends AbstractJob
             } else {
                 $errors[] = $addonName;
             }
+            // Log after each addon: the messages would be lost when the job is
+            // stopped or fails in the middle of the process.
+            $this->flushMessages($messenger);
         }
 
         $this->flushMessages($messenger);
@@ -278,6 +288,10 @@ class ManageAddons extends AbstractJob
                 }
             }
         }
+
+        // Messenger::get() does not empty the stack, so clear it to avoid
+        // logging the same messages again on the next flush.
+        $messenger->clear();
     }
 
     protected function logSummary(
