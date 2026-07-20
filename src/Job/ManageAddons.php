@@ -140,7 +140,7 @@ class ManageAddons extends AbstractJob
             $this->job->setStatus(
                 \Omeka\Entity\Job::STATUS_ERROR
             );
-            $this->logger->error(
+            $this->logger->err(
                 'Failed to update: {addons}.', // @translate
                 ['addons' => implode(', ', $errors)]
             );
@@ -209,7 +209,7 @@ class ManageAddons extends AbstractJob
             $this->job->setStatus(
                 \Omeka\Entity\Job::STATUS_ERROR
             );
-            $this->logger->error(
+            $this->logger->err(
                 'Failed to remove: {addons}.', // @translate
                 ['addons' => implode(', ', $errors)]
             );
@@ -303,7 +303,7 @@ class ManageAddons extends AbstractJob
             $this->job->setStatus(
                 \Omeka\Entity\Job::STATUS_ERROR
             );
-            $this->logger->error(
+            $this->logger->err(
                 'The following addons failed to {operation}: {addons}.', // @translate
                 [
                     'operation' => $operation,
