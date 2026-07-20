@@ -31,7 +31,6 @@ $this->headScript()
     ->appendFile($assetUrl('js/addon-filter.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
 $this->htmlElement('body')->appendAttribute('class', 'themes browse easy-admin');
 
-$composerAddonsPath = OMEKA_PATH . '/composer-addons/themes';
 $omekaVersion = \Omeka\Module::VERSION;
 
 // Merged catalogue for update detection.
@@ -128,7 +127,7 @@ echo $this->form()->openTag($manageForm);
     </thead>
     <tbody>
     <?php foreach ($localThemes as $themeId => $theme):
-        $isComposer = is_dir($composerAddonsPath . '/' . $themeId);
+        $isComposer = $isComposerManaged($themeId);
 
         $catalogueVersion = null;
         foreach ($catalogueThemes as $ct) {

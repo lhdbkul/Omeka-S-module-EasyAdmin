@@ -99,7 +99,6 @@ $this->htmlElement('body')->appendAttribute('class', 'modules browse easy-admin'
 // Merged catalogue for update detection.
 $catalogueModules = array_merge($omekaModules, $webModules);
 
-$composerAddonsPath = OMEKA_PATH . '/composer-addons/modules';
 
 $states = [
     Manager::STATE_ACTIVE => $translate('Active'),
@@ -227,7 +226,7 @@ echo $this->form()->openTag($manageForm);
             Manager::STATE_INVALID_INI,
             Manager::STATE_INVALID_OMEKA_VERSION,
         ];
-        $isComposer = is_dir($composerAddonsPath . '/' . $moduleId);
+        $isComposer = $isComposerManaged($moduleId);
         $ini = $module->getIni();
         $version = $ini['version'] ?? '';
         $name = $module->getName() ?: $moduleId;

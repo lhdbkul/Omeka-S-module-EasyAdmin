@@ -148,6 +148,13 @@ class ThemeController extends AbstractActionController
             'refreshForm' => $refreshForm,
             'cataloguePending' => $cataloguePending,
             'catalogueUrl' => $catalogueUrl,
+            // A theme present in composer-addons/ may be overridden by a real
+            // directory in themes/, that is managed here, so the full check is
+            // needed, not only the presence in composer-addons/.
+            'isComposerManaged' => fn (string $dir): bool => $addons->isComposerManaged([
+                'type' => 'theme',
+                'dir' => $dir,
+            ]),
         ]);
         $view->setTemplate('easy-admin/admin/theme/browse');
 

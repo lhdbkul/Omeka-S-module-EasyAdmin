@@ -123,6 +123,13 @@ class ModuleController extends AbstractActionController
             'refreshForm' => $refreshForm,
             'cataloguePending' => $cataloguePending,
             'catalogueUrl' => $catalogueUrl,
+            // A module present in composer-addons/ may be overridden by a real
+            // directory in modules/, that is managed here, so the full check is
+            // needed, not only the presence in composer-addons/.
+            'isComposerManaged' => fn (string $dir): bool => $addons->isComposerManaged([
+                'type' => 'module',
+                'dir' => $dir,
+            ]),
         ]);
         $view->setTemplate('easy-admin/admin/module/browse');
 
