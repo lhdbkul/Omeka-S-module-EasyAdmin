@@ -1232,6 +1232,16 @@ class Addons extends AbstractPlugin
                 return false;
         }
 
+        // Installing an addon already managed by Composer creates a local
+        // directory that takes precedence over it, so warn the user: the two
+        // versions will diverge on the next "composer update".
+        if ($this->isComposerManaged($addon)) {
+            $this->messenger->addWarning(new PsrMessage(
+                'The addon "{name}" is managed by Composer: the local version installed here will override it and it will not be updated by Composer any more.', // @translate
+                ['name' => $addon['name']]
+            ));
+        }
+
         $missingDependencies = [];
         if (!empty($addon['dependencies'])) {
             foreach ($addon['dependencies'] as $dependency) {
