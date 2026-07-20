@@ -213,6 +213,44 @@
         white-space: nowrap;
     }
 
+    /* Addon browse: filter by state (server) and by name (browser) on a row */
+    .themes.browse .addon-filters,
+    .modules.browse .addon-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 1em;
+    }
+    .themes.browse .addon-filters .state-filter,
+    .modules.browse .addon-filters .state-filter {
+        display: flex;
+        align-items: center;
+        margin: 0;
+    }
+    .themes.browse .addon-filters .state-filter button,
+    .modules.browse .addon-filters .state-filter button {
+        position: absolute;
+    }
+    .themes.browse .addon-filters .state-filter select,
+    .modules.browse .addon-filters .state-filter select {
+        margin-bottom: 0;
+    }
+    .themes.browse .addon-filter,
+    .modules.browse .addon-filter {
+        flex: 1 1 auto;
+        margin: 0;
+    }
+    .themes.browse .addon-filter-input,
+    .modules.browse .addon-filter-input {
+        box-sizing: border-box;
+        width: 100%;
+        height: 36px;
+        padding: 0 .6em;
+    }
+    .addon-filter-target .addon-hidden-filter {
+        display: none !important;
+    }
+
     /* Addon browse: update available */
     .col-version.has-update {
         color: green;
@@ -549,10 +587,7 @@
         cursor: pointer;
     }
 
-    /* Keep the info arrow on the label line, at the far right, with the
-       description wrapping full-width below. Applies to regular fields (label
-       in .field-meta) and to single checkboxes whose label/arrow were moved
-       into .inputs. */
+    /* Keep the info arrow on the label line, at the far right */
     #cf-sidebar .task-recap-options .field-meta,
     #cf-sidebar .task-recap-options .cf-bare-checkbox .inputs {
         display: flex;
@@ -575,9 +610,7 @@
         flex: 0 0 100%;
     }
 
-    /* Pinned submit, using the core confirm-main/confirm-panel pattern. These
-       rules are a fallback for Omeka versions whose core css does not yet style
-       them; on recent cores they merely match the core values. */
+    /* Pinned submit, using the core confirm-main/confirm-panel pattern. */
     #cf-sidebar .confirm-main,
     #backup-sidebar .confirm-main {
         position: absolute;
@@ -670,8 +703,7 @@
         padding: 0;
         border: 0;
     }
-    /* Keep the core ".sidebar legend" styling (full-width divider) so section
-       headers look like the check-and-fix ones; only the top margin is reset. */
+    /* Keep the core ".sidebar legend" styling to look like check-and-fix ones. */
     #backup-sidebar legend {
         margin-top: 0;
     }
@@ -688,8 +720,7 @@
         font-size: .9em;
     }
 
-    /* The pinned submit is only useful once a task is selected: hide it (and let
-       the scroll area take the full height) while the default help is shown. */
+    /* The pinned submit is only useful once a task is selected. */
     #cf-sidebar:not(.has-selection) .confirm-panel,
     #backup-sidebar:not(.has-selection) .confirm-panel {
         display: none;

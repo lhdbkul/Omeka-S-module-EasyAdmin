@@ -27,7 +27,8 @@ $hyperlink = $plugins->get('hyperlink');
 $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
 $this->headScript()
-    ->appendFile($assetUrl('js/addon-batch.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+    ->appendFile($assetUrl('js/addon-batch.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer'])
+    ->appendFile($assetUrl('js/addon-filter.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
 $this->htmlElement('body')->appendAttribute('class', 'themes browse easy-admin');
 
 $composerAddonsPath = OMEKA_PATH . '/composer-addons/themes';
@@ -84,6 +85,13 @@ $catalogueThemes = array_merge($omekaThemes, $webThemes);
 
 <?php if ($localThemes): ?>
 
+<?php $filterPlaceholder = $translate('Filter themes…'); ?>
+<div class="addon-filters">
+    <div class="addon-filter">
+        <input type="search" class="addon-filter-input" placeholder="<?= $this->escapeHtmlAttr($filterPlaceholder) ?>" aria-label="<?= $this->escapeHtmlAttr($filterPlaceholder) ?>">
+    </div>
+</div>
+
 <?php
 $manageForm
     ->prepare()
@@ -107,7 +115,7 @@ echo $this->form()->openTag($manageForm);
     </div>
 </div>
 
-<table class="tablesaw batch-edit" data-tablesaw-mode="stack">
+<table class="tablesaw batch-edit addon-filter-target" data-tablesaw-mode="stack">
     <thead>
         <tr>
             <th>

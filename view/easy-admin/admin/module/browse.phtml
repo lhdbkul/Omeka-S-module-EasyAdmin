@@ -92,7 +92,8 @@ $escapeAttr = $plugins->get('escapeHtmlAttr');
 $this->headLink()
     ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
 $this->headScript()
-    ->appendFile($assetUrl('js/addon-batch.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+    ->appendFile($assetUrl('js/addon-batch.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer'])
+    ->appendFile($assetUrl('js/addon-filter.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
 $this->htmlElement('body')->appendAttribute('class', 'modules browse easy-admin');
 
 // Merged catalogue for update detection.
@@ -157,6 +158,7 @@ $states = [
 
 <br/>
 
+<div class="addon-filters">
 <form method="get" class="state-filter">
     <select name="state" aria-label="<?= $translate('Filter') ?>">
         <option value=""><?= $translate('All modules') ?></option>
@@ -168,6 +170,12 @@ $states = [
     </select>
     <button type="submit" class="screen-reader-text"><?= $escape($translate('Filter')) ?></button>
 </form>
+
+<?php $filterPlaceholder = $translate('Filter modules…'); ?>
+<div class="addon-filter">
+    <input type="search" class="addon-filter-input" placeholder="<?= $escapeAttr($filterPlaceholder) ?>" aria-label="<?= $escapeAttr($filterPlaceholder) ?>">
+</div>
+</div>
 
 <?php if ($installedModules): ?>
 
@@ -199,7 +207,7 @@ echo $this->form()->openTag($manageForm);
     </div>
 </div>
 
-<table class="tablesaw batch-edit" data-tablesaw-mode="stack">
+<table class="tablesaw batch-edit addon-filter-target" data-tablesaw-mode="stack">
     <thead>
         <tr>
             <th>
