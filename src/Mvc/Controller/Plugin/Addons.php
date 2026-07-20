@@ -1400,6 +1400,126 @@ class Addons extends AbstractPlugin
      *
      * @todo Modules cannot be api read or fetch one by one by the api (core issue).
      */
+    /**
+     * Sort module names so that dependencies are processed in a safe order.
+     *
+     * For install, update and activate, a module is processed after the modules
+     * it depends on. For remove and deactivate, the order is reversed, so a
+     * module is processed after the modules that depend on it.
+     *
+     * Only the dependencies inside the list matter: the other ones are not
+     * processed, so they keep their current version and state.
+     *
+     * @param string[] $moduleIds
+     * @param bool $reverse Reverse the order, for remove and deactivate.
+     * @return string[]
+     */
+    public function sortByDependencies(array $moduleIds, bool $reverse = false): array
+    {
+        $moduleIds = array_values(array_unique(array_filter($moduleIds)));
+        if (count($moduleIds) < 2) {
+            return $moduleIds;
+        }
+
+        $dependencies = [];
+        foreach ($moduleIds as $moduleId) {
+            $dependencies[$moduleId] = array_intersect(
+                $this->moduleDependencies($moduleId),
+                $moduleIds
+            );
+        }
+
+        $sorted = [];
+        $done = [];
+        $visiting = [];
+        $visit = function (string $moduleId) use (&$visit, &$sorted, &$done, &$visiting, $dependencies): void {
+            // A circular dependency cannot be ordered: keep the current place.
+            if (isset($done[$moduleId]) || isset($visiting[$moduleId])) {
+                return;
+            }
+            $visiting[$moduleId] = true;
+            foreach ($dependencies[$moduleId] as $dependency) {
+                $visit($dependency);
+            }
+            unset($visiting[$moduleId]);
+            $done[$moduleId] = true;
+            $sorted[] = $moduleId;
+        };
+        foreach ($moduleIds as $moduleId) {
+            $visit($moduleId);
+        }
+
+        return $reverse ? array_reverse($sorted) : $sorted;
+    }
+
+    /**
+     * Get the modules required by a module.
+     *
+     * Omeka has no dependency mechanism, so the list is taken from the key
+     * "dependencies" of the module.ini, else from the property $dependencies of
+     * the Module class, that is the convention of the module Common. The class
+     * may not be autoloaded when the module is not active, so the file is
+     * parsed in that case.
+     *
+     * @return string[]
+     */
+    public function moduleDependencies(string $moduleId): array
+    {
+        static $cache = [];
+
+        if (isset($cache[$moduleId])) {
+            return $cache[$moduleId];
+        }
+
+        // The api requires the admin rights: never break a batch process for a
+        // missing right, the file is parsed below in that case.
+        try {
+            $module = $this->getModule($moduleId);
+            $dependencies = $module
+                ? ($module->getJsonLd()['o:ini']['dependencies'] ?? null)
+                : null;
+        } catch (\Exception $e) {
+            $dependencies = null;
+        }
+
+        if (!$dependencies) {
+            $class = $moduleId . '\\Module';
+            if (class_exists($class)) {
+                $defaults = (new \ReflectionClass($class))->getDefaultProperties();
+                $dependencies = $defaults['dependencies'] ?? null;
+            } else {
+                $dependencies = $this->moduleDependenciesFromFile($moduleId);
+            }
+        }
+
+        return $cache[$moduleId] = array_values(array_filter(
+            array_map('strval', (array) $dependencies)
+        ));
+    }
+
+    /**
+     * Parse the property $dependencies in the file Module.php of a module that
+     * is not autoloaded.
+     *
+     * @return string[]
+     */
+    protected function moduleDependenciesFromFile(string $moduleId): array
+    {
+        foreach (['/modules/', '/composer-addons/modules/'] as $dir) {
+            $filepath = OMEKA_PATH . $dir . $moduleId . '/Module.php';
+            if (!file_exists($filepath) || !is_readable($filepath)) {
+                continue;
+            }
+            $source = file_get_contents($filepath);
+            if (!preg_match('~\$dependencies\s*=\s*\[(.*?)\]~s', $source, $matches)) {
+                return [];
+            }
+            preg_match_all('~[\'"]([A-Za-z0-9_]+)[\'"]~', $matches[1], $names);
+            return $names[1];
+        }
+        return [];
+    }
+
     protected function getModule(string $module): ?ModuleRepresentation
     {
         /** @var \Omeka\Api\Representation\ModuleRepresentation[] $modules */

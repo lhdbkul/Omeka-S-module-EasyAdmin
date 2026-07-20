@@ -805,6 +805,13 @@ class ModuleController extends AbstractActionController
         $selected = $post['modules'] ?? [];
 
         if ($action && $selected) {
+            // Process the dependencies first for install, update and activate,
+            // and the dependents first for remove and deactivate.
+            $selected = $addons->sortByDependencies(
+                $selected,
+                in_array($action, ['remove', 'deactivate'], true)
+            );
+
             // For large selections, dispatch as job.
             if (count($selected) > 3
                 && in_array($action, ['update', 'remove'])

@@ -66,6 +66,9 @@ class ManageAddons extends AbstractJob
             $addonList = $selections[$selection] ?? [];
         }
 
+        // Install the dependencies before the modules that require them.
+        $addonList = $addons->sortByDependencies($addonList);
+
         $unknowns = [];
         $existings = [];
         $errors = [];
@@ -101,7 +104,8 @@ class ManageAddons extends AbstractJob
         $messenger,
         array $options
     ): void {
-        $addonList = $this->getArg('addons', []);
+        // Update the dependencies before the modules that require them.
+        $addonList = $addons->sortByDependencies($this->getArg('addons', []));
         $autoUpgrade = !empty($options['auto_upgrade']);
 
         $errors = [];
@@ -148,7 +152,8 @@ class ManageAddons extends AbstractJob
 
     protected function performRemove($addons, $messenger): void
     {
-        $addonList = $this->getArg('addons', []);
+        // Remove the modules that require a dependency before the dependency.
+        $addonList = $addons->sortByDependencies($this->getArg('addons', []), true);
 
         $errors = [];
         $removed = [];
