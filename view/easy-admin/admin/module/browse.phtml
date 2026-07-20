@@ -511,7 +511,7 @@ uasort($catalogueList, function ($a, $b) {
             <h3><?= $escape($translate('Remove modules')) ?></h3>
             <p><?= $escape($translate('Are you sure you would like to remove the selected modules?')) ?></p>
             <p class="error"><?= sprintf(
-                $translate('%1$s: this action will permanently delete the files of the modules and cannot be undone. The data of the modules are kept in the database.'),
+                $translate('%1$s: this action will uninstall the modules from the database, so their data will be lost, and delete all their files. A backup of the files will be created.'),
                 sprintf('<strong>%s</strong>', $escape($translate('Warning')))
             ) ?></p>
             <button type="submit" form="batch-form" name="batch_submit" value="remove" class="button red"><?= $escape($translate('Confirm remove')) ?></button>

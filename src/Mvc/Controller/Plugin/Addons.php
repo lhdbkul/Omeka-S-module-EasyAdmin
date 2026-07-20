@@ -322,6 +322,31 @@ class Addons extends AbstractPlugin
     }
 
     /**
+     * Get the Composer package name of an addon, from its composer.json.
+     */
+    public function composerPackageName(array $addon): ?string
+    {
+        $type = $addon['type'] ?? '';
+        $dir = $addon['dir'] ?? '';
+        if (!$type || !$dir) {
+            return null;
+        }
+
+        $subDir = in_array($type, ['module', 'omekamodule'])
+            ? 'modules' : 'themes';
+        $filepath = OMEKA_PATH . '/composer-addons/' . $subDir
+            . '/' . $dir . '/composer.json';
+        if (!file_exists($filepath) || !is_readable($filepath)) {
+            return null;
+        }
+
+        $data = json_decode((string) file_get_contents($filepath), true);
+        return is_array($data) && !empty($data['name'])
+            ? (string) $data['name']
+            : null;
+    }
+
+    /**
      * Get the installed version from the addon ini file.
      */
     public function getInstalledVersion(array $addon): ?string
@@ -406,10 +431,16 @@ class Addons extends AbstractPlugin
     public function updateAddon(array $addon): bool
     {
         if ($this->isComposerManaged($addon)) {
-            $this->messenger->addError(new PsrMessage(
-                'The addon "{name}" is managed by Composer and cannot be updated here.', // @translate
-                ['name' => $addon['name']]
-            ));
+            $package = $this->composerPackageName($addon);
+            $this->messenger->addError($package
+                ? new PsrMessage(
+                    'The addon "{name}" is managed by Composer and cannot be updated here. Run the command "{command}" on the server instead.', // @translate
+                    ['name' => $addon['name'], 'command' => 'composer update ' . $package]
+                )
+                : new PsrMessage(
+                    'The addon "{name}" is managed by Composer and cannot be updated here. Run the command "composer update" on the server instead.', // @translate
+                    ['name' => $addon['name']]
+                ));
             return false;
         }
 
@@ -572,10 +603,16 @@ class Addons extends AbstractPlugin
     public function removeAddon(array $addon): bool
     {
         if ($this->isComposerManaged($addon)) {
-            $this->messenger->addError(new PsrMessage(
-                'The addon "{name}" is managed by Composer and cannot be removed here.', // @translate
-                ['name' => $addon['name']]
-            ));
+            $package = $this->composerPackageName($addon);
+            $this->messenger->addError($package
+                ? new PsrMessage(
+                    'The addon "{name}" is managed by Composer and cannot be removed here. Run the command "{command}" on the server instead.', // @translate
+                    ['name' => $addon['name'], 'command' => 'composer remove ' . $package]
+                )
+                : new PsrMessage(
+                    'The addon "{name}" is managed by Composer and cannot be removed here. Run the command "composer remove" on the server instead.', // @translate
+                    ['name' => $addon['name']]
+                ));
             return false;
         }
 

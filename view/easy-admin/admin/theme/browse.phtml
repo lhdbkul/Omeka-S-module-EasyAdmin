@@ -283,7 +283,7 @@ uasort($catalogueList, function ($a, $b) {
             <h3><?= $escape($translate('Remove themes')) ?></h3>
             <p><?= $escape($translate('Are you sure you would like to remove the selected themes?')) ?></p>
             <p class="error"><?= sprintf(
-                $translate('%1$s: this action will permanently delete the files of the themes and cannot be undone. The sites using them will need another theme.'),
+                $translate('%1$s: this action will delete all files of the themes. A backup of the files will be created.'),
                 sprintf('<strong>%s</strong>', $escape($translate('Warning')))
             ) ?></p>
             <button type="submit" form="batch-form" name="batch_submit" value="remove" class="button red"><?= $escape($translate('Confirm remove')) ?></button>
