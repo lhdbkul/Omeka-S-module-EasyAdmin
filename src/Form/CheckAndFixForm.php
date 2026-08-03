@@ -618,6 +618,7 @@ class CheckAndFixForm extends Form
                 'media',
                 'value_annotations',
                 'annotations',
+                'concepts',
                 'digital_objects',
             ];
         $fieldset
@@ -1010,6 +1011,7 @@ class CheckAndFixForm extends Form
                 'media',
                 'value_annotations',
                 'annotations',
+                'concepts',
                 'digital_objects',
             ];
         $hasValueAnnotation = in_array('value_annotations', $available, true);
@@ -1044,6 +1046,7 @@ class CheckAndFixForm extends Form
             'media' => 'Medias', // @translate
             'value_annotations' => 'Value annotations', // @translate
             'annotations' => 'Annotations', // @translate
+            'concepts' => 'Concepts', // @translate
             'digital_objects' => 'Digital objects', // @translate
         ];
         $resourceTypeOptions = ['all' => $resourceTypeLabels['all']];

@@ -50,6 +50,7 @@ class DbValueClean extends AbstractCheck
             'media',
             'value_annotations',
             'annotations',
+            'concepts',
             'digital_objects',
         ];
 

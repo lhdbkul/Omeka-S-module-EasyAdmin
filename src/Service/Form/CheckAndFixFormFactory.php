@@ -14,8 +14,8 @@ class CheckAndFixFormFactory implements FactoryInterface
         $connection = $services->get('Omeka\Connection');
 
         $candidates = [
-            'value_annotation' => 'value_annotations',
             'annotation' => 'annotations',
+            'concept' => 'concepts',
             'digital_object' => 'digital_objects',
         ];
         $available = ['items', 'item_sets', 'media'];

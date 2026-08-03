@@ -619,6 +619,8 @@ class DbResourceTitle extends AbstractCheck
             'Annotate\Entity\Annotation' => 'annotations',
             // DigitalObject module.
             'DigitalObject\Entity\DigitalObject' => 'digital_objects',
+            // Thesaurus module.
+            'Thesaurus\Entity\Concept' => 'concepts',
         ];
         return $map[$resourceType] ?? null;
     }

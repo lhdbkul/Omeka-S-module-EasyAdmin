@@ -57,6 +57,7 @@ class DbLoopResources extends AbstractJob
             'media',
             'value_annotations',
             'annotations',
+            'concepts',
             'digital_objects',
         ];
         // Accept a single type (form radio), an array of types (programmatic
