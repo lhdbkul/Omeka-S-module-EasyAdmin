@@ -352,6 +352,7 @@ class CheckAndFixForm extends Form
                 'description' => 'Check the PHP-CLI path, its version alignment with the web server and the required extensions.', // @translate
                 'actions' => [
                     'phpcli_check' => 'Check', // @translate
+                    'phpcli_test_job' => 'Test job', // @translate
                 ],
             ],
         ];
@@ -1522,6 +1523,7 @@ class CheckAndFixForm extends Form
                         'cache_fix' => 'Clear caches (after update or modifications of code)', // @translate
                         'mail_check' => 'Check email configuration and send test email', // @translate
                         'phpcli_check' => 'Check the PHP-CLI used by background jobs (path, version alignment with the web server, extensions) and suggest the correct path', // @translate
+                        'phpcli_test_job' => 'Run a test job in the background to check the whole pipeline end to end', // @translate
                     ],
                 ],
                 'attributes' => [

@@ -390,6 +390,16 @@ class Module extends AbstractModule
             );
         }
 
+        // Enrich the system information page with the diagnostics of the
+        // PHP-CLI used by background jobs. The core triggers the "system_info"
+        // event since Omeka S 4.2 (before, the listener is simply never
+        // called).
+        $sharedEventManager->attach(
+            \Omeka\Controller\Admin\SystemInfoController::class,
+            'system_info',
+            [$this, 'handleSystemInfo']
+        );
+
         // Add the "Apply" button (save and stay on the form) on every module
         // config page. The button is added on render (configure GET) and the
         // core redirect to the module list is rewritten to the config form on
@@ -753,6 +763,52 @@ class Module extends AbstractModule
     /**
      * Add the "Apply" button asset on the module config form (configure page).
      */
+    /**
+     * Add the PHP-CLI diagnostics of the background jobs to the system
+     * information page (without a light candidate scan, to keep it fast).
+     */
+    public function handleSystemInfo(Event $event): void
+    {
+        $services = $this->getServiceLocator();
+        $strategy = get_class($services->get('Omeka\Job\Dispatcher')->getDispatchStrategy());
+        $checker = new \EasyAdmin\Stdlib\JobCliChecker(
+            $services->get('Omeka\Cli'),
+            $services->get('Config'),
+            $strategy
+        );
+        $r = $checker->check(false);
+
+        $path = is_string($r['effective']) && $r['effective'] !== '' ? $r['effective'] : '[none]';
+        if ($r['configured'] && $r['effective'] === false) {
+            $path = $r['configured'] . ' [invalid]';
+        }
+        $version = '[not run]';
+        if ($r['effectiveInfo']) {
+            $version = sprintf(
+                '%s (%s)%s',
+                $r['effectiveInfo']['version'],
+                $r['effectiveInfo']['sapi'] !== '' ? $r['effectiveInfo']['sapi'] : 'unknown',
+                $r['versionMatch'] ? ' [matches web]' : ' [differs from web ' . $r['web']['version'] . ']'
+            );
+        }
+
+        $block = [
+            'Dispatch strategy' => $r['dispatchStrategy'] ?? '[default]',
+            'Web can spawn process' => $r['canSpawn']['ok'] ? 'yes' : 'no (proc_open and exec disabled)',
+            'PHP-CLI path' => $path,
+            'PHP-CLI version' => $version,
+            'pdo_mysql' => $r['hasPdoMysql'] === null ? '[unknown]' : ($r['hasPdoMysql'] ? 'yes' : 'no'),
+            'open_basedir' => $r['openBasedir'] ? implode(', ', $r['openBasedir']) : '[none]',
+        ];
+        if ($r['missingExtensions']) {
+            $block['PHP-CLI missing extensions'] = implode(', ', $r['missingExtensions']);
+        }
+
+        $info = $event->getParam('info');
+        $info['Background jobs'] = $block;
+        $event->setParam('info', $info);
+    }
+
     public function handleConfigApplyButton(Event $event): void
     {
         $services = $this->getServiceLocator();

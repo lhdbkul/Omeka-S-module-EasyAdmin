@@ -218,6 +218,9 @@ class CheckAndFixController extends AbstractActionController
             case 'phpcli_check':
                 $this->checkPhpCli();
                 break;
+            case 'phpcli_test_job':
+                $this->testPhpCliJob();
+                break;
             case 'db_fulltext_index':
                 $job = $dispatcher->dispatch(\Omeka\Job\IndexFulltextSearch::class);
                 break;
@@ -1126,172 +1129,117 @@ class CheckAndFixController extends AbstractActionController
         /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
         $messenger = $this->messenger();
         $services = $this->getEvent()->getApplication()->getServiceManager();
-        $config = $services->get('Config');
-        /** @var \Omeka\Stdlib\Cli $cli */
-        $cli = $services->get('Omeka\Cli');
 
-        $webVersion = PHP_VERSION;
-        $webMajorMinor = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
-        $versionNoDot = PHP_MAJOR_VERSION . '' . PHP_MINOR_VERSION;
+        $strategyClass = get_class($services->get('Omeka\Job\Dispatcher')->getDispatchStrategy());
+        $checker = new \EasyAdmin\Stdlib\JobCliChecker(
+            $services->get('Omeka\Cli'),
+            $services->get('Config'),
+            $strategyClass
+        );
+        $r = $checker->check();
 
-        // Version and SAPI (cli, cgi-fcgi, fpm-fcgi…) of a php binary, executed
-        // in the web context, or null when it cannot be run (missing,
-        // open_basedir, disabled functions, permissions…).
-        $phpInfo = function (string $path) use ($cli): ?array {
-            $output = $cli->execute(escapeshellarg($path) . ' --version');
-            if (!is_string($output) || !preg_match('/PHP (\d+\.\d+\.\d+)(?:\s*\(([^)]+)\))?/', $output, $m)) {
-                return null;
-            }
-            return ['version' => $m[1], 'sapi' => $m[2] ?? ''];
-        };
-        $majorMinor = fn (string $version): string => implode('.', array_slice(explode('.', $version), 0, 2));
-        // A cli binary is preferred: php-cgi and php-fpm binaries emit headers
-        // and mishandle arguments, so jobs may fail with them.
-        $isCli = fn (string $sapi): bool => $sapi === '' || stripos($sapi, 'cli') !== false;
-        // Whether a php binary has a loaded extension.
-        $phpHasExt = function (string $path, string $ext) use ($cli): ?bool {
-            $output = $cli->execute(escapeshellarg($path) . ' -m');
-            if (!is_string($output)) {
-                return null;
-            }
-            $modules = array_map('strtolower', array_map('trim', preg_split('/\R/', trim($output)) ?: []));
-            return in_array(strtolower($ext), $modules, true);
-        };
+        $webVersion = $r['web']['version'];
+        $webMajorMinor = $r['web']['majorMinor'];
 
-        // Resolve the path Omeka uses, exactly as the job dispatch strategy.
-        $configured = $config['cli']['phpcli_path'] ?? null;
-        if ($configured) {
-            $effective = $cli->validateCommand($configured);
-            if ($effective === false) {
-                $messenger->addError(new PsrMessage(
-                    'The configured PHP-CLI path is invalid (missing or not executable): {path}. This is the cause of the error "PHP-CLI error: invalid PHP path"; jobs cannot run.', // @translate
-                    ['path' => $configured]
-                ));
-            }
-        } else {
-            $effective = $cli->getCommandPath('php');
-            if ($effective === false) {
+        // Dispatch strategy: synchronous jobs do not use the PHP-CLI at all.
+        if ($r['dispatchStrategy'] !== null && stripos($r['dispatchStrategy'], 'Synchronous') !== false) {
+            $messenger->addNotice('Jobs use the "Synchronous" strategy: they run in the web process and do not use the PHP-CLI, so this check is only informational.'); // @translate
+        }
+
+        // Without proc_open/exec no job can even be started.
+        if (!$r['canSpawn']['ok']) {
+            $messenger->addError('The web PHP cannot spawn a process ("proc_open" and "exec" are both disabled); no background job can start, whatever the PHP-CLI path. Remove one of them from "disable_functions".'); // @translate
+        }
+
+        // Configured or auto-detected path.
+        if ($r['configured'] && $r['effective'] === false) {
+            $messenger->addError(new PsrMessage(
+                'The configured PHP-CLI path is invalid ({reason}): {path}. This is the cause of the error "PHP-CLI error: invalid PHP path"; jobs cannot run.', // @translate
+                ['reason' => $this->translate($r['invalidReason'] ?? 'the path is invalid'), 'path' => $r['configured']] // @translate
+            ));
+        } elseif ($r['auto']) {
+            if ($r['effective'] === false) {
                 $messenger->addError('No PHP-CLI path is configured and none could be auto-detected ("command -v php" failed); jobs cannot run.'); // @translate
             } else {
                 $messenger->addNotice(new PsrMessage(
                     'No PHP-CLI path is configured; Omeka auto-detects "{path}". It is safer to set it explicitly to the binary matching the web version.', // @translate
-                    ['path' => $effective]
+                    ['path' => $r['effective']]
                 ));
             }
         }
 
         $messenger->addNotice(new PsrMessage(
-            'Web PHP version (this page): {version}.', // @translate
-            ['version' => $webVersion]
+            'Web PHP version (this page): {version} (SAPI {sapi}).', // @translate
+            ['version' => $webVersion, 'sapi' => $r['web']['sapi']]
         ));
 
-        if (is_string($effective) && $effective !== '') {
-            $info = $phpInfo($effective);
-            if ($info === null) {
+        // Effective binary: SAPI, version match, pdo_mysql, extensions parity.
+        if (is_string($r['effective']) && $r['effective'] !== '') {
+            if ($r['effectiveInfo'] === null) {
                 $messenger->addWarning(new PsrMessage(
                     'The PHP binary could not be executed from the web context ({path}); check open_basedir, disabled functions and permissions.', // @translate
-                    ['path' => $effective]
+                    ['path' => $r['effective']]
                 ));
             } else {
-                if (!$isCli($info['sapi'])) {
+                if ($r['sapiIsCli'] === false) {
                     $messenger->addWarning(new PsrMessage(
-                        'The configured PHP binary uses the "{sapi}" SAPI, not CLI ({path}); php-cgi and php-fpm binaries emit headers and mishandle arguments, so jobs may fail. Prefer a php-cli binary.', // @translate
-                        ['sapi' => $info['sapi'], 'path' => $effective]
+                        'The configured PHP binary uses the "{sapi}" SAPI, not CLI ({path}); php-cgi and php-fpm binaries emit headers and mishandle arguments (perform-job.php reads them with getopt, empty under cgi, so the job exits and stays "starting"). Prefer a php-cli binary.', // @translate
+                        ['sapi' => $r['effectiveInfo']['sapi'], 'path' => $r['effective']]
                     ));
                 }
-                if ($majorMinor($info['version']) === $webMajorMinor) {
+                if ($r['versionMatch']) {
                     $messenger->addSuccess(new PsrMessage(
                         'The PHP-CLI version ({cli}) matches the web version ({web}): {path}.', // @translate
-                        ['cli' => $info['version'], 'web' => $webVersion, 'path' => $effective]
+                        ['cli' => $r['effectiveInfo']['version'], 'web' => $webVersion, 'path' => $r['effective']]
                     ));
-                    if ($phpHasExt($effective, 'pdo_mysql') === false) {
-                        $messenger->addError(new PsrMessage(
-                            'The PHP binary {path} is missing the extension "pdo_mysql", required by jobs to access the database.', // @translate
-                            ['path' => $effective]
-                        ));
-                    }
                 } else {
                     $messenger->addError(new PsrMessage(
                         'The PHP-CLI version ({cli}) differs from the web version ({web}); jobs may fail or behave differently (deprecations, missing extensions, serialization). Configure a PHP {major} binary. Current path: {path}.', // @translate
-                        ['cli' => $info['version'], 'web' => $webVersion, 'major' => $webMajorMinor, 'path' => $effective]
+                        ['cli' => $r['effectiveInfo']['version'], 'web' => $webVersion, 'major' => $webMajorMinor, 'path' => $r['effective']]
+                    ));
+                }
+                if ($r['hasPdoMysql'] === false) {
+                    $messenger->addError(new PsrMessage(
+                        'The PHP binary {path} is missing the extension "pdo_mysql", required by jobs to access the database.', // @translate
+                        ['path' => $r['effective']]
+                    ));
+                }
+                if ($r['missingExtensions']) {
+                    $messenger->addWarning(new PsrMessage(
+                        'The PHP-CLI is missing {count} extension(s) loaded on the web (jobs run the full application, so it should have the same): {list}.', // @translate
+                        ['count' => count($r['missingExtensions']), 'list' => implode(', ', $r['missingExtensions'])]
                     ));
                 }
             }
         }
 
-        $openBasedir = (string) ini_get('open_basedir');
-        if ($openBasedir !== '') {
+        // open_basedir: binaries outside the perimeter are invisible and
+        // unusable.
+        if ($r['openBasedir']) {
             $messenger->addNotice(new PsrMessage(
-                'open_basedir is active on the web ({dirs}); the PHP binary must be within this perimeter.', // @translate
-                ['dirs' => $openBasedir]
+                'open_basedir is active on the web ({dirs}); a PHP binary outside this perimeter is neither testable nor usable by jobs. If the correct binary is outside, add its directory to open_basedir.', // @translate
+                ['dirs' => implode(', ', $r['openBasedir'])]
             ));
         }
 
-        // Scan the usual locations (cli first, then cgi) across distributions:
-        // Debian/Ubuntu (Sury) use php8.3, Rocky/RHEL (Remi/SCL) use php83, and
-        // some hosts (e.g. Huma-Num) use /opt/php/<version>/bin/php[-cgi].
-        $candidates = [];
-        foreach ([
-            PHP_BINARY,
-            is_string($effective) ? $effective : '',
-            (string) $cli->getCommandPath('php'),
-            (string) $cli->getCommandPath('php' . $webMajorMinor),
-            (string) $cli->getCommandPath('php' . $versionNoDot),
-            '/opt/php/' . $webMajorMinor . '/bin/php',
-            '/usr/bin/php' . $webMajorMinor,
-            '/usr/bin/php' . $versionNoDot,
-            '/opt/remi/php' . $versionNoDot . '/root/usr/bin/php',
-            '/opt/rh/php' . $versionNoDot . '/root/usr/bin/php',
-            '/usr/local/php' . $versionNoDot . '/bin/php',
-            '/usr/bin/php',
-            '/usr/local/bin/php',
-            // Cgi binaries: usable but not preferred.
-            (string) $cli->getCommandPath('php-cgi'),
-            '/opt/php/' . $webMajorMinor . '/bin/php-cgi',
-            '/usr/bin/php-cgi' . $webMajorMinor,
-            '/usr/bin/php-cgi' . $versionNoDot,
-            '/opt/remi/php' . $versionNoDot . '/root/usr/bin/php-cgi',
-            '/usr/bin/php-cgi',
-            '/usr/local/bin/php-cgi',
-        ] as $candidate) {
-            $candidate = trim($candidate);
-            if ($candidate !== '') {
-                $candidates[$candidate] = true;
-            }
-        }
-
+        // Candidates found on the usual locations.
         $lines = [];
-        $recommendedCli = null;
-        $recommendedCgi = null;
-        foreach (array_keys($candidates) as $candidate) {
-            $valid = $cli->validateCommand($candidate);
-            if ($valid === false) {
-                continue;
-            }
-            $info = $phpInfo($valid);
-            if ($info === null) {
-                $lines[] = sprintf('%s — not executable in this context', $valid);
-                continue;
-            }
-            $hasPdo = $phpHasExt($valid, 'pdo_mysql');
-            $ok = $majorMinor($info['version']) === $webMajorMinor && $hasPdo !== false;
-            $cli_ = $isCli($info['sapi']);
-            $lines[] = sprintf(
-                '%s — %s (%s)%s%s',
-                $valid,
-                $info['version'],
-                $info['sapi'] !== '' ? $info['sapi'] : 'unknown',
-                $hasPdo === false ? ' (no pdo_mysql)' : '',
-                $ok ? ($cli_ ? ' [recommended]' : ' [usable, cgi]') : ''
-            );
-            if ($ok && $cli_ && $recommendedCli === null) {
-                $recommendedCli = $valid;
-            }
-            if ($ok && !$cli_ && $recommendedCgi === null) {
-                $recommendedCgi = $valid;
+        foreach ($r['candidates'] as $candidate) {
+            if ($candidate['status'] === 'outside_openbasedir') {
+                $lines[] = sprintf('%s — outside open_basedir (add its directory to the perimeter to use it)', $candidate['path']);
+            } elseif ($candidate['status'] === 'not_executable') {
+                $lines[] = sprintf('%s — not executable in this context', $candidate['path']);
+            } else {
+                $lines[] = sprintf(
+                    '%s — %s (%s)%s%s',
+                    $candidate['path'],
+                    $candidate['version'],
+                    $candidate['sapi'] !== '' ? $candidate['sapi'] : 'unknown',
+                    $candidate['pdo'] === false ? ' (no pdo_mysql)' : '',
+                    $candidate['ok'] ? ($candidate['cli'] ? ' [recommended]' : ' [usable, cgi]') : ''
+                );
             }
         }
-
         if ($lines) {
             $message = new PsrMessage(
                 "Available PHP binaries:\n{list}", // @translate
@@ -1301,22 +1249,56 @@ class CheckAndFixController extends AbstractActionController
             $messenger->addNotice($message);
         }
 
-        if ($recommendedCli !== null && $recommendedCli !== $effective) {
+        if ($r['recommendedCli'] !== null && $r['recommendedCli'] !== $r['effective']) {
             $messenger->addSuccess(new PsrMessage(
                 'Recommended PHP-CLI path (matches the web version {web} and has pdo_mysql): {path}. Set the key ["cli"]["phpcli_path"] to it in config/local.config.php, then reload php-fpm.', // @translate
-                ['web' => $webVersion, 'path' => $recommendedCli]
+                ['web' => $webVersion, 'path' => $r['recommendedCli']]
             ));
-        } elseif ($recommendedCli === null && $recommendedCgi !== null) {
+        } elseif ($r['recommendedCli'] === null && $r['recommendedCgi'] !== null) {
             $messenger->addWarning(new PsrMessage(
                 'No php-cli binary was found, only a php-cgi one ({path}); a php-cli binary is strongly preferred for jobs. If you must use it, set ["cli"]["phpcli_path"] to it and verify that jobs actually complete.', // @translate
-                ['path' => $recommendedCgi]
+                ['path' => $r['recommendedCgi']]
             ));
-        } elseif ($recommendedCli === null) {
+        } elseif ($r['recommendedCli'] === null) {
             $messenger->addWarning(new PsrMessage(
                 'No PHP {major} binary with pdo_mysql was found in the usual locations; install one or set the path manually.', // @translate
                 ['major' => $webMajorMinor]
             ));
         }
+    }
+
+    /**
+     * Dispatch a trivial job through the real strategy, to test the whole
+     * background pipeline end to end (the only decisive check).
+     */
+    protected function testPhpCliJob(): void
+    {
+        /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
+        $messenger = $this->messenger();
+        try {
+            $job = $this->jobDispatcher()->dispatch(\EasyAdmin\Job\JobCliTest::class);
+        } catch (\Throwable $e) {
+            $messenger->addError(new PsrMessage(
+                'The test job could not be dispatched ({message}). Fix the PHP-CLI configuration (check the audit above).', // @translate
+                ['message' => $e->getMessage()]
+            ));
+            return;
+        }
+        if (!$job) {
+            $messenger->addError('The test job could not be dispatched.'); // @translate
+            return;
+        }
+        $urlPlugin = $this->url();
+        $message = new PsrMessage(
+            'Test job dispatched ({link_job}#{job_id}{link_end}). If it reaches the status "completed", the background pipeline works; if it stays "starting", the PHP-CLI ran but could not bootstrap (version, extensions, database, or getopt under a cgi SAPI).', // @translate
+            [
+                'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
+                'job_id' => $job->getId(),
+                'link_end' => '</a>',
+            ]
+        );
+        $message->setEscapeHtml(false);
+        $messenger->addSuccess($message);
     }
 
     protected function checkMail(array $options): void
