@@ -1317,6 +1317,7 @@ class Module extends AbstractModule
             'nav' => $translate('Sections'), // @translate
             'textFields' => $translate('Text fields'), // @translate
             'nonTextFields' => $translate('Non-text fields'), // @translate
+            'includeValues' => $translate('Include values'), // @translate
             'kinds' => $this->settingFieldKinds($formClass),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $view->headScript()

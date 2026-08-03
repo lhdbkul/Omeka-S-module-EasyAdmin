@@ -33,9 +33,7 @@
             return fieldset.querySelector('.fieldsets-heading');
         });
 
-    // Save the original markup of each highlighted container, so highlighting
-    // is reset before each new query without corrupting inner markup (links in
-    // descriptions).
+    // Highlight the query in a container, resetting any previous highlight.
     var highlight = function (container, query) {
         if (!container) {
             return;
@@ -111,10 +109,37 @@
         return text;
     };
 
+    // Current textual value of a field's controls, to search within the values.
+    var fieldValueText = function (field) {
+        var parts = [];
+        field.querySelectorAll('input, select, textarea').forEach(function (el) {
+            var type = (el.type || '').toLowerCase();
+            if (type === 'hidden' || type === 'submit' || type === 'button'
+                || type === 'password'
+                || el.classList.contains('setting-filter-input')
+            ) {
+                return;
+            }
+            if (type === 'checkbox' || type === 'radio') {
+                if (el.checked) {
+                    parts.push(el.value || '');
+                }
+            } else if (el.tagName === 'SELECT') {
+                Array.prototype.forEach.call(el.selectedOptions || [], function (o) {
+                    parts.push(o.textContent);
+                });
+            } else if (el.value) {
+                parts.push(el.value);
+            }
+        });
+        return parts.join(' ').toLowerCase();
+    };
+
     var apply = function () {
         var query = input.value.trim().toLowerCase();
         var wantText = textToggle.checked;
         var wantNonText = nonTextToggle.checked;
+        var includeValues = valuesToggle.checked;
         // Both or neither checked means no restriction on the field type.
         var typeFilter = wantText !== wantNonText;
         var filtering = !!query || typeFilter;
@@ -129,7 +154,10 @@
             }
             var typePass = !typeFilter
                 || (wantText ? isTextField(field) : !isTextField(field));
-            var hay = (originals.get(meta) || meta.textContent).toLowerCase();
+            var hay = meta.textContent.toLowerCase();
+            if (includeValues) {
+                hay += ' ' + fieldValueText(field);
+            }
             var match = typePass && (!query || hay.indexOf(query) !== -1);
             field.classList.toggle('setting-hidden', !match);
             highlight(meta, query && match ? query : '');
@@ -173,8 +201,13 @@
         'setting-filter-nontext',
         i18n.nonTextFields || 'Non-text fields'
     );
+    var valuesCtl = makeToggle(
+        'setting-filter-values',
+        i18n.includeValues || 'Include values'
+    );
     var textToggle = textCtl.box;
     var nonTextToggle = nonTextCtl.box;
+    var valuesToggle = valuesCtl.box;
     var count = document.createElement('span');
     count.className = 'setting-filter-count';
     count.setAttribute('aria-live', 'polite');
@@ -182,6 +215,7 @@
     toggles.className = 'setting-filter-toggles';
     toggles.appendChild(textCtl.label);
     toggles.appendChild(nonTextCtl.label);
+    toggles.appendChild(valuesCtl.label);
     controls.appendChild(toggles);
     controls.appendChild(count);
 
@@ -198,6 +232,7 @@
     });
     textToggle.addEventListener('change', apply);
     nonTextToggle.addEventListener('change', apply);
+    valuesToggle.addEventListener('change', apply);
 
     input.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
