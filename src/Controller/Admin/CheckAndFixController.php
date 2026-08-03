@@ -215,6 +215,9 @@ class CheckAndFixController extends AbstractActionController
             case 'mail_check':
                 $this->checkMail($params['system']['mail'] ?? []);
                 break;
+            case 'phpcli_check':
+                $this->checkPhpCli();
+                break;
             case 'db_fulltext_index':
                 $job = $dispatcher->dispatch(\Omeka\Job\IndexFulltextSearch::class);
                 break;
@@ -1107,6 +1110,211 @@ class CheckAndFixController extends AbstractActionController
             $messenger->addNotice(new PsrMessage(
                 'The anonymous api probe could not be run ({message}); check the api access manually.', // @translate
                 ['message' => $e->getMessage()]
+            ));
+        }
+    }
+
+    /**
+     * Check the PHP-CLI used to run the background jobs: the configured path
+     * (or the auto-detected one), whether it is valid (the cause of the error
+     * "PHP-CLI error: invalid PHP path"), whether its version matches the web
+     * server, and whether it has the extensions required by the jobs. It then
+     * scans the usual locations and suggests the correct path to configure.
+     */
+    protected function checkPhpCli(): void
+    {
+        /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
+        $messenger = $this->messenger();
+        $services = $this->getEvent()->getApplication()->getServiceManager();
+        $config = $services->get('Config');
+        /** @var \Omeka\Stdlib\Cli $cli */
+        $cli = $services->get('Omeka\Cli');
+
+        $webVersion = PHP_VERSION;
+        $webMajorMinor = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
+        $versionNoDot = PHP_MAJOR_VERSION . '' . PHP_MINOR_VERSION;
+
+        // Version and SAPI (cli, cgi-fcgi, fpm-fcgi…) of a php binary, executed
+        // in the web context, or null when it cannot be run (missing,
+        // open_basedir, disabled functions, permissions…).
+        $phpInfo = function (string $path) use ($cli): ?array {
+            $output = $cli->execute(escapeshellarg($path) . ' --version');
+            if (!is_string($output) || !preg_match('/PHP (\d+\.\d+\.\d+)(?:\s*\(([^)]+)\))?/', $output, $m)) {
+                return null;
+            }
+            return ['version' => $m[1], 'sapi' => $m[2] ?? ''];
+        };
+        $majorMinor = fn (string $version): string => implode('.', array_slice(explode('.', $version), 0, 2));
+        // A cli binary is preferred: php-cgi and php-fpm binaries emit headers
+        // and mishandle arguments, so jobs may fail with them.
+        $isCli = fn (string $sapi): bool => $sapi === '' || stripos($sapi, 'cli') !== false;
+        // Whether a php binary has a loaded extension.
+        $phpHasExt = function (string $path, string $ext) use ($cli): ?bool {
+            $output = $cli->execute(escapeshellarg($path) . ' -m');
+            if (!is_string($output)) {
+                return null;
+            }
+            $modules = array_map('strtolower', array_map('trim', preg_split('/\R/', trim($output)) ?: []));
+            return in_array(strtolower($ext), $modules, true);
+        };
+
+        // Resolve the path Omeka uses, exactly as the job dispatch strategy.
+        $configured = $config['cli']['phpcli_path'] ?? null;
+        if ($configured) {
+            $effective = $cli->validateCommand($configured);
+            if ($effective === false) {
+                $messenger->addError(new PsrMessage(
+                    'The configured PHP-CLI path is invalid (missing or not executable): {path}. This is the cause of the error "PHP-CLI error: invalid PHP path"; jobs cannot run.', // @translate
+                    ['path' => $configured]
+                ));
+            }
+        } else {
+            $effective = $cli->getCommandPath('php');
+            if ($effective === false) {
+                $messenger->addError('No PHP-CLI path is configured and none could be auto-detected ("command -v php" failed); jobs cannot run.'); // @translate
+            } else {
+                $messenger->addNotice(new PsrMessage(
+                    'No PHP-CLI path is configured; Omeka auto-detects "{path}". It is safer to set it explicitly to the binary matching the web version.', // @translate
+                    ['path' => $effective]
+                ));
+            }
+        }
+
+        $messenger->addNotice(new PsrMessage(
+            'Web PHP version (this page): {version}.', // @translate
+            ['version' => $webVersion]
+        ));
+
+        if (is_string($effective) && $effective !== '') {
+            $info = $phpInfo($effective);
+            if ($info === null) {
+                $messenger->addWarning(new PsrMessage(
+                    'The PHP binary could not be executed from the web context ({path}); check open_basedir, disabled functions and permissions.', // @translate
+                    ['path' => $effective]
+                ));
+            } else {
+                if (!$isCli($info['sapi'])) {
+                    $messenger->addWarning(new PsrMessage(
+                        'The configured PHP binary uses the "{sapi}" SAPI, not CLI ({path}); php-cgi and php-fpm binaries emit headers and mishandle arguments, so jobs may fail. Prefer a php-cli binary.', // @translate
+                        ['sapi' => $info['sapi'], 'path' => $effective]
+                    ));
+                }
+                if ($majorMinor($info['version']) === $webMajorMinor) {
+                    $messenger->addSuccess(new PsrMessage(
+                        'The PHP-CLI version ({cli}) matches the web version ({web}): {path}.', // @translate
+                        ['cli' => $info['version'], 'web' => $webVersion, 'path' => $effective]
+                    ));
+                    if ($phpHasExt($effective, 'pdo_mysql') === false) {
+                        $messenger->addError(new PsrMessage(
+                            'The PHP binary {path} is missing the extension "pdo_mysql", required by jobs to access the database.', // @translate
+                            ['path' => $effective]
+                        ));
+                    }
+                } else {
+                    $messenger->addError(new PsrMessage(
+                        'The PHP-CLI version ({cli}) differs from the web version ({web}); jobs may fail or behave differently (deprecations, missing extensions, serialization). Configure a PHP {major} binary. Current path: {path}.', // @translate
+                        ['cli' => $info['version'], 'web' => $webVersion, 'major' => $webMajorMinor, 'path' => $effective]
+                    ));
+                }
+            }
+        }
+
+        $openBasedir = (string) ini_get('open_basedir');
+        if ($openBasedir !== '') {
+            $messenger->addNotice(new PsrMessage(
+                'open_basedir is active on the web ({dirs}); the PHP binary must be within this perimeter.', // @translate
+                ['dirs' => $openBasedir]
+            ));
+        }
+
+        // Scan the usual locations (cli first, then cgi) across distributions:
+        // Debian/Ubuntu (Sury) use php8.3, Rocky/RHEL (Remi/SCL) use php83, and
+        // some hosts (e.g. Huma-Num) use /opt/php/<version>/bin/php[-cgi].
+        $candidates = [];
+        foreach ([
+            PHP_BINARY,
+            is_string($effective) ? $effective : '',
+            (string) $cli->getCommandPath('php'),
+            (string) $cli->getCommandPath('php' . $webMajorMinor),
+            (string) $cli->getCommandPath('php' . $versionNoDot),
+            '/opt/php/' . $webMajorMinor . '/bin/php',
+            '/usr/bin/php' . $webMajorMinor,
+            '/usr/bin/php' . $versionNoDot,
+            '/opt/remi/php' . $versionNoDot . '/root/usr/bin/php',
+            '/opt/rh/php' . $versionNoDot . '/root/usr/bin/php',
+            '/usr/local/php' . $versionNoDot . '/bin/php',
+            '/usr/bin/php',
+            '/usr/local/bin/php',
+            // Cgi binaries: usable but not preferred.
+            (string) $cli->getCommandPath('php-cgi'),
+            '/opt/php/' . $webMajorMinor . '/bin/php-cgi',
+            '/usr/bin/php-cgi' . $webMajorMinor,
+            '/usr/bin/php-cgi' . $versionNoDot,
+            '/opt/remi/php' . $versionNoDot . '/root/usr/bin/php-cgi',
+            '/usr/bin/php-cgi',
+            '/usr/local/bin/php-cgi',
+        ] as $candidate) {
+            $candidate = trim($candidate);
+            if ($candidate !== '') {
+                $candidates[$candidate] = true;
+            }
+        }
+
+        $lines = [];
+        $recommendedCli = null;
+        $recommendedCgi = null;
+        foreach (array_keys($candidates) as $candidate) {
+            $valid = $cli->validateCommand($candidate);
+            if ($valid === false) {
+                continue;
+            }
+            $info = $phpInfo($valid);
+            if ($info === null) {
+                $lines[] = sprintf('%s — not executable in this context', $valid);
+                continue;
+            }
+            $hasPdo = $phpHasExt($valid, 'pdo_mysql');
+            $ok = $majorMinor($info['version']) === $webMajorMinor && $hasPdo !== false;
+            $cli_ = $isCli($info['sapi']);
+            $lines[] = sprintf(
+                '%s — %s (%s)%s%s',
+                $valid,
+                $info['version'],
+                $info['sapi'] !== '' ? $info['sapi'] : 'unknown',
+                $hasPdo === false ? ' (no pdo_mysql)' : '',
+                $ok ? ($cli_ ? ' [recommended]' : ' [usable, cgi]') : ''
+            );
+            if ($ok && $cli_ && $recommendedCli === null) {
+                $recommendedCli = $valid;
+            }
+            if ($ok && !$cli_ && $recommendedCgi === null) {
+                $recommendedCgi = $valid;
+            }
+        }
+
+        if ($lines) {
+            $message = new PsrMessage(
+                "Available PHP binaries:\n{list}", // @translate
+                ['list' => '<br/>' . implode('<br/>', array_map('htmlspecialchars', $lines))]
+            );
+            $message->setEscapeHtml(false);
+            $messenger->addNotice($message);
+        }
+
+        if ($recommendedCli !== null && $recommendedCli !== $effective) {
+            $messenger->addSuccess(new PsrMessage(
+                'Recommended PHP-CLI path (matches the web version {web} and has pdo_mysql): {path}. Set the key ["cli"]["phpcli_path"] to it in config/local.config.php, then reload php-fpm.', // @translate
+                ['web' => $webVersion, 'path' => $recommendedCli]
+            ));
+        } elseif ($recommendedCli === null && $recommendedCgi !== null) {
+            $messenger->addWarning(new PsrMessage(
+                'No php-cli binary was found, only a php-cgi one ({path}); a php-cli binary is strongly preferred for jobs. If you must use it, set ["cli"]["phpcli_path"] to it and verify that jobs actually complete.', // @translate
+                ['path' => $recommendedCgi]
+            ));
+        } elseif ($recommendedCli === null) {
+            $messenger->addWarning(new PsrMessage(
+                'No PHP {major} binary with pdo_mysql was found in the usual locations; install one or set the path manually.', // @translate
+                ['major' => $webMajorMinor]
             ));
         }
     }
