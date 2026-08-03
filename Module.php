@@ -531,6 +531,14 @@ class Module extends AbstractModule
             [$this, 'addHeadersSettings']
         );
 
+        // Same filter and group navigation on the site settings section of the
+        // site edit page.
+        $sharedEventManager->attach(
+            'Omeka\Controller\SiteAdmin\Index',
+            'view.edit.before',
+            [$this, 'addHeadersSiteSettings']
+        );
+
         // Check last version of modules.
         $sharedEventManager->attach(
             'Omeka\Controller\Admin\Module',
@@ -1282,17 +1290,31 @@ class Module extends AbstractModule
     {
         $view = $event->getTarget();
         $assetUrl = $view->plugin('assetUrl');
-        $view->headLink()
-            ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
+        $this->appendSettingsFilterAssets($view);
         $view->headScript()
             ->appendFile($assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'))
             ->appendFile($assetUrl('js/chosen-sortable.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+    }
 
+    /**
+     * The site edit page holds the site settings in its own section; the same
+     * filter and group navigation as the global settings page apply to it.
+     */
+    public function addHeadersSiteSettings(Event $event): void
+    {
+        $this->appendSettingsFilterAssets($event->getTarget());
+    }
+
+    protected function appendSettingsFilterAssets(PhpRenderer $view): void
+    {
+        $assetUrl = $view->plugin('assetUrl');
         $translate = $view->plugin('translate');
+        $view->headLink()
+            ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
         $strings = json_encode([
             'placeholder' => $translate('Filter settings…'), // @translate
             'count' => $translate('%s settings'), // @translate
-            'nav' => $translate('Settings sections'), // @translate
+            'nav' => $translate('Sections'), // @translate
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $view->headScript()
             ->appendScript(sprintf('window.EasyAdmin=window.EasyAdmin||{};window.EasyAdmin.settingsFilter=%s;', $strings))

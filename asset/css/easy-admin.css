@@ -760,9 +760,10 @@
     }
 }
 
-/* Settings page live filter and group navigation. */
+/* Main and site settings page live filter and group navigation. */
 .setting-filter {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     margin-bottom: 18px;
@@ -770,41 +771,60 @@
     background: #fff;
     border-bottom: 1px solid #dfdfdf;
 }
-body.settings .setting-filter-input {
+.setting-filter-input {
     flex: 1 1 auto;
-    max-width: 420px;
     margin: 0;
 }
-body.settings .setting-filter-count {
+.setting-filter-count {
     color: #6f7476;
     font-size: .9em;
     white-space: nowrap;
 }
-body.settings .field.setting-hidden,
-body.settings fieldset.setting-hidden {
-    display: none;
+.setting-filter-navonly {
+    display: block;
 }
-body.settings mark.setting-filter-hit {
+/* Core and module stylesheets style these fieldsets by id (e.g. #search,
+   #contact) and the site settings section sets them to inline-block, both
+   outranking a single class; !important keeps the hide reliable everywhere. */
+.field.setting-hidden,
+fieldset.setting-hidden {
+    display: none !important;
+}
+mark.setting-filter-hit {
     padding: 0 1px;
     border-radius: 2px;
     background: #ffe9a8;
     color: inherit;
 }
-
-/* Settings page group navigation (table of contents). */
-body.settings .setting-filter {
-    flex-wrap: wrap;
-}
-body.settings .setting-nav {
+.setting-nav {
     flex: 1 1 100%;
+}
+.setting-nav-summary {
+    cursor: pointer;
+    color: #6f7476;
+    font-size: .9em;
+    user-select: none;
+    list-style: none;
+}
+.setting-nav-summary::-webkit-details-marker {
+    display: none;
+}
+.setting-nav-summary::before {
+    content: '\25B8';
+    display: inline-block;
+    margin-right: .35em;
+    transition: transform .1s ease;
+}
+.setting-nav[open] .setting-nav-summary::before {
+    transform: rotate(90deg);
+}
+.setting-nav-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    margin-top: 6px;
 }
-body.settings .setting-filter-navonly {
-    display: block;
-}
-body.settings .setting-nav-chip {
+.setting-nav-chip {
     padding: 2px 10px;
     border: 1px solid #cdd2d4;
     border-radius: 12px;
@@ -815,19 +835,19 @@ body.settings .setting-nav-chip {
     text-decoration: none;
     white-space: nowrap;
 }
-body.settings .setting-nav-chip:hover {
+.setting-nav-chip:hover {
     border-color: #4a90d9;
     color: #14689e;
 }
-body.settings .setting-nav-chip.setting-nav-active {
+.setting-nav-chip.setting-nav-active {
     border-color: #4a90d9;
     background: #e3f0fb;
     color: #14689e;
     font-weight: 600;
 }
-body.settings .setting-nav-chip.setting-nav-hidden {
+.setting-nav-chip.setting-nav-hidden {
     display: none;
 }
-body.settings fieldset[id] {
+.setting-nav-target {
     scroll-margin-top: 96px;
 }

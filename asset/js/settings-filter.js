@@ -12,23 +12,23 @@
 (function () {
     'use strict';
 
-    if (!document.body.classList.contains('settings')) {
+    // Scope: the whole form on the global settings page, only the settings
+    // section on the site edit page (its info section must not be filtered).
+    var root = document.body.classList.contains('settings')
+        ? document.querySelector('#content form')
+        : document.getElementById('site-settings');
+    if (!root) {
         return;
     }
 
-    var form = document.querySelector('#content form');
-    if (!form) {
-        return;
-    }
-
-    var fields = Array.prototype.slice.call(form.querySelectorAll('.field'));
+    var fields = Array.prototype.slice.call(root.querySelectorAll('.field'));
     if (!fields.length) {
         return;
     }
 
     // Only fieldsets that carry an element-group heading are hidden when empty.
     var groups = Array.prototype.slice
-        .call(form.querySelectorAll('fieldset'))
+        .call(root.querySelectorAll('fieldset'))
         .filter(function (fieldset) {
             return fieldset.querySelector('.fieldsets-heading');
         });
@@ -85,11 +85,23 @@
         });
     };
 
-    var apply = function (query) {
-        query = query.trim().toLowerCase();
+    // Strings are injected by the module (see appendSettingsFilterAssets), with
+    // an English fallback when they are not available.
+    var i18n = (window.EasyAdmin && window.EasyAdmin.settingsFilter) || {};
+    var placeholder = i18n.placeholder || 'Filter settings…';
+    var countTemplate = i18n.count || '%s settings';
+
+    var apply = function () {
+        var query = input.value.trim().toLowerCase();
         var visible = 0;
         fields.forEach(function (field) {
-            var meta = field.querySelector('.field-meta') || field;
+            var meta = field.querySelector('.field-meta');
+            // Structural markers (e.g. per-module anchors) carry no meta: hide
+            // them whenever a query is active, and never count them.
+            if (!meta) {
+                field.classList.toggle('setting-hidden', !!query);
+                return;
+            }
             var hay = (originals.get(meta) || meta.textContent).toLowerCase();
             var match = !query || hay.indexOf(query) !== -1;
             field.classList.toggle('setting-hidden', !match);
@@ -99,16 +111,14 @@
             }
         });
         groups.forEach(function (group) {
-            var hasVisible = group.querySelector('.field:not(.setting-hidden)');
+            var hasVisible =
+                group.querySelector('.field:not(.setting-hidden) .field-meta');
             group.classList.toggle('setting-hidden', !hasVisible);
         });
-        return visible;
+        count.textContent = query
+            ? countTemplate.replace('%s', visible)
+            : '';
     };
-
-    // Strings are injected by the module (see addHeadersSettings), with an
-    // English fallback when they are not available.
-    var i18n = (window.EasyAdmin && window.EasyAdmin.settingsFilter) || {};
-    var placeholder = i18n.placeholder || 'Filter settings…';
 
     var wrapper = document.createElement('div');
     wrapper.className = 'setting-filter';
@@ -122,31 +132,20 @@
     count.setAttribute('aria-live', 'polite');
     wrapper.appendChild(input);
     wrapper.appendChild(count);
-    form.insertBefore(wrapper, form.firstChild);
-
-    var countTemplate = i18n.count || '%s settings';
-    var updateCount = function (query, visible) {
-        count.textContent = query
-            ? countTemplate.replace('%s', visible)
-            : '';
-    };
+    root.insertBefore(wrapper, root.firstChild);
 
     var timer = null;
     input.addEventListener('input', function () {
         if (timer) {
             window.clearTimeout(timer);
         }
-        timer = window.setTimeout(function () {
-            var query = input.value;
-            updateCount(query.trim(), apply(query));
-        }, 120);
+        timer = window.setTimeout(apply, 120);
     });
 
     input.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             input.value = '';
-            apply('');
-            updateCount('', 0);
+            apply();
         } else if (event.key === 'Enter') {
             event.preventDefault();
         }

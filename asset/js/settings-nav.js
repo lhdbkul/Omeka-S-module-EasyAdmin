@@ -8,17 +8,17 @@
 (function () {
     'use strict';
 
-    if (!document.body.classList.contains('settings')) {
-        return;
-    }
-
-    var form = document.querySelector('#content form');
-    if (!form) {
+    // Same scope as settings-filter.js: the whole form on the global settings
+    // page, only the settings section on the site edit page.
+    var root = document.body.classList.contains('settings')
+        ? document.querySelector('#content form')
+        : document.getElementById('site-settings');
+    if (!root) {
         return;
     }
 
     var groups = Array.prototype.slice
-        .call(form.querySelectorAll('fieldset'))
+        .call(root.querySelectorAll('fieldset'))
         .filter(function (fieldset) {
             return fieldset.querySelector('.fieldsets-heading');
         });
@@ -27,17 +27,28 @@
         return;
     }
 
-    var nav = document.createElement('nav');
-    nav.className = 'setting-nav';
-    nav.setAttribute('aria-label', (window.EasyAdmin
+    var label = (window.EasyAdmin
         && window.EasyAdmin.settingsFilter
-        && window.EasyAdmin.settingsFilter.nav) || 'Settings sections');
+        && window.EasyAdmin.settingsFilter.nav) || 'Sections';
+    // The chips are wrapped in a details/summary, collapsed by default, so the
+    // list can be shown on demand.
+    var nav = document.createElement('details');
+    nav.className = 'setting-nav';
+    var summary = document.createElement('summary');
+    summary.className = 'setting-nav-summary';
+    summary.textContent = label;
+    nav.appendChild(summary);
+    var chipList = document.createElement('div');
+    chipList.className = 'setting-nav-chips';
+    nav.appendChild(chipList);
 
     var chips = new Map();
     groups.forEach(function (group, index) {
         if (!group.id) {
             group.id = 'setting-group-' + index;
         }
+        // Offset the scroll target below the sticky bar (see CSS).
+        group.classList.add('setting-nav-target');
         var heading = group.querySelector('.fieldsets-heading');
         var chip = document.createElement('a');
         chip.className = 'setting-nav-chip';
@@ -47,7 +58,7 @@
             event.preventDefault();
             group.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-        nav.appendChild(chip);
+        chipList.appendChild(chip);
         chips.set(group, chip);
 
         // Mirror the filter visibility of the group onto its chip.
@@ -65,14 +76,14 @@
 
     // Integrate the chips into the sticky filter bar when present, else create
     // a minimal sticky bar of its own.
-    var bar = form.querySelector('.setting-filter');
+    var bar = root.querySelector('.setting-filter');
     if (bar) {
         bar.appendChild(nav);
     } else {
         bar = document.createElement('div');
         bar.className = 'setting-filter setting-filter-navonly';
         bar.appendChild(nav);
-        form.insertBefore(bar, form.firstChild);
+        root.insertBefore(bar, root.firstChild);
     }
 
     // Scroll spy: highlight the chip of the group currently near the top.
