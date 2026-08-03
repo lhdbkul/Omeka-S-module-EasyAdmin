@@ -1410,6 +1410,12 @@ class Module extends AbstractModule
             UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload.', // @translate
         ];
 
+        // The form may be serialized to a compacted json (module AdvancedResourceTemplate)
+        // that drops numeric keys of "filesData[file][N]" and reindexes them
+        // from 0, while the media keeps original "file_index". So add a cursor.
+        $fileEntries = array_values($filesData['file']);
+        $bulkCursor = 0;
+
         $newDataMedias = [];
         foreach ($data['o:media'] as $dataMedia) {
             // Skip null or malformed entries before hydration.
@@ -1424,13 +1430,8 @@ class Module extends AbstractModule
                 continue;
             }
 
-            $index = $dataMedia['file_index'] ?? null;
-            if ($index === null || !isset($filesData['file'][$index])) {
-                $errorStore->addError('upload', 'There is no uploaded files.'); // @translate
-                continue;
-            }
-
-            if (empty($filesData['file'][$index])) {
+            $fileList = $fileEntries[$bulkCursor++] ?? null;
+            if (empty($fileList)) {
                 $errorStore->addError('upload', 'There is no uploaded files.'); // @translate
                 continue;
             }
@@ -1439,7 +1440,7 @@ class Module extends AbstractModule
             // Check errors first to indicate issues to user early.
             $listFiles = [];
             $hasError = false;
-            foreach ($filesData['file'][$index] as $subIndex => $fileData) {
+            foreach ($fileList as $subIndex => $fileData) {
                 // The user selected "allow partial upload", so no data for this
                 // index.
                 if (empty($fileData)) {
