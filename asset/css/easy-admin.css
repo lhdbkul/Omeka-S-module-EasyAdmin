@@ -759,3 +759,34 @@
         bottom: 0;
     }
 }
+
+/* Settings page live filter. */
+.setting-filter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 10px 0;
+    background: #fff;
+    border-bottom: 1px solid #dfdfdf;
+}
+body.settings .setting-filter-input {
+    flex: 1 1 auto;
+    max-width: 420px;
+    margin: 0;
+}
+body.settings .setting-filter-count {
+    color: #6f7476;
+    font-size: .9em;
+    white-space: nowrap;
+}
+body.settings .field.setting-hidden,
+body.settings fieldset.setting-hidden {
+    display: none;
+}
+body.settings mark.setting-filter-hit {
+    padding: 0 1px;
+    border-radius: 2px;
+    background: #ffe9a8;
+    color: inherit;
+}

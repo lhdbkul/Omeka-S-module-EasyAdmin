@@ -1287,6 +1287,15 @@ class Module extends AbstractModule
         $view->headScript()
             ->appendFile($assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'))
             ->appendFile($assetUrl('js/chosen-sortable.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+
+        $translate = $view->plugin('translate');
+        $strings = json_encode([
+            'placeholder' => $translate('Filter settings…'), // @translate
+            'count' => $translate('%s settings'), // @translate
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $view->headScript()
+            ->appendScript(sprintf('window.EasyAdmin=window.EasyAdmin||{};window.EasyAdmin.settingsFilter=%s;', $strings))
+            ->appendFile($assetUrl('js/settings-filter.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
     }
 
     public function handleMainSettings(Event $event): void
