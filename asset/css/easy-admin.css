@@ -348,20 +348,15 @@
     .themes.browse td:first-child .tablesaw-cell-content {
         flex-wrap: wrap;
         align-items: baseline;
+        column-gap: .5em;
     }
-    .addon-description {
-        width: 100%;
+    .modules.browse td:first-child .addon-description,
+    .themes.browse td:first-child .addon-description {
+        flex-basis: 100%;
         order: 10;
-    }
-    .modules.browse td:first-child .actions,
-    .themes.browse td:first-child .actions {
-        margin-left: auto;
     }
 
     /* Addon browse: theme thumbnail */
-    .themes.browse td:first-child .actions {
-        margin-left: auto;
-    }
     .theme-thumb {
         display: block;
         max-width: 120px;
@@ -842,9 +837,7 @@
 .setting-filter-navonly {
     display: block;
 }
-/* Core and module stylesheets style these fieldsets by id (e.g. #search,
-   #contact) and the site settings section sets them to inline-block, both
-   outranking a single class; !important keeps the hide reliable everywhere. */
+/* Override core and module stylesheets for some fieldsets. */
 .field.setting-hidden,
 fieldset.setting-hidden {
     display: none !important;
@@ -855,7 +848,6 @@ mark.setting-filter-hit {
     background: #ffe9a8;
     color: inherit;
 }
-/* Setting status marker: default, modified or unknown. */
 .setting-status-default {
     --setting-status-color: #3f9d58;
 }
@@ -885,8 +877,6 @@ mark.setting-filter-hit {
     border-radius: 50%;
     background: var(--setting-status-color, #bbb);
 }
-/* A distinct shape per status, so it does not rely on colour alone: default is
-   a filled disc, modified a square, unknown a hollow disc. */
 .setting-status-dot.setting-status-modified,
 .setting-filter-label.setting-status-modified::before {
     border-radius: 1px;
