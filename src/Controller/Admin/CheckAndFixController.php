@@ -218,6 +218,9 @@ class CheckAndFixController extends AbstractActionController
             case 'db_fulltext_index':
                 $job = $dispatcher->dispatch(\Omeka\Job\IndexFulltextSearch::class);
                 break;
+            case 'db_orphan_tables_check':
+                $this->checkOrphanTables();
+                break;
             default:
                 $eventManager = $this->getEventManager();
                 $args = $eventManager->prepareArgs([
@@ -381,6 +384,234 @@ class CheckAndFixController extends AbstractActionController
                 'The php extension "intl" is not available. It is recommended to install it to translate dates.' // @translate
             );
         }
+    }
+
+    /**
+     * List the database tables that neither the core nor an active module
+     * declares. They are split in three groups: tables of an installed but
+     * inactive module (kept, used again once the module is reactivated), tables
+     * likely useless (module present on disk but not installed, or a removed
+     * feature: temporary or test tables, old triplestore, reference_metadata,
+     * the term table replaced by concept…), and other unexplained tables. The
+     * task only lists them and never drops anything.
+     *
+     * A table is legitimate when it is declared by the core schema, mapped by
+     * an active entity, or declared by an active module (entity,
+     * "data/install/schema.sql" or a "CREATE TABLE" in its "Module.php"). Some
+     * tables are created by a third party library of a module (e.g. the
+     * triplestore of the module Sparql through semsol/arc2): they are matched
+     * by a curated name pattern so they follow the state of their module. An
+     * inactive module is still installed, unlike a module present on disk but
+     * absent from the "module" table.
+     */
+    protected function checkOrphanTables(): void
+    {
+        /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
+        $messenger = $this->messenger();
+        $services = $this->getEvent()->getApplication()->getServiceManager();
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $services->get('Omeka\Connection');
+        /** @var \Doctrine\ORM\EntityManager $entityManager */
+        $entityManager = $services->get('Omeka\EntityManager');
+
+        // Core tables (including the non-entity ones: migration, session…).
+        $legit = $this->orphanParseCreateTables(OMEKA_PATH . '/application/data/install/schema.sql');
+        $legit['migration'] = true;
+
+        // Tables mapped by the active entities (core and active modules),
+        // including the many-to-many join tables of their associations.
+        try {
+            foreach ($entityManager->getMetadataFactory()->getAllMetadata() as $meta) {
+                if ($meta->isMappedSuperclass) {
+                    continue;
+                }
+                $table = $meta->getTableName();
+                if ($table) {
+                    $legit[strtolower($table)] = true;
+                }
+                foreach ($meta->associationMappings as $mapping) {
+                    if (!empty($mapping['joinTable']['name'])) {
+                        $legit[strtolower($mapping['joinTable']['name'])] = true;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $messenger->addError(new PsrMessage(
+                'The mapping of the entities could not be read ({message}); the list of useless tables cannot be built.', // @translate
+                ['message' => $e->getMessage()]
+            ));
+            return;
+        }
+
+        $tables = $connection->executeQuery('SHOW TABLES')->fetchFirstColumn();
+
+        // Approximate row counts for the whole schema in a single query.
+        $counts = [];
+        foreach ($connection->executeQuery(
+            'SELECT table_name AS n, table_rows AS r FROM information_schema.tables WHERE table_schema = DATABASE()'
+        )->fetchAllAssociative() as $row) {
+            $counts[strtolower((string) $row['n'])] = (int) $row['r'];
+        }
+
+        // Modules present in the "module" table are installed (active or not);
+        // the state is matched case-insensitively with the directory name.
+        $states = [];
+        foreach ($connection->executeQuery('SELECT id, is_active FROM module')->fetchAllAssociative() as $row) {
+            $states[strtolower($row['id'])] = (bool) $row['is_active'];
+        }
+
+        // Tables created by a third party library of a module, by name pattern.
+        $libraryPatterns = [
+            // Triplestore of the module Sparql, created by semsol/arc2.
+            'sparql' => '/^triplestore_/i',
+        ];
+
+        // Owner of a table declared by a non-active module: name and whether it
+        // is still installed (inactive) or only present on disk (not
+        // installed).
+        $owner = [];
+        foreach ([OMEKA_PATH . '/modules', OMEKA_PATH . '/composer-addons/modules'] as $modulesPath) {
+            foreach (glob($modulesPath . '/*', GLOB_ONLYDIR) ?: [] as $dir) {
+                $name = basename($dir);
+                if (!is_file($dir . '/Module.php')) {
+                    continue;
+                }
+                $key = strtolower($name);
+                $active = $states[$key] ?? false;
+                $installed = array_key_exists($key, $states);
+                $declared = $this->orphanScanModuleTables($dir);
+                if (isset($libraryPatterns[$key])) {
+                    foreach ($tables as $table) {
+                        if (preg_match($libraryPatterns[$key], $table)) {
+                            $declared[strtolower($table)] = true;
+                        }
+                    }
+                }
+                foreach ($declared as $table => $_) {
+                    if ($active) {
+                        $legit[$table] = true;
+                    } elseif (!isset($owner[$table])) {
+                        $owner[$table] = ['module' => $name, 'installed' => $installed];
+                    }
+                }
+            }
+        }
+
+        // A candidate is very likely useless when its name is a temporary or
+        // test table, or matches a removed or replaced feature.
+        $removedPattern = '/^(_|reference_metadata$|terms?$|triplestore)/i';
+
+        $inactive = [];
+        $useless = [];
+        $review = [];
+        foreach ($tables as $table) {
+            $key = strtolower($table);
+            if (isset($legit[$key])) {
+                continue;
+            }
+            $rows = $counts[$key] ?? 0;
+            if (isset($owner[$key])) {
+                if ($owner[$key]['installed']) {
+                    $inactive[] = sprintf('%s (~%d rows) — module %s', $table, $rows, $owner[$key]['module']);
+                } else {
+                    $useless[] = sprintf('%s (~%d rows) — module %s (present but not installed)', $table, $rows, $owner[$key]['module']);
+                }
+            } elseif (preg_match($removedPattern, $table)) {
+                $useless[] = sprintf('%s (~%d rows) — removed feature', $table, $rows);
+            } else {
+                $review[] = sprintf('%s (~%d rows)', $table, $rows);
+            }
+        }
+
+        if (!$inactive && !$useless && !$review) {
+            $messenger->addSuccess('No useless table found: every table is declared by the core or an installed module.'); // @translate
+            return;
+        }
+
+        if ($inactive) {
+            sort($inactive);
+            $message = new PsrMessage(
+                "Tables of installed but inactive modules (kept, they are used again once the module is reactivated):\n{list}", // @translate
+                ['list' => '<br/>' . implode('<br/>', array_map('htmlspecialchars', $inactive))]
+            );
+            $message->setEscapeHtml(false);
+            $messenger->addNotice($message);
+        }
+        if ($useless) {
+            sort($useless);
+            $message = new PsrMessage(
+                "Tables likely useless (module uninstalled or removed feature):\n{list}", // @translate
+                ['list' => '<br/>' . implode('<br/>', array_map('htmlspecialchars', $useless))]
+            );
+            $message->setEscapeHtml(false);
+            $messenger->addWarning($message);
+        }
+        if ($review) {
+            sort($review);
+            $message = new PsrMessage(
+                "Tables declared by no installed module (review before dropping; they may hold data):\n{list}", // @translate
+                ['list' => '<br/>' . implode('<br/>', array_map('htmlspecialchars', $review))]
+            );
+            $message->setEscapeHtml(false);
+            $messenger->addWarning($message);
+        }
+        $messenger->addNotice('This task never drops any table: verify each one before removing it.'); // @translate
+    }
+
+    /**
+     * Table names declared by a module: entities (src/Entity), install schema
+     * ("data/install/schema.sql") and "CREATE TABLE" statements of Module.php.
+     *
+     * @return array<string, true>
+     */
+    protected function orphanScanModuleTables(string $dir): array
+    {
+        return $this->orphanParseEntityTables($dir . '/src/Entity')
+            + $this->orphanParseCreateTables($dir . '/data/install/schema.sql')
+            + $this->orphanParseCreateTables($dir . '/Module.php');
+    }
+
+    /**
+     * Table names of the "CREATE TABLE" statements of a sql or php file.
+     *
+     * @return array<string, true>
+     */
+    protected function orphanParseCreateTables(string $file): array
+    {
+        if (!is_file($file)) {
+            return [];
+        }
+        $tables = [];
+        if (preg_match_all('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"\']?([a-z0-9_]+)[`"\']?/i', (string) file_get_contents($file), $matches)) {
+            foreach ($matches[1] as $table) {
+                $tables[strtolower($table)] = true;
+            }
+        }
+        return $tables;
+    }
+
+    /**
+     * Table names of the Doctrine entities of a directory: the explicit table
+     * name of the mapping, else the underscored class name (the naming strategy
+     * of Omeka), so inactive modules (not in the metadata) are covered.
+     *
+     * @return array<string, true>
+     */
+    protected function orphanParseEntityTables(string $dir): array
+    {
+        if (!is_dir($dir)) {
+            return [];
+        }
+        $tables = [];
+        foreach (glob($dir . '/*.php') ?: [] as $file) {
+            $content = (string) file_get_contents($file);
+            if (preg_match('/(?:#\[\s*ORM\\\\Table\s*\(\s*name\s*:\s*|@(?:ORM\\\\)?Table\s*\(\s*name\s*=\s*)[\'"]([a-z0-9_]+)[\'"]/i', $content, $m)) {
+                $tables[strtolower($m[1])] = true;
+            } elseif (preg_match('/\bclass\s+([A-Za-z0-9_]+)/', $content, $m)) {
+                $tables[strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $m[1]))] = true;
+            }
+        }
+        return $tables;
     }
 
     /**
@@ -927,8 +1158,10 @@ class CheckAndFixController extends AbstractActionController
      */
     protected function securityIsSensitiveDir(string $name): bool
     {
+        // "zip" is not listed: it is a public derivative directory of the
+        // modules DerivativeMedia and Zip, protecting it would break downloads.
         return (bool) preg_match(
-            '/(backup|bkp|dump|sql|import|export|log|temp|tmp|trash|contribution|contactus|userdata|private|preload|meminfo|triplestore|zip)/i',
+            '/(backup|bkp|dump|sql|import|export|log|temp|tmp|trash|contribution|contactus|userdata|private|preload|meminfo|triplestore)/i',
             $name
         );
     }

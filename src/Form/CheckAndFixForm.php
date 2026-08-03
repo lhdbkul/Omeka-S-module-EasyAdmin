@@ -291,6 +291,13 @@ class CheckAndFixForm extends Form
                     'db_fulltext_index' => 'Index', // @translate
                 ],
             ],
+            'db_orphan_tables' => [
+                'name' => 'Useless tables', // @translate
+                'description' => 'Tables that no active module maps, left by uninstalled modules or replaced features.', // @translate
+                'actions' => [
+                    'db_orphan_tables_check' => 'List', // @translate
+                ],
+            ],
             // Themes.
             'theme_templates' => [
                 'name' => 'Theme templates (v4.1)', // @translate
@@ -1269,6 +1276,7 @@ class CheckAndFixForm extends Form
                         'db_log_clean' => 'Delete old logs', // @translate
                         'db_customvocab_missing_itemsets_check' => 'Check if all custom vocabs with item sets have an existing item set', // @translate
                         'db_customvocab_missing_itemsets_clean' => 'Fix missing item sets of custom vocabs', // @translate
+                        'db_orphan_tables_check' => 'List useless tables (left by uninstalled modules or replaced features: reference_metadata, triplestore, term…)', // @translate
                     ],
                 ],
                 'attributes' => [
