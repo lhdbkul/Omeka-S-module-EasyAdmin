@@ -101,22 +101,34 @@
     // The kind of a field (structural | literal | manual) comes from the type
     // of its form element, classified server-side like the SiteHub module. A
     // field is a text field when its kind is "literal".
+    // A note is a static text (no named control), rendered as ".note".
+    var isNote = function (field) {
+        return !!field.querySelector('.note');
+    };
+
     var kindCache = new WeakMap();
     var isTextField = function (field) {
         if (kindCache.has(field)) {
             return kindCache.get(field);
         }
         var base = baseKey(field);
-        // Ambiguous fields default to text, as in the classifier.
-        var kind = base && kinds[base] ? kinds[base] : 'literal';
+        // A note is not a text setting; ambiguous fields default to text, as in
+        // the classifier.
+        var kind = isNote(field)
+            ? 'structural'
+            : (base && kinds[base] ? kinds[base] : 'literal');
         var text = kind === 'literal';
         kindCache.set(field, text);
         return text;
     };
 
     // Status of a field: default, modified or unknown, computed server-side
-    // from the module defaults declared in module.config.php.
+    // from the module defaults declared in module.config.php. A note has no
+    // value, so it is always at its default.
     var fieldStatus = function (field) {
+        if (isNote(field)) {
+            return 'default';
+        }
         var base = baseKey(field);
         return base && statuses[base] ? statuses[base] : 'unknown';
     };
