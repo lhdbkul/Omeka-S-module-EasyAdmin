@@ -22,6 +22,11 @@ admin interface:
 - launch simple tasks, that can be any job of any module
 - allow (or not) reviewer to delete any resources
 - allow more file types for assets
+- filter and section navigation on the settings and site settings pages
+- audit security and privacy (file protection, user and private data leaks)
+- diagnose background jobs (php-cli path, version parity, extensions)
+- list useless database tables (orphan tables left by removed modules)
+- adapt environment settings after a copy of the production database
 
 Checks and fixes that are doable:
 
@@ -53,6 +58,13 @@ Checks and fixes that are doable:
 - backup install
 - clear php caches
 - loop resources, for example to update them when a new settings is set
+- audit the security and privacy: protect sensitive directories of "files/" with
+  ".htaccess", detect executable php files, and list user and private data leaks
+- list useless database tables (orphan tables left by removed modules/libraries)
+- check background jobs: validity of php-cli path, version parity with php web,
+  required extensions and run a test job
+- adapt environment-specific settings, for example after copy of a production
+  database to a test server
 
 And many more.
 
@@ -230,6 +242,26 @@ integrated in a site, not for item sets or media.
 Allow to get the previous or the next resources, that simplifies browsing like
 in Omeka Classic.
 
+### Settings filter and navigation
+
+On main settings and site settings pages, a live filter and a section navigation
+can be added: filter fields by label or value, jump to a section, and restrict
+to modified, default or unknown values, or to text or non-text fields. The known
+core defaults are used to flag each field as default or modified; fields whose
+default is not declared (mostly settings of modules that do not declare theirs)
+stay unknown. It can be enabled with the button "Enable filters" in main
+settings page.
+
+### Security and privacy
+
+An audit lists the security and privacy weaknesses of the install: sensitive
+directories of "files/" reachable from the web, executable php files, and
+possible user or private data leaks. It can add a ".htaccess" that denies direct
+web access to the sensitive directories, indicating the module each directory
+belongs to. The protection is also applied on upgrade. Directories owned by a
+feature that serves files directly (for example the "zip" directory of modules
+Derivative Media and Zip) are excluded.
+
 ### Checks and fixes
 
 Go to the menu "Bulk Check", select your process, set your options if needed,
@@ -244,6 +276,32 @@ A check also detects and removes orphan resource rows: rows in the `resource`
 table without a matching row in a sub-table (`item`, `item_set`, `media`,
 `annotation`, `value_annotation`, `digital_object`), and the reverse, which can
 happen after a crash or an incomplete deletion.
+
+### Background jobs (php-cli)
+
+Background jobs are run by a separate php-cli process whose path and version may
+differ from the web php, in particular on multi-distro or shared hosting. A
+diagnostic checks the configured php-cli path, its version parity with the web
+php, the required extensions, the SAPI, the php-cgi setups, and `open_basedir`,
+then recommends the right path when the configured one is invalid. A separate
+action runs a real test job to confirm that jobs actually start. A summary is
+also added to `/admin/system-info`.
+
+### Useless database tables
+
+A check lists the database tables that are not used any more: orphan tables left
+by removed modules, told apart from the tables of merely inactive (but still
+installed) modules, from the core Omeka tables, and from tables created by a
+third-party library of a module (for example the `triplestore_` tables created
+by the `arc2` library of module Sparql). The list of library-owned tables is
+extensible via configuration.
+
+### Settings after a database copy
+
+After copying a production database to a test install, several settings must be
+adapted to the new environment. A task lists these environment-specific settings
+(and site settings) so they can be reviewed and updated, without touching values
+that are not environment-related.
 
 ### Install and update modules and themes
 
