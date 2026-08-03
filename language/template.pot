@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 00:00+0000\n"
+"POT-Creation-Date: 2026-08-03 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: data/scripts/upgrade.php:42 Module.php:215
+#: data/scripts/upgrade.php:42 Module.php:228
 #, php-format
 msgid "The module %1$s should be upgraded to version %2$s or later."
 msgstr ""
@@ -32,16 +32,53 @@ msgid ""
 "remove them first."
 msgstr ""
 
-#: Module.php:354
+#: Module.php:367
 msgid "WARNING:"
 msgstr ""
 
-#: Module.php:366
+#: Module.php:379
 msgid "Remove directory \"files/check\""
 msgstr ""
 
-#: Module.php:1226
+#: Module.php:1303
 msgid "[not in site]"
+msgstr ""
+
+#: Module.php:1405
+msgid "Enable filters"
+msgstr ""
+
+#: Module.php:1406
+msgid "Add a live filter and a section navigation to this page."
+msgstr ""
+
+#: Module.php:1429
+msgid "Filter settings…"
+msgstr ""
+
+#: Module.php:1430
+#, php-format
+msgid "%s settings"
+msgstr ""
+
+#: Module.php:1431
+msgid "Sections"
+msgstr ""
+
+#: Module.php:1432
+msgid "Text fields"
+msgstr ""
+
+#: Module.php:1433
+msgid "Non-text fields"
+msgstr ""
+
+#: Module.php:1434
+msgid "Include values"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1158
+msgid "the path is invalid"
 msgstr ""
 
 #: src/Controller/Admin/FileManagerController.php:255
@@ -266,7 +303,7 @@ msgstr ""
 #: view/easy-admin/admin/check-and-fix/index.phtml:44
 #: view/easy-admin/admin/cron/index.phtml:28
 #: view/easy-admin/admin/file-manager/browse.phtml:58
-#: view/easy-admin/admin/module/browse.phtml:115
+#: view/easy-admin/admin/module/browse.phtml:114
 #: view/easy-admin/admin/module/integrity-report.phtml:19
 #: view/easy-admin/admin/theme/browse.phtml:40
 #: view/easy-admin/admin/theme/integrity-report.phtml:19
@@ -617,118 +654,119 @@ msgstr ""
 msgid "File: %s"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:115
+#: view/easy-admin/admin/module/browse.phtml:114
 msgid "Manage modules"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:123
-#: view/easy-admin/admin/module/browse.phtml:146
+#: view/easy-admin/admin/module/browse.phtml:122
+#: view/easy-admin/admin/module/browse.phtml:145
 #: view/easy-admin/admin/theme/browse.phtml:48
 #: view/easy-admin/admin/theme/browse.phtml:71
 msgid "The catalogue could not be loaded (connection problem). Click to retry."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:124
+#: view/easy-admin/admin/module/browse.phtml:123
 msgid ""
 "Loading the module catalogue from omeka.org and github… Update detection and "
 "installation from catalogue will appear shortly. If it does not, refresh the "
 "catalogue."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:128
+#: view/easy-admin/admin/module/browse.phtml:127
 msgid ""
 "The module catalogue could not be loaded. Update detection is unavailable. "
 "Check the server internet access or refresh the catalogue."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:134
+#: view/easy-admin/admin/module/browse.phtml:133
 #, php-format
 msgid ""
 "The directory \"%s\" is not writeable. Module installation, update and "
 "removal are disabled."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:152
+#: view/easy-admin/admin/module/browse.phtml:151
 #: view/easy-admin/admin/theme/browse.phtml:77
 msgid "Refresh catalogue"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:155
+#: view/easy-admin/admin/module/browse.phtml:154
 msgid "Install new module"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:161
+#: view/easy-admin/admin/module/browse.phtml:160
+#: view/easy-admin/admin/module/browse.phtml:567
 msgid "Filter modules…"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:172
+#: view/easy-admin/admin/module/browse.phtml:171
 msgid "Update available"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:177
+#: view/easy-admin/admin/module/browse.phtml:176
 msgid "Filter by state"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:200
+#: view/easy-admin/admin/module/browse.phtml:199
 msgid "Activate selected"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:201
+#: view/easy-admin/admin/module/browse.phtml:200
 msgid "Deactivate selected"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:202
+#: view/easy-admin/admin/module/browse.phtml:201
 msgid "Download the new version of selected"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:203
+#: view/easy-admin/admin/module/browse.phtml:202
 msgid "Upgrade selected"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:204
+#: view/easy-admin/admin/module/browse.phtml:203
 #: view/easy-admin/admin/theme/browse.phtml:108
 msgid "Remove selected"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:221
+#: view/easy-admin/admin/module/browse.phtml:220
 #: view/easy-admin/admin/module/integrity-report.phtml:35
 msgid "Module"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:223
+#: view/easy-admin/admin/module/browse.phtml:222
 #: view/easy-admin/admin/theme/browse.phtml:124
 msgid "Version"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:224
+#: view/easy-admin/admin/module/browse.phtml:223
 #: view/easy-admin/admin/module/show-details.phtml:32
 msgid "State"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:307
-#: view/easy-admin/admin/theme/browse.phtml:157
+#: view/easy-admin/admin/module/browse.phtml:306
+#: view/easy-admin/admin/theme/browse.phtml:164
 #, php-format
 msgid "Select %s"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:401
 #: view/easy-admin/admin/module/browse.phtml:402
+#: view/easy-admin/admin/module/browse.phtml:403
 msgid "Download the new version"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:426
-#: view/easy-admin/admin/theme/browse.phtml:208
+#: view/easy-admin/admin/module/browse.phtml:427
+#: view/easy-admin/admin/theme/browse.phtml:215
 msgid "Managed by Composer"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:441
+#: view/easy-admin/admin/module/browse.phtml:442
 #, php-format
 msgid ""
 "The database is on version %1$s and the files are on version %2$s: an "
 "upgrade is pending."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:447
+#: view/easy-admin/admin/module/browse.phtml:448
 #, php-format
 msgid ""
 "The database is on version %1$s but the installed files are on version %2$s. "
@@ -737,68 +775,72 @@ msgid ""
 "files again."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:450
+#: view/easy-admin/admin/module/browse.phtml:451
 #, php-format
 msgid "⚠ DB: %s"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:454
+#: view/easy-admin/admin/module/browse.phtml:455
 #, php-format
 msgid "Latest version compatible with Omeka S %s"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:457
+#: view/easy-admin/admin/module/browse.phtml:458
 msgid "Latest version, not compatible with this Omeka S"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:457
+#: view/easy-admin/admin/module/browse.phtml:458
 #, php-format
 msgid "latest: %s"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:460
+#: view/easy-admin/admin/module/browse.phtml:461
+#: view/easy-admin/admin/theme/browse.phtml:232
 msgid "No compatible version available"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:460
+#: view/easy-admin/admin/module/browse.phtml:461
+#: view/easy-admin/admin/theme/browse.phtml:232
 msgid "(incompatible)"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:463
+#: view/easy-admin/admin/module/browse.phtml:464
 msgid "Compatibility unknown (github/gitlab list)"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:469
+#: view/easy-admin/admin/module/browse.phtml:470
 msgid "Error: invalid Module.php"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:471
+#: view/easy-admin/admin/module/browse.phtml:472
 msgid "Error: invalid module.ini"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:473
-#: view/easy-admin/admin/theme/browse.phtml:226
+#: view/easy-admin/admin/module/browse.phtml:474
+#: view/easy-admin/admin/module/browse.phtml:588
+#: view/easy-admin/admin/theme/browse.phtml:235
+#: view/easy-admin/admin/theme/browse.phtml:339
 #, php-format
 msgid "Requires Omeka S %s"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:475
+#: view/easy-admin/admin/module/browse.phtml:476
 msgid "Not in filesystem"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:496
+#: view/easy-admin/admin/module/browse.phtml:497
 msgid "No modules found."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:527
+#: view/easy-admin/admin/module/browse.phtml:529
 msgid "Remove modules"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:528
+#: view/easy-admin/admin/module/browse.phtml:530
 msgid "Are you sure you would like to remove the selected modules?"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:530
+#: view/easy-admin/admin/module/browse.phtml:532
 #, php-format
 msgid ""
 "%1$s: this action will uninstall the modules from the database, so their "
@@ -806,36 +848,36 @@ msgid ""
 "created."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:533
-#: view/easy-admin/admin/theme/browse.phtml:289
+#: view/easy-admin/admin/module/browse.phtml:535
+#: view/easy-admin/admin/theme/browse.phtml:299
 msgid "Confirm remove"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:545
+#: view/easy-admin/admin/module/browse.phtml:547
 msgid "Install new module from catalogue"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:547
+#: view/easy-admin/admin/module/browse.phtml:549
 msgid "Select the modules to install or use a curated selection."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:548
+#: view/easy-admin/admin/module/browse.phtml:550
 #, php-format
 msgid ""
 "For more information, see pages of known %1$smodules%2$s or "
 "%3$sOmeka.org%2$s."
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:554
+#: view/easy-admin/admin/module/browse.phtml:556
 msgid "Curated selection"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:556
+#: view/easy-admin/admin/module/browse.phtml:558
 msgid "Select a selection…"
 msgstr ""
 
-#: view/easy-admin/admin/module/browse.phtml:590
-#: view/easy-admin/admin/theme/browse.phtml:333
+#: view/easy-admin/admin/module/browse.phtml:601
+#: view/easy-admin/admin/theme/browse.phtml:352
 msgid "Install selected"
 msgstr ""
 
@@ -1045,6 +1087,7 @@ msgid "Install new theme"
 msgstr ""
 
 #: view/easy-admin/admin/theme/browse.phtml:87
+#: view/easy-admin/admin/theme/browse.phtml:319
 msgid "Filter themes…"
 msgstr ""
 
@@ -1056,44 +1099,44 @@ msgstr ""
 msgid "Design"
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:193
-#: view/easy-admin/admin/theme/browse.phtml:194
+#: view/easy-admin/admin/theme/browse.phtml:200
+#: view/easy-admin/admin/theme/browse.phtml:201
 msgid "Update files"
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:223
+#: view/easy-admin/admin/theme/browse.phtml:230
 #, php-format
 msgid "→ %s"
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:252
+#: view/easy-admin/admin/theme/browse.phtml:261
 msgid "No themes found."
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:283
+#: view/easy-admin/admin/theme/browse.phtml:293
 msgid "Remove themes"
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:284
+#: view/easy-admin/admin/theme/browse.phtml:294
 msgid "Are you sure you would like to remove the selected themes?"
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:286
+#: view/easy-admin/admin/theme/browse.phtml:296
 #, php-format
 msgid ""
 "%1$s: this action will delete all files of the themes. A backup of the files "
 "will be created."
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:301
+#: view/easy-admin/admin/theme/browse.phtml:311
 msgid "Install new theme from catalogue"
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:303
+#: view/easy-admin/admin/theme/browse.phtml:313
 msgid "Select the themes to install."
 msgstr ""
 
-#: view/easy-admin/admin/theme/browse.phtml:304
+#: view/easy-admin/admin/theme/browse.phtml:314
 #, php-format
 msgid ""
 "For more information, see pages of known %1$sthemes%2$s or %3$sOmeka.org%2$s."
@@ -1222,7 +1265,7 @@ msgid ""
 "page to the public page."
 msgstr ""
 
-#: data/scripts/upgrade.php:212 Module.php:322
+#: data/scripts/upgrade.php:212 Module.php:335
 msgid ""
 "The module \"{module}\" was upgraded by module \"{module_2}\" and "
 "uninstalled."
@@ -1370,6 +1413,24 @@ msgid ""
 "cron task configuration."
 msgstr ""
 
+#: data/scripts/upgrade.php:629
+msgid ""
+"A \".htaccess\" was added to protect {count} sensitive directory(ies) of "
+"\"files/\": {list}"
+msgstr ""
+
+#: data/scripts/upgrade.php:637
+msgid ""
+"A \".htaccess\" could not be written in {count} sensitive directory(ies) of "
+"\"files/\" (check permissions): {list}"
+msgstr ""
+
+#: data/scripts/upgrade.php:645
+msgid ""
+"A live filter and a section navigation simplify management of settings and "
+"site settings."
+msgstr ""
+
 #: data/scripts/task.php:21
 msgid ""
 "Usage: php data/scripts/task.php [arguments]\n"
@@ -1511,131 +1572,131 @@ msgstr ""
 msgid "Task \"%1$s\" ended."
 msgstr ""
 
-#: Module.php:147
+#: Module.php:160
 msgid "Fatal error: {message} in {file}:{line}"
 msgstr ""
 
-#: Module.php:226
+#: Module.php:239
 msgid ""
 "The libraries should be installed. See module’s installation documentation."
 msgstr ""
 
-#: Module.php:284
+#: Module.php:297
 msgid ""
 "Upgrading module BulkCheck: Unable to rename directory \"files/bulk_check\" "
 "into \"files/check\". Trying to create it."
 msgstr ""
 
-#: Module.php:302
+#: Module.php:315
 msgid ""
 "These directories are not writeable: {dirs}. Related features (check, "
 "backup, bulk import) are disabled until permissions are fixed."
 msgstr ""
 
-#: Module.php:360
+#: Module.php:373
 msgid ""
 "All stored files from checks and fixes, if any, will be removed from folder "
 "\"{folder}\"."
 msgstr ""
 
-#: Module.php:1222
+#: Module.php:1299
 msgid "View this {resource_type} in \"{site}\""
 msgstr ""
 
-#: Module.php:1403
+#: Module.php:1626
 msgid "File successfuly uploaded."
 msgstr ""
 
-#: Module.php:1404
+#: Module.php:1627
 msgid "The total of file sizes exceeds the the server limit directive."
 msgstr ""
 
-#: Module.php:1405
+#: Module.php:1628
 msgid "The file size exceeds the specified limit."
 msgstr ""
 
-#: Module.php:1406
+#: Module.php:1629
 msgid "The file was only partially uploaded."
 msgstr ""
 
-#: Module.php:1407
+#: Module.php:1630
 msgid "No file was uploaded."
 msgstr ""
 
-#: Module.php:1408
+#: Module.php:1631
 msgid "The temporary folder to store the file is missing."
 msgstr ""
 
-#: Module.php:1409
+#: Module.php:1632
 msgid "Failed to write file to disk."
 msgstr ""
 
-#: Module.php:1410
+#: Module.php:1633
 msgid "A PHP extension stopped the file upload."
 msgstr ""
 
-#: Module.php:1429 Module.php:1434
+#: Module.php:1658
 msgid "There is no uploaded files."
 msgstr ""
 
-#: Module.php:1453
+#: Module.php:1677
 msgid "File #{index} \"{filename}\" has an error: {error}."
 msgstr ""
 
-#: Module.php:1460
+#: Module.php:1684
 msgid "File #{index} \"{filename}\" must not start with a \".\"."
 msgstr ""
 
-#: Module.php:1467
+#: Module.php:1691
 msgid "File #{index} \"{filename}\" must not contain a reserved character."
 msgstr ""
 
-#: Module.php:1474
+#: Module.php:1698
 msgid ""
 "File #{index} temp name \"{filename}\" must not contain a reserved character."
 msgstr ""
 
-#: Module.php:1482
+#: Module.php:1706
 msgid "File #{index} \"{filename}\" is an empty file."
 msgstr ""
 
-#: Module.php:1653
+#: Module.php:1877
 msgid ""
 "An error occurred when fetching asset \"{asset_filename}\" (#{asset_id}): "
 "{errors}"
 msgstr ""
 
-#: Module.php:1668
+#: Module.php:1892
 msgid ""
 "An error occurred when optimizing asset \"{asset_filename}\" (#{asset_id}): "
 "{error}"
 msgstr ""
 
-#: Module.php:1697
+#: Module.php:1921
 msgid ""
 "An error occurred when storing asset \"{asset_filename}\" (#{asset_id}): "
 "{error}"
 msgstr ""
 
-#: Module.php:1733
+#: Module.php:1957
 msgid ""
 "The asset \"{asset_filename}\" (#{asset_id}) has been successfully optimized "
 "by {percent}%, from {size_1} to {size_2} bytes."
 msgstr ""
 
-#: Module.php:1781
+#: Module.php:2005
 msgid ""
 "Asset #{asset_id}: cannot rename, file \"{filename}\" not found in asset "
 "directory."
 msgstr ""
 
-#: Module.php:1827
+#: Module.php:2051
 msgid ""
 "Unable to rename asset file from \"{old}\" to \"{new}\": {error}. Check that "
 "the web server has write permission on the directory \"{dir}\"."
 msgstr ""
 
-#: Module.php:1884
+#: Module.php:2108
 msgid "Store with original name"
 msgstr ""
 
@@ -2170,7 +2231,7 @@ msgstr ""
 #: src/Job/DbItemPrimaryMedia.php:28 src/Job/DirExcess.php:16
 #: src/Job/DbItemNoValue.php:29 src/Job/DbValueAnnotationTemplate.php:38
 #: src/Job/FileMissing.php:147 src/Job/MediaPosition.php:16
-#: src/Job/DbValueClean.php:152 src/Job/FileExcess.php:52
+#: src/Job/DbValueClean.php:153 src/Job/FileExcess.php:52
 #: src/Job/DbResourceOrphans.php:27 src/Job/DbCustomVocabMissingItemSets.php:45
 msgid "Process \"{process}\" completed."
 msgstr ""
@@ -2239,9 +2300,9 @@ msgstr ""
 msgid "Removed: {addons}."
 msgstr ""
 
-#: src/Job/ManageAddons.php:257 src/Controller/Admin/ModuleController.php:443
-#: src/Controller/Admin/ModuleController.php:598
-#: src/Controller/Admin/ModuleController.php:927
+#: src/Job/ManageAddons.php:257 src/Controller/Admin/ModuleController.php:460
+#: src/Controller/Admin/ModuleController.php:615
+#: src/Controller/Admin/ModuleController.php:944
 msgid "Upgrade of module \"{name}\" finalized."
 msgstr ""
 
@@ -2450,7 +2511,7 @@ msgid "{count} templates have fallback title properties."
 msgstr ""
 
 #: src/Job/DbResourceTitle.php:215 src/Job/DbResourceTitle.php:356
-#: src/Job/DbResourceTitle.php:522 src/Job/DbLoopResources.php:147
+#: src/Job/DbResourceTitle.php:522 src/Job/DbLoopResources.php:148
 msgid "{processed}/{total} resources processed."
 msgstr ""
 
@@ -2573,23 +2634,23 @@ msgid ""
 "\"{table}\" has a size of {size} MB."
 msgstr ""
 
-#: src/Job/DbLog.php:16 src/Form/CheckAndFixForm.php:1302
+#: src/Job/DbLog.php:16 src/Form/CheckAndFixForm.php:1351
 msgid "Emergency"
 msgstr ""
 
-#: src/Job/DbLog.php:17 src/Form/CheckAndFixForm.php:1303
+#: src/Job/DbLog.php:17 src/Form/CheckAndFixForm.php:1352
 msgid "Alert"
 msgstr ""
 
-#: src/Job/DbLog.php:18 src/Form/CheckAndFixForm.php:1304
+#: src/Job/DbLog.php:18 src/Form/CheckAndFixForm.php:1353
 msgid "Critical"
 msgstr ""
 
-#: src/Job/DbLog.php:21 src/Form/CheckAndFixForm.php:1307
+#: src/Job/DbLog.php:21 src/Form/CheckAndFixForm.php:1356
 msgid "Notice"
 msgstr ""
 
-#: src/Job/DbLog.php:23 src/Form/CheckAndFixForm.php:1309
+#: src/Job/DbLog.php:23 src/Form/CheckAndFixForm.php:1358
 msgid "Debug"
 msgstr ""
 
@@ -2730,6 +2791,11 @@ msgstr ""
 
 #: src/Job/DbItemPrimaryMedia.php:70
 msgid "{total} primary medias were set."
+msgstr ""
+
+#: src/Job/JobCliTest.php:19
+msgid ""
+"EasyAdmin: PHP-CLI test job ran successfully; the background pipeline works."
 msgstr ""
 
 #: src/Job/DatabaseBackup.php:76
@@ -3190,63 +3256,63 @@ msgstr ""
 msgid "No valid action defined."
 msgstr ""
 
-#: src/Job/DbValueClean.php:64
+#: src/Job/DbValueClean.php:65
 msgid "No resource type defined."
 msgstr ""
 
-#: src/Job/DbValueClean.php:75
+#: src/Job/DbValueClean.php:76
 msgid "There are invalid resource types to process: {resource_types}."
 msgstr ""
 
-#: src/Job/DbValueClean.php:95
+#: src/Job/DbValueClean.php:96
 msgid "When a query is set, only one resource type can be processed."
 msgstr ""
 
-#: src/Job/DbValueClean.php:102
+#: src/Job/DbValueClean.php:103
 msgid "Resource types to process: all."
 msgstr ""
 
-#: src/Job/DbValueClean.php:106 src/Job/DbLoopResources.php:79
+#: src/Job/DbValueClean.php:107 src/Job/DbLoopResources.php:80
 msgid "Resource types to process: {resource_types}."
 msgstr ""
 
-#: src/Job/DbValueClean.php:121
+#: src/Job/DbValueClean.php:122
 msgid "Processing trimming of values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:128
+#: src/Job/DbValueClean.php:129
 msgid "Processing cleaning empty values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:135
+#: src/Job/DbValueClean.php:136
 msgid "Processing cleaning empty language."
 msgstr ""
 
-#: src/Job/DbValueClean.php:142
+#: src/Job/DbValueClean.php:143
 msgid "Processing deduplication of values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:220
+#: src/Job/DbValueClean.php:221
 msgid "Trimmed {count} values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:237
+#: src/Job/DbValueClean.php:238
 msgid "Removed {count} empty string values after trimming."
 msgstr ""
 
-#: src/Job/DbValueClean.php:281
+#: src/Job/DbValueClean.php:282
 msgid "Updated empty values and uris of {count} values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:326
+#: src/Job/DbValueClean.php:327
 msgid "Updated empty language of {count} values."
 msgstr ""
 
-#: src/Job/DbValueClean.php:413
+#: src/Job/DbValueClean.php:414
 msgid "Error during deduplication: {error}"
 msgstr ""
 
-#: src/Job/DbValueClean.php:423
+#: src/Job/DbValueClean.php:424
 msgid "Deduplicated {count} values."
 msgstr ""
 
@@ -3314,23 +3380,23 @@ msgstr ""
 msgid "{count} orphan rows removed across all sub-tables."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:73
+#: src/Job/DbLoopResources.php:74
 msgid "No resource types defined."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:104
+#: src/Job/DbLoopResources.php:105
 msgid "No {resource_type} to process."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:111
+#: src/Job/DbLoopResources.php:112
 msgid "Processing {count} {resource_type}."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:133
+#: src/Job/DbLoopResources.php:134
 msgid "The job \"{name}\" was stopped."
 msgstr ""
 
-#: src/Job/DbLoopResources.php:159
+#: src/Job/DbLoopResources.php:160
 msgid "End of process: {count}/{total} {resource_type} processed."
 msgstr ""
 
@@ -3529,185 +3595,189 @@ msgid "Buttons \"Previous/Next\""
 msgstr ""
 
 #: src/Form/SettingsFieldset.php:84
-msgid "Allow the reviewer to delete any resource"
+msgid "Enhance settings pages with a filter and a section navigation"
 msgstr ""
 
 #: src/Form/SettingsFieldset.php:96
+msgid "Allow the reviewer to delete any resource"
+msgstr ""
+
+#: src/Form/SettingsFieldset.php:108
 msgid "Add a button to create resources directly from a template"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:103
+#: src/Form/SettingsFieldset.php:115
 msgid "Select resource templates…"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:112
+#: src/Form/SettingsFieldset.php:124
 msgid ""
 "Add a button to create resources directly from a template specified with a "
 "class"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:121
+#: src/Form/SettingsFieldset.php:133
 msgid "Select resource classes…"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:130
+#: src/Form/SettingsFieldset.php:142
 msgid "Asset: allowed media types"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:131
+#: src/Form/SettingsFieldset.php:143
 msgid ""
 "Additional media types allowed for assets. Common image types (jpeg, png, "
 "gif, webp) are included by default. One media type per line."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:143
+#: src/Form/SettingsFieldset.php:155
 msgid "Asset: allowed extensions"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:144
+#: src/Form/SettingsFieldset.php:156
 msgid ""
 "Additional extensions allowed for assets. Common image extensions (jpg, "
 "jpeg, png, gif, webp) are included by default. Separate with spaces."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:158
+#: src/Form/SettingsFieldset.php:170
 msgid "Disable creation of thumbnails"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:159
+#: src/Form/SettingsFieldset.php:171
 msgid ""
 "Skip creation of derivative images, for example to speed up imports. "
 "Recreate them later with the check and fix task."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:170
+#: src/Form/SettingsFieldset.php:182
 msgid "Default upload folder"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:171
+#: src/Form/SettingsFieldset.php:183
 msgid ""
 "Default folder for file uploads. Must be inside /files but not in protected "
 "directories (original, asset, large, medium, square)."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:175
+#: src/Form/SettingsFieldset.php:187
 msgid "/var/www/html/files/upload"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:183
+#: src/Form/SettingsFieldset.php:195
 msgid "Additional folders"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:184
+#: src/Form/SettingsFieldset.php:196
 msgid ""
 "Additional folders available in the file manager. One path per line. "
 "Protected Omeka directories (original, asset, derivatives) are always "
 "available for browsing but are read-only."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:196
+#: src/Form/SettingsFieldset.php:208
 msgid "Enable per-user directories"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:197
+#: src/Form/SettingsFieldset.php:209
 msgid ""
 "Each user who can create items gets a private directory for uploads and "
 "imports. Administrators can browse all user directories. Files are "
 "accessible for import via their filesystem path."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:208
+#: src/Form/SettingsFieldset.php:220
 msgid "Disable CSRF check for uploads"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:209
+#: src/Form/SettingsFieldset.php:221
 msgid "May be required with some VPN/proxy configurations."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:220
+#: src/Form/SettingsFieldset.php:232
 msgid "Allow empty files"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:221
+#: src/Form/SettingsFieldset.php:233
 msgid ""
 "Allow uploading empty files. Requires disabling file validation or adding "
 "media type \"application/x-empty\" in main settings."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:232
+#: src/Form/SettingsFieldset.php:244
 msgid "Add an \"Apply\" button on the config form of each module"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:233
+#: src/Form/SettingsFieldset.php:245
 msgid ""
 "Save the settings and stay on the config form instead of returning to the "
 "module list."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:245
+#: src/Form/SettingsFieldset.php:257
 msgid "Notify new versions for inactive modules"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:256
+#: src/Form/SettingsFieldset.php:268
 msgid "Notify development versions of modules"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:268
+#: src/Form/SettingsFieldset.php:280
 msgid "Base url of files (dev/test)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:269
+#: src/Form/SettingsFieldset.php:281
 msgid ""
 "Serve file from this base url (for example a production server). Useful to "
 "work on a copy of the database without the files."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:282
+#: src/Form/SettingsFieldset.php:294
 msgid "Display error on screen"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:283
+#: src/Form/SettingsFieldset.php:295
 msgid ""
 "This option helps fix issues and should be unset in production. For "
 "development, use the key \"APPLICATION_ENV\" in file .htaccess."
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:286
+#: src/Form/SettingsFieldset.php:298
 msgid "Admin only"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:287
+#: src/Form/SettingsFieldset.php:299
 msgid "All (short use only)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:301
+#: src/Form/SettingsFieldset.php:313
 msgid "Set Omeka under maintenance"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:307
+#: src/Form/SettingsFieldset.php:319
 msgid "Public front-end blocked for anonymous visitors"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:308
+#: src/Form/SettingsFieldset.php:320
 msgid "Public front-end blocked for anybody except global admin"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:309
+#: src/Form/SettingsFieldset.php:321
 msgid "Public front-end blocked for anybody"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:310
+#: src/Form/SettingsFieldset.php:322
 msgid ""
 "Admin back-end blocked for anybody except global admin (public front-end "
 "remains open)"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:311
+#: src/Form/SettingsFieldset.php:323
 msgid ""
 "Admin back-end and public front-end blocked for anybody except global admin"
 msgstr ""
 
-#: src/Form/SettingsFieldset.php:325
+#: src/Form/SettingsFieldset.php:337
 msgid "Text to display for maintenance"
 msgstr ""
 
@@ -3794,9 +3864,9 @@ msgstr ""
 #: src/Form/CheckAndFixForm.php:209 src/Form/CheckAndFixForm.php:217
 #: src/Form/CheckAndFixForm.php:232 src/Form/CheckAndFixForm.php:240
 #: src/Form/CheckAndFixForm.php:248 src/Form/CheckAndFixForm.php:257
-#: src/Form/CheckAndFixForm.php:283 src/Form/CheckAndFixForm.php:299
-#: src/Form/CheckAndFixForm.php:308 src/Form/CheckAndFixForm.php:316
-#: src/Form/CheckAndFixForm.php:323
+#: src/Form/CheckAndFixForm.php:283 src/Form/CheckAndFixForm.php:306
+#: src/Form/CheckAndFixForm.php:315 src/Form/CheckAndFixForm.php:323
+#: src/Form/CheckAndFixForm.php:347 src/Form/CheckAndFixForm.php:354
 msgid "Check"
 msgstr ""
 
@@ -4014,247 +4084,307 @@ msgstr ""
 msgid "Index"
 msgstr ""
 
+#: src/Form/CheckAndFixForm.php:295
+msgid "Useless tables"
+msgstr ""
+
 #: src/Form/CheckAndFixForm.php:296
+msgid ""
+"Tables that no active module maps, left by uninstalled modules or replaced "
+"features."
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:298 src/Form/CheckAndFixForm.php:330
+msgid "List"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:303
 msgid "Theme templates (v4.1)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:297
+#: src/Form/CheckAndFixForm.php:304
 msgid "Templates to migrate in themes for Omeka S v4.1 (backup themes first)."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:300
+#: src/Form/CheckAndFixForm.php:307
 msgid "Migrate"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:305
+#: src/Form/CheckAndFixForm.php:312
 msgid "Caches"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:306
+#: src/Form/CheckAndFixForm.php:313
 msgid "Application caches."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:313
+#: src/Form/CheckAndFixForm.php:320
 msgid "Installation"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:314
+#: src/Form/CheckAndFixForm.php:321
 msgid "Check the consistency of the installation."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:321
+#: src/Form/CheckAndFixForm.php:327
+msgid "Environment settings"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:328
+msgid ""
+"Settings depending on the server to review after a copy of the database "
+"(title, urls, paths, hosts, emails, api keys…)."
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:331
+msgid "Adapt for a test copy"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:336 src/Form/CheckAndFixForm.php:1693
+msgid "Security and privacy"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:337
+msgid ""
+"Audit file protection, user data leaks, private data leaks and dangerous "
+"settings."
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:339
+msgid "Audit"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:340
+msgid "Protect directories"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:345
 msgid "Email configuration; sends a test email."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:550
+#: src/Form/CheckAndFixForm.php:351
+msgid "Background jobs (PHP-CLI)"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:352
+msgid ""
+"Check the PHP-CLI path, its version alignment with the web server and the "
+"required extensions."
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:355
+msgid "Test job"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:595
 msgid ""
 "List files that are present in \"/files/\", but not in database (originals "
 "only)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:551
+#: src/Form/CheckAndFixForm.php:596
 msgid ""
 "List files that are present in \"/files/\", but not in database (include "
 "derivatives)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:552
+#: src/Form/CheckAndFixForm.php:597
 msgid ""
 "Move files that are present in \"/files/\", but not in database, into \"/"
 "files/check/\""
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:553
+#: src/Form/CheckAndFixForm.php:598
 msgid ""
 "List files that are present in database, not in \"/files/\" (original only)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:554
+#: src/Form/CheckAndFixForm.php:599
 msgid ""
 "List files that are present in database, not in \"/files/\" (include "
 "derivatives)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:555
+#: src/Form/CheckAndFixForm.php:600
 msgid ""
 "Copy missing original files from the source directory below (recover a "
 "disaster)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:556
+#: src/Form/CheckAndFixForm.php:601
 msgid ""
 "Delete items with one file that is missing and missing medias (WARNING: "
 "export your items first)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:557
+#: src/Form/CheckAndFixForm.php:602
 msgid ""
 "Delete empty directories in \"/files/\" (mainly for module Archive Repertory)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:558
+#: src/Form/CheckAndFixForm.php:603
 msgid "Rebuild derivative images (thumbnails)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:559
+#: src/Form/CheckAndFixForm.php:604
 msgid "Quick rebuild all derivative images (from terminal, 10x times faster)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:583
+#: src/Form/CheckAndFixForm.php:629
 msgid "Resources to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:584
+#: src/Form/CheckAndFixForm.php:630
 msgid ""
 "Most file tasks apply to medias and, when the module is present, to digital "
 "objects."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:587 src/Form/CheckAndFixForm.php:1002
+#: src/Form/CheckAndFixForm.php:633 src/Form/CheckAndFixForm.php:1050
 msgid "Digital objects"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:604
+#: src/Form/CheckAndFixForm.php:650
 msgid "Options for excess files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:615
+#: src/Form/CheckAndFixForm.php:661
 msgid "Compute the SHA-256 of each file (to find duplicates)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:627
+#: src/Form/CheckAndFixForm.php:673
 msgid "Options for fix missing files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:638
+#: src/Form/CheckAndFixForm.php:684
 msgid "Source for restoration"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:642
+#: src/Form/CheckAndFixForm.php:688
 msgid "/server/path/to/my/source/directory"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:649
+#: src/Form/CheckAndFixForm.php:695
 msgid "Limit to extensions"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:654
+#: src/Form/CheckAndFixForm.php:700
 msgid "pdf, jpeg"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:661
+#: src/Form/CheckAndFixForm.php:707
 msgid "Exclude extensions"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:670
+#: src/Form/CheckAndFixForm.php:716
 msgid "DS_Store, db"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:677
+#: src/Form/CheckAndFixForm.php:723
 msgid "Exclude source files ending with strings"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:682
+#: src/Form/CheckAndFixForm.php:728
 msgid "_low, _medium"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:689
+#: src/Form/CheckAndFixForm.php:735
 msgid "Matching mode"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:691
+#: src/Form/CheckAndFixForm.php:737
 msgid "Hash sha256 (recommended)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:692
+#: src/Form/CheckAndFixForm.php:738
 msgid "Source file path"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:693
+#: src/Form/CheckAndFixForm.php:739
 msgid "Source file name (warning: they should be unique)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:694
+#: src/Form/CheckAndFixForm.php:740
 msgid ""
 "Hash md5 (when stored as sha256; the real sha256 must be set next with "
 "another task)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:705 src/Form/CheckAndFixForm.php:1176
+#: src/Form/CheckAndFixForm.php:751 src/Form/CheckAndFixForm.php:1224
 msgid "Report type"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:706
+#: src/Form/CheckAndFixForm.php:752
 msgid ""
 "Full report: all files are listed (slower). Partial report: only missing and "
 "restored files are listed (faster, recommended for large collections)."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:708
+#: src/Form/CheckAndFixForm.php:754
 msgid "Partial: only missing/restored files (faster)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:709
+#: src/Form/CheckAndFixForm.php:755
 msgid "Full: all files including existing ones (slower)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:724
+#: src/Form/CheckAndFixForm.php:770
 msgid "Options to rebuild derivative files (thumbnails)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:742
+#: src/Form/CheckAndFixForm.php:788
 msgid "Select one or more item sets…"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:749
+#: src/Form/CheckAndFixForm.php:795
 msgid "Ingesters to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:750
+#: src/Form/CheckAndFixForm.php:796
 msgid "All ingesters"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:764
+#: src/Form/CheckAndFixForm.php:810
 msgid "Renderers to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:765
+#: src/Form/CheckAndFixForm.php:811
 msgid "All renderers"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:779
+#: src/Form/CheckAndFixForm.php:825
 msgid "Media types to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:780
+#: src/Form/CheckAndFixForm.php:826
 msgid "All media types"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:794
+#: src/Form/CheckAndFixForm.php:840
 msgid "Media ids"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:805 src/Form/CheckAndFixForm.php:881
+#: src/Form/CheckAndFixForm.php:851 src/Form/CheckAndFixForm.php:927
 msgid "Thumbnails to create"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:807 src/Form/CheckAndFixForm.php:883
+#: src/Form/CheckAndFixForm.php:853 src/Form/CheckAndFixForm.php:929
 msgid "Only missing thumbnails"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:808 src/Form/CheckAndFixForm.php:884
+#: src/Form/CheckAndFixForm.php:854 src/Form/CheckAndFixForm.php:930
 msgid "All thumbnails"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:820
+#: src/Form/CheckAndFixForm.php:866
 msgid "Only originals marked without thumbnails in database"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:830
+#: src/Form/CheckAndFixForm.php:876
 msgid "Types of media to rebuild"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:831
+#: src/Form/CheckAndFixForm.php:877
 msgid ""
 "Uncheck \"Local originals\" to rebuild only remote sources. Local originals "
 "covers any media with a stored original file (file, upload, url, bulkimport, "
@@ -4262,501 +4392,559 @@ msgid ""
 "ingester."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:833
+#: src/Form/CheckAndFixForm.php:879
 msgid "Local originals (any ingester)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:834
+#: src/Form/CheckAndFixForm.php:880
 msgid "IIIF Image"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:835
+#: src/Form/CheckAndFixForm.php:881
 msgid "IIIF Presentation"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:837
+#: src/Form/CheckAndFixForm.php:883
 msgid "URL (refetch from source)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:853
+#: src/Form/CheckAndFixForm.php:899
 msgid "Options to rebuild derivative files via file system"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:859
+#: src/Form/CheckAndFixForm.php:905
 msgid "files_derivative_file_system"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:904
+#: src/Form/CheckAndFixForm.php:950
 msgid "Files and database"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:920
+#: src/Form/CheckAndFixForm.php:966
 msgid "Check media rendered as \"file\", but without original"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:921
+#: src/Form/CheckAndFixForm.php:967
 msgid ""
 "Delete media rendered as \"file\", but without original (WARNING: export "
 "your media first)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:922
+#: src/Form/CheckAndFixForm.php:968
 msgid ""
 "Check missing file sizes in database (not managed during upgrade to Omeka "
 "1.2.0)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:923
+#: src/Form/CheckAndFixForm.php:969
 msgid "Fix all file sizes in database (for example after hard import)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:924
+#: src/Form/CheckAndFixForm.php:970
 msgid "Check sha256 hashes of files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:925
+#: src/Form/CheckAndFixForm.php:971
 msgid "Fix wrong sha256 of files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:926
+#: src/Form/CheckAndFixForm.php:972
 msgid "Check hashes of storage names of files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:927
+#: src/Form/CheckAndFixForm.php:973
 msgid "Re-hash storage names of files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:928
+#: src/Form/CheckAndFixForm.php:974
 msgid "Check use of precise media type of files, mainly for xml"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:929
+#: src/Form/CheckAndFixForm.php:975
 msgid "Fill precise media type of files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:930
+#: src/Form/CheckAndFixForm.php:976
 msgid "Check files dimensions (modules IIIF Server / Image Server)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:931
+#: src/Form/CheckAndFixForm.php:977
 msgid "Fix files dimensions (modules IIIF Server / Image Server)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:932
+#: src/Form/CheckAndFixForm.php:978
 msgid "Check positions of media (start from 1, without missing number)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:933
+#: src/Form/CheckAndFixForm.php:979
 msgid "Fix wrong positions of media"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:953
+#: src/Form/CheckAndFixForm.php:999
 msgid "Resources and values"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:973
+#: src/Form/CheckAndFixForm.php:1020
 msgid "Save all resources, for example to apply new settings via triggers"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:974
+#: src/Form/CheckAndFixForm.php:1021
 msgid "Check if all resource have valid types. (Item, ItemSet, etc)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:975
+#: src/Form/CheckAndFixForm.php:1022
 msgid "Fix all resource with invalid types."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:976
+#: src/Form/CheckAndFixForm.php:1023
 msgid "Check if all resources are specified as items, medias, etc."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:977
+#: src/Form/CheckAndFixForm.php:1024
 msgid "Delete all resources that are not specified"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:978
+#: src/Form/CheckAndFixForm.php:1025
 msgid ""
 "Check rows in sub-tables (item, media, item_set, value_annotation, "
 "annotation, digital_object) without a matching resource"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:979
+#: src/Form/CheckAndFixForm.php:1026
 msgid "Delete orphan rows in sub-tables without a matching resource"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:980
+#: src/Form/CheckAndFixForm.php:1027
 msgid "Check items without value (media values are not checked)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:981
+#: src/Form/CheckAndFixForm.php:1028
 msgid "Delete items without value (files are moved into \"/files/check/\")"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:982
+#: src/Form/CheckAndFixForm.php:1029
 msgid ""
 "Check if all values are utf-8 encoded (Windows issues like \"Ã©\" for \"é\")"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:983
+#: src/Form/CheckAndFixForm.php:1030
 msgid "Fix utf-8 encoding issues"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:984
+#: src/Form/CheckAndFixForm.php:1031
 msgid "Clean and deduplicate values"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:985
+#: src/Form/CheckAndFixForm.php:1032
 msgid "Check resource titles, for example after hard import"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:986
+#: src/Form/CheckAndFixForm.php:1033
 msgid "Update resource titles"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:987
+#: src/Form/CheckAndFixForm.php:1034
 msgid "Check if the primary medias are set"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:988
+#: src/Form/CheckAndFixForm.php:1035
 msgid "Set the primary medias to all items"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:991
+#: src/Form/CheckAndFixForm.php:1038
 msgid ""
 "Check templates for value annotations (module Advanced Resource Template)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:992
+#: src/Form/CheckAndFixForm.php:1039
 msgid "Fix templates for value annotations (module Advanced Resource Template)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:999
+#: src/Form/CheckAndFixForm.php:1046
 msgid "Medias"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1032
+#: src/Form/CheckAndFixForm.php:1049
+msgid "Concepts"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1080
 msgid "Options to loop resources"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1043 src/Form/CheckAndFixForm.php:1138
+#: src/Form/CheckAndFixForm.php:1091 src/Form/CheckAndFixForm.php:1186
 msgid "Type of resources to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1056 src/Form/CheckAndFixForm.php:1151
+#: src/Form/CheckAndFixForm.php:1104 src/Form/CheckAndFixForm.php:1199
 msgid "Query to limit resources to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1057 src/Form/CheckAndFixForm.php:1152
+#: src/Form/CheckAndFixForm.php:1105 src/Form/CheckAndFixForm.php:1200
 msgid ""
 "The query is scoped to the selected resource type. With \"All\", it is "
 "applied identically to every type and unsupported filters are ignored."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1070
+#: src/Form/CheckAndFixForm.php:1118
 msgid "Records to process (experimental: back up before fixing)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1081
+#: src/Form/CheckAndFixForm.php:1129
 msgid "Types of resources to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1084
+#: src/Form/CheckAndFixForm.php:1132
 msgid "Resources titles"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1085
+#: src/Form/CheckAndFixForm.php:1133
 msgid "Resources values"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1086
+#: src/Form/CheckAndFixForm.php:1134
 msgid "Site title"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1087
+#: src/Form/CheckAndFixForm.php:1135
 msgid "Site summary"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1088
+#: src/Form/CheckAndFixForm.php:1136
 msgid "Pages titles"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1089
+#: src/Form/CheckAndFixForm.php:1137
 msgid "Pages blocks"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1103
+#: src/Form/CheckAndFixForm.php:1151
 msgid "Options to clean and deduplicate"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1114
+#: src/Form/CheckAndFixForm.php:1162
 msgid "Actions to process"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1116
+#: src/Form/CheckAndFixForm.php:1164
 msgid "Trim property values"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1118
+#: src/Form/CheckAndFixForm.php:1166
 msgid "Set null for empty values or uris"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1119
+#: src/Form/CheckAndFixForm.php:1167
 msgid "Set null when language is empty"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1120
+#: src/Form/CheckAndFixForm.php:1168
 msgid "Deduplicate property values case insensitively"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1165
+#: src/Form/CheckAndFixForm.php:1213
 msgid "Options for resource titles"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1177
+#: src/Form/CheckAndFixForm.php:1225
 msgid ""
 "Full report: all resources are listed (slower). Partial report: only "
 "resources with different titles are listed (faster, recommended for large "
 "collections)."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1179
+#: src/Form/CheckAndFixForm.php:1227
 msgid "Partial: only different titles (faster)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1180
+#: src/Form/CheckAndFixForm.php:1228
 msgid "Full: all resources (slower)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1192
+#: src/Form/CheckAndFixForm.php:1240
 msgid "Update mode (fix only)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1193
+#: src/Form/CheckAndFixForm.php:1241
 msgid ""
 "Direct mode: fast update via database, but does not trigger Omeka events "
 "(modules like AdvancedResourceTemplate will not update titles). API mode: "
 "slower but triggers all events and modules, ensuring full consistency."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1195
+#: src/Form/CheckAndFixForm.php:1243
 msgid "Direct (fast, no events)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1196
+#: src/Form/CheckAndFixForm.php:1244
 msgid "API (slower, triggers all events and modules)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1232
+#: src/Form/CheckAndFixForm.php:1280
 msgid "Check dead jobs (living in database, but non-existent in system)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1233
+#: src/Form/CheckAndFixForm.php:1281
 msgid ""
 "Set status \"stopped\" for jobs that never started, and \"error\" for the "
 "jobs that never ended"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1234
+#: src/Form/CheckAndFixForm.php:1282
 msgid ""
 "Fix status as above for all jobs (when check cannot be done after a reboot)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1235
+#: src/Form/CheckAndFixForm.php:1283
 msgid "Check the size of the table of sessions in database"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1236
+#: src/Form/CheckAndFixForm.php:1284
 msgid "Delete old sessions"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1237
+#: src/Form/CheckAndFixForm.php:1285
 msgid "Delete all sessions (when table is too big)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1238
+#: src/Form/CheckAndFixForm.php:1286
 msgid "Check the size of the table of logs in database (module Log)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1239
+#: src/Form/CheckAndFixForm.php:1287
 msgid "Delete old logs"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1240
+#: src/Form/CheckAndFixForm.php:1288
 msgid "Check if all custom vocabs with item sets have an existing item set"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1241
+#: src/Form/CheckAndFixForm.php:1289
 msgid "Fix missing item sets of custom vocabs"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1256
+#: src/Form/CheckAndFixForm.php:1290
+msgid ""
+"List useless tables (left by uninstalled modules or replaced features: "
+"reference_metadata, triplestore, term…)"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1305
 msgid "Options to delete sessions"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1267 src/Form/CheckAndFixForm.php:1290
+#: src/Form/CheckAndFixForm.php:1316 src/Form/CheckAndFixForm.php:1339
 msgid "Older than this number of days"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1279
+#: src/Form/CheckAndFixForm.php:1328
 msgid "Options to delete logs (module Log)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1300
+#: src/Form/CheckAndFixForm.php:1349
 msgid "Maximum severity"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1320
+#: src/Form/CheckAndFixForm.php:1369
 msgid "Maximum length of message"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1332
+#: src/Form/CheckAndFixForm.php:1381
 msgid "Options for custom vocabs"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1343
+#: src/Form/CheckAndFixForm.php:1392
 msgid "Fix mode"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1347
+#: src/Form/CheckAndFixForm.php:1396
 msgid "Replace by a standard empty custom vocab"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1348
+#: src/Form/CheckAndFixForm.php:1397
 msgid "Delete the custom vocab"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1384
+#: src/Form/CheckAndFixForm.php:1433
 msgid "Check templates to migrate in themes for Omeka S v4.1"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1385
+#: src/Form/CheckAndFixForm.php:1434
 msgid ""
 "Migrate templates in themes for Omeka S v4.1 (WARNING: backup themes first)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1400
+#: src/Form/CheckAndFixForm.php:1449
 msgid "Options to migrate templates in themes"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1428
+#: src/Form/CheckAndFixForm.php:1477
 msgid "Check backup"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1439
+#: src/Form/CheckAndFixForm.php:1488
 msgid "I confirm to have an external backup of my themes and files"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1457
+#: src/Form/CheckAndFixForm.php:1506
 msgid "System"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1473
+#: src/Form/CheckAndFixForm.php:1522
 msgid "Run installation checks (after a copy of the database on a new server)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1474
+#: src/Form/CheckAndFixForm.php:1523
+msgid ""
+"List environment-specific settings to review after a copy of the database "
+"(title, urls, paths, hosts, emails, api keys…)"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1524
+msgid ""
+"Adapt settings for a test/dev copy (prefix the title with « TEST », then "
+"list the other settings to review)"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1525
 msgid "Check caches"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1475
+#: src/Form/CheckAndFixForm.php:1526
 msgid "Clear caches (after update or modifications of code)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1476
+#: src/Form/CheckAndFixForm.php:1527
 msgid "Check email configuration and send test email"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1491
+#: src/Form/CheckAndFixForm.php:1528
+msgid ""
+"Check the PHP-CLI used by background jobs (path, version alignment with the "
+"web server, extensions) and suggest the correct path"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1529
+msgid "Run a test job in the background to check the whole pipeline end to end"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1544
 msgid "Options to clear cache"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1502
+#: src/Form/CheckAndFixForm.php:1555
 msgid "Types of cache"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1504
+#: src/Form/CheckAndFixForm.php:1557
 msgid "Application (Symfony Doctrine ORM)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1505
+#: src/Form/CheckAndFixForm.php:1558
 msgid "Code (opcache)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1506
+#: src/Form/CheckAndFixForm.php:1559
 msgid "Data (apcu)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1507
+#: src/Form/CheckAndFixForm.php:1560
 msgid "Real paths"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1527
+#: src/Form/CheckAndFixForm.php:1580
 msgid "Options for email check"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1538
+#: src/Form/CheckAndFixForm.php:1591
 msgid "Recipient email for test"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1542
+#: src/Form/CheckAndFixForm.php:1595
 msgid "test@example.org"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1549
+#: src/Form/CheckAndFixForm.php:1602
 msgid "Check DNS records (SPF, DKIM, DMARC)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1550
+#: src/Form/CheckAndFixForm.php:1603
 msgid ""
 "Check the DNS records of the mail domain to help configure your registrar "
 "and mail server."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1560
+#: src/Form/CheckAndFixForm.php:1613
 msgid "Domain (optional)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1561
+#: src/Form/CheckAndFixForm.php:1614
 msgid ""
 "The domain to check DNS records for. If not provided, it will be extracted "
 "from the sender email."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1572
+#: src/Form/CheckAndFixForm.php:1625
 msgid "Mail server IP address (optional, auto-detected)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1573
+#: src/Form/CheckAndFixForm.php:1626
 msgid ""
 "The IP address of your mail server. If empty, it will be auto-detected from "
 "SMTP config, server IP, or domain A record."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1584
+#: src/Form/CheckAndFixForm.php:1637
 msgid "DKIM selector (optional)"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1585
+#: src/Form/CheckAndFixForm.php:1638
 msgid ""
 "The DKIM selector used in your DNS records (e.g., \"mail\", \"default\", "
 "\"selector1\"). Default is \"mail\"."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1596
+#: src/Form/CheckAndFixForm.php:1649
 msgid "Generate DKIM key if missing"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1597
+#: src/Form/CheckAndFixForm.php:1650
 msgid ""
 "Generate a new DKIM key pair using OpenSSL. The public key will be shown for "
 "DNS configuration."
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1615
+#: src/Form/CheckAndFixForm.php:1663
+msgid "Options for environment settings"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1674
+msgid "Include empty settings"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1675
+msgid ""
+"List settings whose value is currently empty (they may need a server-"
+"specific value)."
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1708
+msgid ""
+"Audit the security and privacy of the system (file protection, user data "
+"leaks, private data leaks, dangerous settings)"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1709
+msgid ""
+"Protect the sensitive directories of \"files/\" with a \".htaccess\" "
+"(backups, imports, exports, logs, contributions, user data…)"
+msgstr ""
+
+#: src/Form/CheckAndFixForm.php:1729
 msgid "Module tasks and indexations"
 msgstr ""
 
-#: src/Form/CheckAndFixForm.php:1631
+#: src/Form/CheckAndFixForm.php:1745
 msgid "Omeka: Index full-text search"
 msgstr ""
 
@@ -4824,43 +5012,43 @@ msgstr ""
 msgid "Weekly"
 msgstr ""
 
-#: src/Form/CronForm.php:116 config/module.config.php:357
+#: src/Form/CronForm.php:116 config/module.config.php:426
 msgid "Clear old sessions"
 msgstr ""
 
-#: src/Form/CronForm.php:123 config/module.config.php:364
+#: src/Form/CronForm.php:123 config/module.config.php:433
 msgid "Session age"
 msgstr ""
 
-#: src/Form/CronForm.php:125 config/module.config.php:366
+#: src/Form/CronForm.php:125 config/module.config.php:435
 msgid "older than 1 hour"
 msgstr ""
 
-#: src/Form/CronForm.php:126 config/module.config.php:367
+#: src/Form/CronForm.php:126 config/module.config.php:436
 msgid "older than 2 hours"
 msgstr ""
 
-#: src/Form/CronForm.php:127 config/module.config.php:368
+#: src/Form/CronForm.php:127 config/module.config.php:437
 msgid "older than 4 hours"
 msgstr ""
 
-#: src/Form/CronForm.php:128 config/module.config.php:369
+#: src/Form/CronForm.php:128 config/module.config.php:438
 msgid "older than 12 hours"
 msgstr ""
 
-#: src/Form/CronForm.php:129 config/module.config.php:370
+#: src/Form/CronForm.php:129 config/module.config.php:439
 msgid "older than 1 day"
 msgstr ""
 
-#: src/Form/CronForm.php:130 config/module.config.php:371
+#: src/Form/CronForm.php:130 config/module.config.php:440
 msgid "older than 2 days"
 msgstr ""
 
-#: src/Form/CronForm.php:131 config/module.config.php:372
+#: src/Form/CronForm.php:131 config/module.config.php:441
 msgid "older than 8 days"
 msgstr ""
 
-#: src/Form/CronForm.php:132 config/module.config.php:373
+#: src/Form/CronForm.php:132 config/module.config.php:442
 msgid "older than 30 days"
 msgstr ""
 
@@ -4990,104 +5178,451 @@ msgstr ""
 msgid "backup"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:46
+#: src/Controller/Admin/CheckAndFixController.php:22
+msgid "The settings filter is now enabled."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:24
+msgid "Invalid or expired CSRF token."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:68
 msgid "No process submitted."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:200
+#: src/Controller/Admin/CheckAndFixController.php:244
 msgid "Unknown process \"{process}\""
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:210
+#: src/Controller/Admin/CheckAndFixController.php:254
 msgid ""
 "Processing checks in background (job {link_job}#{job_id}{link_end}, "
 "{link_log}logs{link_end})."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:236
+#: src/Controller/Admin/CheckAndFixController.php:280
 msgid "No type of cache selected."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:248
+#: src/Controller/Admin/CheckAndFixController.php:292
 msgid "The application cache of Symfony Doctrine is available."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:257
+#: src/Controller/Admin/CheckAndFixController.php:301
 msgid "The application cache of Symfony Doctrine was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:259
+#: src/Controller/Admin/CheckAndFixController.php:303
 msgid "The application cache of Symfony Doctrine cannot be reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:263
+#: src/Controller/Admin/CheckAndFixController.php:307
 msgid "The application cache of Symfony Doctrine is disabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:272
+#: src/Controller/Admin/CheckAndFixController.php:316
 msgid ""
 "An issue occurred when checking status of \"opcache\" or the status is not "
 "enabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:289
+#: src/Controller/Admin/CheckAndFixController.php:333
 msgid "The cache \"opcache\" was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:291
+#: src/Controller/Admin/CheckAndFixController.php:335
 msgid "The cache \"opcache\" is disabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:295
+#: src/Controller/Admin/CheckAndFixController.php:339
 msgid "The php extension \"opcache\" is not available."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:304
+#: src/Controller/Admin/CheckAndFixController.php:348
 msgid ""
 "An issue occurred when checking status of \"apcu\" or the status is disabled."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:313
+#: src/Controller/Admin/CheckAndFixController.php:357
 msgid "The cache \"apcu\" was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:316
+#: src/Controller/Admin/CheckAndFixController.php:360
 msgid "The php extension \"apcu\" is not available."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:324
+#: src/Controller/Admin/CheckAndFixController.php:368
 msgid "The cache of real paths was reset."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:339
+#: src/Controller/Admin/CheckAndFixController.php:383
 msgid "Install tasks were run without errors."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:346
+#: src/Controller/Admin/CheckAndFixController.php:390
 msgid ""
 "The php extension \"intl\" is not available. It is recommended to install it "
 "to translate dates."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:367
+#: src/Controller/Admin/CheckAndFixController.php:446
+msgid ""
+"The mapping of the entities could not be read ({message}); the list of "
+"useless tables cannot be built."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:533
+msgid ""
+"No useless table found: every table is declared by the core or an installed "
+"module."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:540
+msgid ""
+"Tables of installed but inactive modules (kept, they are used again once the "
+"module is reactivated):\n"
+"{list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:549
+msgid ""
+"Tables likely useless (module uninstalled or removed feature):\n"
+"{list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:558
+msgid ""
+"Tables declared by no installed module (review before dropping; they may "
+"hold data):\n"
+"{list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:564
+msgid "This task never drops any table: verify each one before removing it."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:692
+msgid "Urls, hosts and endpoints"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:693
+msgid "Paths and directories"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:694
+msgid "Emails"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:695
+msgid "Api keys, tokens and secrets (redacted)"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:773
+msgid "No environment-specific setting found."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:776
+msgid ""
+"Settings to review after a copy of the database:\n"
+"{list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:785
+msgid ""
+"Also review configurations stored outside the settings: search engines "
+"(SearchSolr cores/nodes, url and host), file paths and mailer in \"config/"
+"local.config.php\", and any external service of the modules."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:797
+msgid "The installation title already starts with « TEST »: {title}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:804
+msgid "The installation title is now: {title}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:846
+#: src/Controller/Admin/CheckAndFixController.php:882
+msgid "The files directory was not found: {path}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:856
+msgid "A \".htaccess\" was added to {count} directory(ies): {list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:862
+msgid ""
+"{count} directory(ies) already have a \".htaccess\" (not modified): {list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:868
+msgid ""
+"A \".htaccess\" could not be written in {count} directory(ies) (check "
+"permissions): {list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:873
+msgid "No sensitive directory to protect was found."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:893
+msgid ""
+"The files directory contains executable php file(s), which is a code "
+"execution risk: {list}. Remove them and forbid php execution under \"files/"
+"\"."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:899
+msgid ""
+"Sensitive directories without a \".htaccess\" are publicly accessible "
+"(backups, imports, exports, logs…): {list}. Use the fix to protect them."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:906
+msgid ""
+"Other directories of \"files/\" have no \".htaccess\"; review whether they "
+"should be public (no \".htaccess\" is added automatically, as they may serve "
+"public files): {list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:911
+msgid "File protection: no sensitive directory left publicly accessible."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:950
+msgid ""
+"Private data: {items} private items, {media} private media, {values} private "
+"values."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:964
+msgid ""
+"{count} public media belong to a private item: their file and metadata leak. "
+"Set them private or make the item public."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:980
+msgid ""
+"{count} private media have an original file. The module Access is active, so "
+"their direct download should be controlled; check its configuration."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:985
+msgid ""
+"{count} private media have an original file directly downloadable from "
+"\"files/original/\": no module protects private files. Install and configure "
+"the module Access."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:997
+msgid ""
+"{count} user(s) have a placeholder email (@example.*): remove test accounts "
+"or set real emails."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1004
+msgid ""
+"User accounts: {admins} active administrators. Apply the least privilege "
+"principle and review them."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1011
+msgid ""
+"{count} api key(s) are registered: they are long lived credentials, revoke "
+"the unused ones."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1045
+msgid ""
+"Dangerous settings are enabled and should be disabled in production: {list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1049
+msgid "Settings: no dangerous option enabled."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1062
+msgid ""
+"Session cookie hardening is not enforced in the configuration ({list}); make "
+"sure it is set at the server level (https only, http only)."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1091
+msgid ""
+"Privacy leak: the api exposes user emails to anonymous requests (/api/users)."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1093
+msgid "Api probe: anonymous access to users does not expose emails."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1096
+msgid "Api probe: anonymous access to users is forbidden."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1105
+msgid ""
+"Privacy leak: the private item #{id} is readable by anonymous requests "
+"through the api."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1109
+msgid "Api probe: anonymous access to a private item is forbidden."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1114
+msgid ""
+"The anonymous api probe could not be run ({message}); check the api access "
+"manually."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1146
+msgid ""
+"Jobs use the \"Synchronous\" strategy: they run in the web process and do "
+"not use the PHP-CLI, so this check is only informational."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1151
+msgid ""
+"The web PHP cannot spawn a process (\"proc_open\" and \"exec\" are both "
+"disabled); no background job can start, whatever the PHP-CLI path. Remove "
+"one of them from \"disable_functions\"."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1157
+msgid ""
+"The configured PHP-CLI path is invalid ({reason}): {path}. This is the cause "
+"of the error \"PHP-CLI error: invalid PHP path\"; jobs cannot run."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1158
+msgid "configured"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1162
+msgid ""
+"No PHP-CLI path is configured and none could be auto-detected (\"command -v "
+"php\" failed); jobs cannot run."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1165
+msgid ""
+"No PHP-CLI path is configured; Omeka auto-detects \"{path}\". It is safer to "
+"set it explicitly to the binary matching the web version."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1172
+msgid "Web PHP version (this page): {version} (SAPI {sapi})."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1180
+msgid ""
+"The PHP binary could not be executed from the web context ({path}); check "
+"open_basedir, disabled functions and permissions."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1186
+msgid ""
+"The configured PHP binary uses the \"{sapi}\" SAPI, not CLI ({path}); php-"
+"cgi and php-fpm binaries emit headers and mishandle arguments (perform-"
+"job.php reads them with getopt, empty under cgi, so the job exits and stays "
+"\"starting\"). Prefer a php-cli binary."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1192
+msgid "The PHP-CLI version ({cli}) matches the web version ({web}): {path}."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1197
+msgid ""
+"The PHP-CLI version ({cli}) differs from the web version ({web}); jobs may "
+"fail or behave differently (deprecations, missing extensions, "
+"serialization). Configure a PHP {major} binary. Current path: {path}."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1203
+msgid ""
+"The PHP binary {path} is missing the extension \"pdo_mysql\", required by "
+"jobs to access the database."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1209
+msgid ""
+"The PHP-CLI is missing {count} extension(s) loaded on the web (jobs run the "
+"full application, so it should have the same): {list}."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1220
+msgid ""
+"open_basedir is active on the web ({dirs}); a PHP binary outside this "
+"perimeter is neither testable nor usable by jobs. If the correct binary is "
+"outside, add its directory to open_basedir."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1245
+msgid ""
+"Available PHP binaries:\n"
+"{list}"
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1254
+msgid ""
+"Recommended PHP-CLI path (matches the web version {web} and has pdo_mysql): "
+"{path}. Set the key [\"cli\"][\"phpcli_path\"] to it in config/"
+"local.config.php, then reload php-fpm."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1259
+msgid ""
+"No php-cli binary was found, only a php-cgi one ({path}); a php-cli binary "
+"is strongly preferred for jobs. If you must use it, set [\"cli\"]"
+"[\"phpcli_path\"] to it and verify that jobs actually complete."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1264
+msgid ""
+"No PHP {major} binary with pdo_mysql was found in the usual locations; "
+"install one or set the path manually."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1282
+msgid ""
+"The test job could not be dispatched ({message}). Fix the PHP-CLI "
+"configuration (check the audit above)."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1288
+msgid "The test job could not be dispatched."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1293
+msgid ""
+"Test job dispatched ({link_job}#{job_id}{link_end}). If it reaches the "
+"status \"completed\", the background pipeline works; if it stays "
+"\"starting\", the PHP-CLI ran but could not bootstrap (version, extensions, "
+"database, or getopt under a cgi SAPI)."
+msgstr ""
+
+#: src/Controller/Admin/CheckAndFixController.php:1320
 msgid ""
 "Current email configuration:\n"
 "{config}"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:382
+#: src/Controller/Admin/CheckAndFixController.php:1335
 msgid "No recipient email provided. Test email was not sent."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:388
+#: src/Controller/Admin/CheckAndFixController.php:1341
 msgid "Invalid recipient email address: {email}"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:401
+#: src/Controller/Admin/CheckAndFixController.php:1354
 msgid "[{title}] Test email"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:405
+#: src/Controller/Admin/CheckAndFixController.php:1358
 msgid ""
 "This is a test email from {title}.\n"
 "\n"
@@ -5097,65 +5632,65 @@ msgid ""
 "Sent at: {datetime}"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:417
+#: src/Controller/Admin/CheckAndFixController.php:1370
 msgid "Test email successfully sent to {email}."
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:422
+#: src/Controller/Admin/CheckAndFixController.php:1375
 msgid "Failed to send test email: {error}"
 msgstr ""
 
-#: src/Controller/Admin/CheckAndFixController.php:441
+#: src/Controller/Admin/CheckAndFixController.php:1394
 msgid ""
 "Hint: Your current security setting is \"ssl\" => \"{current}\" (port "
 "{port}). A common fix is to try \"ssl\" => \"{alternative}\" with port "
 "{alt_port}."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:205
+#: src/Controller/Admin/ThemeController.php:222
 msgid "No theme selected."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:228
+#: src/Controller/Admin/ThemeController.php:245
 msgid "No new theme to install."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:246
+#: src/Controller/Admin/ThemeController.php:263
 msgid ""
 "Installing {count} themes in background (job {link_job}#{job_id}{link_end}, "
 "{link_log}logs{link_end})."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:287
-#: src/Controller/Admin/ThemeController.php:348
+#: src/Controller/Admin/ThemeController.php:304
+#: src/Controller/Admin/ThemeController.php:365
 msgid "Unknown theme \"{name}\"."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:334
-#: src/Controller/Admin/ThemeController.php:457
+#: src/Controller/Admin/ThemeController.php:351
+#: src/Controller/Admin/ThemeController.php:474
 msgid "No theme specified."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:629
-#: src/Controller/Admin/ModuleController.php:845
+#: src/Controller/Admin/ThemeController.php:646
+#: src/Controller/Admin/ModuleController.php:862
 msgid ""
 "Processing {action} in background (job {link_job}#{job_id}{link_end}, "
 "{link_log}logs{link_end})."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:693
+#: src/Controller/Admin/ThemeController.php:710
 msgid "Removed themes: {themes}."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:694
+#: src/Controller/Admin/ThemeController.php:711
 msgid "Updated themes: {themes}."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:701
+#: src/Controller/Admin/ThemeController.php:718
 msgid "Failed to remove themes: {themes}."
 msgstr ""
 
-#: src/Controller/Admin/ThemeController.php:702
+#: src/Controller/Admin/ThemeController.php:719
 msgid "Failed to update themes: {themes}."
 msgstr ""
 
@@ -5175,73 +5710,73 @@ msgstr ""
 msgid "Cron tasks executed."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:183
-#: src/Controller/Admin/ModuleController.php:388
+#: src/Controller/Admin/ModuleController.php:200
+#: src/Controller/Admin/ModuleController.php:405
 msgid "Unknown module \"{name}\"."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:299
-#: src/Controller/Admin/ModuleController.php:333
-#: src/Controller/Admin/ModuleController.php:527
-#: src/Controller/Admin/ModuleController.php:558
-#: src/Controller/Admin/ModuleController.php:589
+#: src/Controller/Admin/ModuleController.php:316
+#: src/Controller/Admin/ModuleController.php:350
+#: src/Controller/Admin/ModuleController.php:544
+#: src/Controller/Admin/ModuleController.php:575
+#: src/Controller/Admin/ModuleController.php:606
 msgid "Module \"{name}\" not found."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:308
+#: src/Controller/Admin/ModuleController.php:325
 msgid "Module \"{name}\" installed and activated."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:345
+#: src/Controller/Admin/ModuleController.php:362
 msgid "Module \"{name}\" uninstalled."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:350
+#: src/Controller/Admin/ModuleController.php:367
 msgid "Error uninstalling \"{name}\": {error}"
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:374
-#: src/Controller/Admin/ModuleController.php:481
+#: src/Controller/Admin/ModuleController.php:391
+#: src/Controller/Admin/ModuleController.php:498
 msgid "No module specified."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:450
+#: src/Controller/Admin/ModuleController.php:467
 msgid "Error upgrading database for \"{name}\": {error}"
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:536
+#: src/Controller/Admin/ModuleController.php:553
 msgid "Module \"{name}\" activated."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:567
+#: src/Controller/Admin/ModuleController.php:584
 msgid "Module \"{name}\" deactivated."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:624
+#: src/Controller/Admin/ModuleController.php:641
 msgid "No module selected."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:648
+#: src/Controller/Admin/ModuleController.php:665
 msgid "No new module to install."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:664
+#: src/Controller/Admin/ModuleController.php:681
 msgid ""
 "Installing {count} modules in background (job {link_job}#{job_id}{link_end}, "
 "{link_log}logs{link_end})."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:778
+#: src/Controller/Admin/ModuleController.php:795
 msgid ""
 "To learn how to see more detailed information about this error, see the "
 "Omeka S User Manual page on {link}retrieving error messages{link_end}."
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:785
+#: src/Controller/Admin/ModuleController.php:802
 msgid "{name}{class}: {message}"
 msgstr ""
 
-#: src/Controller/Admin/ModuleController.php:919
+#: src/Controller/Admin/ModuleController.php:936
 msgid "The module \"{name}\" does not need to be upgraded."
 msgstr ""
 
@@ -5293,30 +5828,42 @@ msgstr ""
 msgid "Local path is not writeable."
 msgstr ""
 
-#: config/module.config.php:380
+#: src/Stdlib/JobCliChecker.php:292
+msgid "the path does not exist"
+msgstr ""
+
+#: src/Stdlib/JobCliChecker.php:295
+msgid "the path is not a file"
+msgstr ""
+
+#: src/Stdlib/JobCliChecker.php:298
+msgid "the file is not executable"
+msgstr ""
+
+#: config/module.config.php:449
 msgid "Backup database"
 msgstr ""
 
-#: config/module.config.php:389
+#: config/module.config.php:458
 msgid "Compressed (gzip)"
 msgstr ""
 
-#: config/module.config.php:390
+#: config/module.config.php:459
 msgid "Plain SQL"
 msgstr ""
 
-#: config/module.config.php:397
+#: config/module.config.php:466
 msgid "Backup files (modules, themes, config)"
 msgstr ""
 
-#: config/module.config.php:404
+#: config/module.config.php:473
 msgid "Scope"
 msgstr ""
 
-#: config/module.config.php:406
+#: config/module.config.php:475
 msgid "Full backup (core, modules, themes, config)"
 msgstr ""
 
-#: config/module.config.php:407
+#: config/module.config.php:476
 msgid "Configuration only"
 msgstr ""
