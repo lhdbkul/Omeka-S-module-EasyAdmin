@@ -315,6 +315,10 @@ uasort($catalogueList, function ($a, $b) {
                 '<a href="https://daniel-km.github.io/UpgradeToOmekaS/omeka_s_themes.html" rel="noopener" target="_blank">', '</a>',
                 '<a href="https://omeka.org/s/themes/" rel="noopener" target="_blank">') ?>
         </p>
+        <div class="field addon-install-filter-field">
+            <input type="search" class="addon-install-filter" placeholder="<?= $this->escapeHtmlAttr($translate('Filter themes…')) ?>" aria-label="<?= $this->escapeHtmlAttr($translate('Filter themes…')) ?>">
+        </div>
+
         <?php
         $installCatalogueForm->prepare();
         echo $this->form()->openTag($installCatalogueForm);

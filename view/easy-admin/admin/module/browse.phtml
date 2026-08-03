@@ -563,6 +563,10 @@ uasort($catalogueList, function ($a, $b) {
         </div>
         <?php endif ?>
 
+        <div class="field addon-install-filter-field">
+            <input type="search" class="addon-install-filter" placeholder="<?= $escapeAttr($translate('Filter modules…')) ?>" aria-label="<?= $escapeAttr($translate('Filter modules…')) ?>">
+        </div>
+
         <?php
         $installCatalogueForm->prepare();
         echo $this->form()->openTag($installCatalogueForm);

@@ -96,7 +96,36 @@
         input.addEventListener('change', applyFilters);
     });
 
-    // Apply once on load, in case a state is pre-checked, in particular after an
-    // action that redirects to a given state).
+    // Apply once on load, in case a state is pre-checked, in particular after
+    // an action that redirects to a given state).
     applyFilters();
+})();
+
+/**
+ * Quick filter of the catalogue list in the install sidebar (modules or
+ * themes). An add-on whose name does not match the query is hidden.
+ */
+(function () {
+    'use strict';
+
+    var inputs = document.querySelectorAll('.addon-install-filter');
+    Array.prototype.forEach.call(inputs, function (input) {
+        var sidebar = input.closest('.sidebar-content');
+        if (!sidebar) {
+            return;
+        }
+        var items = sidebar.querySelectorAll('.addon-check-item');
+        input.addEventListener('input', function () {
+            var query = input.value.trim().toLowerCase();
+            Array.prototype.forEach.call(items, function (item) {
+                var nameNode = item.querySelector('.addon-check-name');
+                var name = nameNode
+                    ? nameNode.textContent.toLowerCase()
+                    : '';
+                item.style.display = !query || name.indexOf(query) !== -1
+                    ? ''
+                    : 'none';
+            });
+        });
+    });
 })();

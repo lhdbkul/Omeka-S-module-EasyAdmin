@@ -389,6 +389,12 @@
     #sidebar-install .confirm-panel {
         position: static;
     }
+    .addon-install-filter-field {
+        margin-bottom: 12px;
+    }
+    .addon-install-filter-field .addon-install-filter {
+        width: 100%;
+    }
     .addon-checklist {
         flex: 1 1 0;
         overflow-y: auto;
