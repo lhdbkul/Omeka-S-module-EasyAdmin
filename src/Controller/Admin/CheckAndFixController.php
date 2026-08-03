@@ -202,6 +202,12 @@ class CheckAndFixController extends AbstractActionController
                     !empty($params['system']['settings_environment']['include_empty'])
                 );
                 break;
+            case 'security_check':
+                $this->checkSecurity();
+                break;
+            case 'security_htaccess_fix':
+                $this->fixSecurityHtaccess();
+                break;
             case 'cache_check':
             case 'cache_fix':
                 $this->checkCache($params['system']['cache'], $process === 'cache_fix');
@@ -562,6 +568,381 @@ class CheckAndFixController extends AbstractActionController
                 ['title' => $newTitle]
             ));
         }
+    }
+
+    /**
+     * Audit the security and privacy of the installation: file protection, user
+     * data leaks, private data leaks and dangerous settings. Read only: the
+     * report is displayed as messages, nothing is modified.
+     */
+    protected function checkSecurity(): void
+    {
+        /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
+        $messenger = $this->messenger();
+        $services = $this->getEvent()->getApplication()->getServiceManager();
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $services->get('Omeka\Connection');
+
+        $this->securityCheckFileProtection($messenger, $services);
+        $this->securityCheckPrivateData($messenger, $connection, $services);
+        $this->securityCheckUserData($messenger, $connection);
+        $this->securityCheckDangerousSettings($messenger, $services);
+        $this->securityProbeAnonymousApi($messenger, $connection);
+    }
+
+    /**
+     * Add a ".htaccess" that denies web access to the sensitive directories of
+     * the files directory (backups, imports, exports, logs, contributions, user
+     * data…). Public media directories are never touched, and an existing
+     * ".htaccess" is never overwritten.
+     */
+    protected function fixSecurityHtaccess(): void
+    {
+        /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
+        $messenger = $this->messenger();
+        $services = $this->getEvent()->getApplication()->getServiceManager();
+
+        $basePath = $this->securityFilesBasePath($services);
+        if (!is_dir($basePath)) {
+            $messenger->addError(new PsrMessage(
+                'The files directory was not found: {path}', // @translate
+                ['path' => $basePath]
+            ));
+            return;
+        }
+
+        $created = [];
+        $existing = [];
+        $failed = [];
+        $content = $this->securityHtaccessContent();
+
+        foreach (new \DirectoryIterator($basePath) as $dir) {
+            if (!$dir->isDir() || $dir->isDot()) {
+                continue;
+            }
+            $name = $dir->getFilename();
+            if ($this->securityIsPublicDir($name) || !$this->securityIsSensitiveDir($name)) {
+                continue;
+            }
+            $htaccess = $dir->getPathname() . '/.htaccess';
+            if (file_exists($htaccess)) {
+                $existing[] = $name;
+                continue;
+            }
+            if (@file_put_contents($htaccess, $content) === false) {
+                $failed[] = $name;
+            } else {
+                $created[] = $name;
+            }
+        }
+
+        if ($created) {
+            sort($created);
+            $messenger->addSuccess(new PsrMessage(
+                'A ".htaccess" was added to {count} directory(ies): {list}', // @translate
+                ['count' => count($created), 'list' => implode(', ', $created)]
+            ));
+        }
+        if ($existing) {
+            sort($existing);
+            $messenger->addNotice(new PsrMessage(
+                '{count} directory(ies) already have a ".htaccess" (not modified): {list}', // @translate
+                ['count' => count($existing), 'list' => implode(', ', $existing)]
+            ));
+        }
+        if ($failed) {
+            sort($failed);
+            $messenger->addError(new PsrMessage(
+                'A ".htaccess" could not be written in {count} directory(ies) (check permissions): {list}', // @translate
+                ['count' => count($failed), 'list' => implode(', ', $failed)]
+            ));
+        }
+        if (!$created && !$existing && !$failed) {
+            $messenger->addNotice('No sensitive directory to protect was found.'); // @translate
+        }
+    }
+
+    protected function securityCheckFileProtection($messenger, $services): void
+    {
+        $basePath = $this->securityFilesBasePath($services);
+        if (!is_dir($basePath)) {
+            $messenger->addWarning(new PsrMessage(
+                'The files directory was not found: {path}', // @translate
+                ['path' => $basePath]
+            ));
+            return;
+        }
+
+        $unprotected = [];
+        $review = [];
+        $phpFiles = [];
+        foreach (new \DirectoryIterator($basePath) as $entry) {
+            if ($entry->isDot()) {
+                continue;
+            }
+            $name = $entry->getFilename();
+            if ($entry->isFile() && strtolower($entry->getExtension()) === 'php') {
+                $phpFiles[] = $name;
+                continue;
+            }
+            if (!$entry->isDir() || $this->securityIsPublicDir($name)) {
+                continue;
+            }
+            if (file_exists($entry->getPathname() . '/.htaccess')) {
+                continue;
+            }
+            if ($this->securityIsSensitiveDir($name)) {
+                $unprotected[] = $name;
+            } else {
+                $review[] = $name;
+            }
+        }
+
+        if ($phpFiles) {
+            sort($phpFiles);
+            $messenger->addError(new PsrMessage(
+                'The files directory contains executable php file(s), which is a code execution risk: {list}. Remove them and forbid php execution under "files/".', // @translate
+                ['list' => implode(', ', $phpFiles)]
+            ));
+        }
+        if ($unprotected) {
+            sort($unprotected);
+            $messenger->addWarning(new PsrMessage(
+                'Sensitive directories without a ".htaccess" are publicly accessible (backups, imports, exports, logs…): {list}. Use the fix to protect them.', // @translate
+                ['list' => implode(', ', $unprotected)]
+            ));
+        }
+        if ($review) {
+            sort($review);
+            $messenger->addNotice(new PsrMessage(
+                'Other directories of "files/" have no ".htaccess"; review whether they should be public: {list}', // @translate
+                ['list' => implode(', ', $review)]
+            ));
+        }
+        if (!$phpFiles && !$unprotected) {
+            $messenger->addSuccess('File protection: no sensitive directory left publicly accessible.'); // @translate
+        }
+    }
+
+    protected function securityCheckPrivateData($messenger, $connection, $services): void
+    {
+        $privateItems = (int) $connection->executeQuery('SELECT COUNT(*) FROM item i JOIN resource r ON r.id = i.id WHERE r.is_public = 0')->fetchOne();
+        $privateMedia = (int) $connection->executeQuery('SELECT COUNT(*) FROM media m JOIN resource r ON r.id = m.id WHERE r.is_public = 0')->fetchOne();
+        $privateValues = (int) $connection->executeQuery('SELECT COUNT(*) FROM value WHERE is_public = 0')->fetchOne();
+
+        $messenger->addNotice(new PsrMessage(
+            'Private data: {items} private items, {media} private media, {values} private values.', // @translate
+            ['items' => $privateItems, 'media' => $privateMedia, 'values' => $privateValues]
+        ));
+
+        // A public media whose item is private is reachable while its item is
+        // not: its file and metadata leak out of the private item.
+        $publicMediaPrivateItem = (int) $connection->executeQuery(
+            'SELECT COUNT(*) FROM media m'
+            . ' JOIN resource mr ON mr.id = m.id'
+            . ' JOIN resource ir ON ir.id = m.item_id'
+            . ' WHERE mr.is_public = 1 AND ir.is_public = 0'
+        )->fetchOne();
+        if ($publicMediaPrivateItem) {
+            $messenger->addWarning(new PsrMessage(
+                '{count} public media belong to a private item: their file and metadata leak. Set them private or make the item public.', // @translate
+                ['count' => $publicMediaPrivateItem]
+            ));
+        }
+
+        // The original files of private media stay in the public files
+        // directory: they are directly downloadable unless a module (Access)
+        // routes them through an access control.
+        $privateMediaWithFile = (int) $connection->executeQuery('SELECT COUNT(*) FROM media m JOIN resource r ON r.id = m.id WHERE r.is_public = 0 AND m.has_original = 1')->fetchOne();
+        if ($privateMediaWithFile) {
+            /** @var \Omeka\Module\Manager $moduleManager */
+            $moduleManager = $services->get('Omeka\ModuleManager');
+            $access = $moduleManager->getModule('Access');
+            $accessActive = $access && $access->getState() === \Omeka\Module\Manager::STATE_ACTIVE;
+            if ($accessActive) {
+                $messenger->addNotice(new PsrMessage(
+                    '{count} private media have an original file. The module Access is active, so their direct download should be controlled; check its configuration.', // @translate
+                    ['count' => $privateMediaWithFile]
+                ));
+            } else {
+                $messenger->addWarning(new PsrMessage(
+                    '{count} private media have an original file directly downloadable from "files/original/": no module protects private files. Install and configure the module Access.', // @translate
+                    ['count' => $privateMediaWithFile]
+                ));
+            }
+        }
+    }
+
+    protected function securityCheckUserData($messenger, $connection): void
+    {
+        $placeholder = (int) $connection->executeQuery("SELECT COUNT(*) FROM user WHERE email LIKE '%@example.%' OR email LIKE '%@example.org'")->fetchOne();
+        if ($placeholder) {
+            $messenger->addWarning(new PsrMessage(
+                '{count} user(s) have a placeholder email (@example.*): remove test accounts or set real emails.', // @translate
+                ['count' => $placeholder]
+            ));
+        }
+
+        $admins = (int) $connection->executeQuery("SELECT COUNT(*) FROM user WHERE role IN ('global_admin', 'site_admin') AND is_active = 1")->fetchOne();
+        $messenger->addNotice(new PsrMessage(
+            'User accounts: {admins} active administrators. Apply the least privilege principle and review them.', // @translate
+            ['admins' => $admins]
+        ));
+
+        $apiKeys = (int) $connection->executeQuery('SELECT COUNT(*) FROM api_key')->fetchOne();
+        if ($apiKeys) {
+            $messenger->addWarning(new PsrMessage(
+                '{count} api key(s) are registered: they are long lived credentials, revoke the unused ones.', // @translate
+                ['count' => $apiKeys]
+            ));
+        }
+    }
+
+    protected function securityCheckDangerousSettings($messenger, $services): void
+    {
+        /** @var \Omeka\Settings\Settings $settings */
+        $settings = $services->get('Omeka\Settings');
+        $config = $services->get('Config');
+
+        $dangerous = [];
+        if ($settings->get('easyadmin_disable_csrf')) {
+            $dangerous[] = 'easyadmin_disable_csrf';
+        }
+        if ($settings->get('easyadmin_display_exception')) {
+            $dangerous[] = 'easyadmin_display_exception';
+        }
+        if ($settings->get('easyadmin_local_path_any') || $settings->get('easyadmin_local_path_any_files')) {
+            $dangerous[] = 'easyadmin_local_path_any';
+        }
+        if ($settings->get('disable_file_validation')) {
+            $dangerous[] = 'disable_file_validation';
+        }
+        if (!empty($config['view_manager']['display_exceptions'])) {
+            $dangerous[] = 'view_manager.display_exceptions';
+        }
+        if (!empty($config['view_manager']['display_not_found_reason'])) {
+            $dangerous[] = 'view_manager.display_not_found_reason';
+        }
+
+        if ($dangerous) {
+            $messenger->addError(new PsrMessage(
+                'Dangerous settings are enabled and should be disabled in production: {list}', // @translate
+                ['list' => implode(', ', $dangerous)]
+            ));
+        } else {
+            $messenger->addSuccess('Settings: no dangerous option enabled.'); // @translate
+        }
+
+        $cookieOptions = $config['session']['config']['options'] ?? [];
+        $cookieWarnings = [];
+        if (empty($cookieOptions['cookie_httponly'])) {
+            $cookieWarnings[] = 'cookie_httponly';
+        }
+        if (empty($cookieOptions['cookie_secure'])) {
+            $cookieWarnings[] = 'cookie_secure';
+        }
+        if ($cookieWarnings) {
+            $messenger->addNotice(new PsrMessage(
+                'Session cookie hardening is not enforced in the configuration ({list}); make sure it is set at the server level (https only, http only).', // @translate
+                ['list' => implode(', ', $cookieWarnings)]
+            ));
+        }
+    }
+
+    /**
+     * Best effort probe: query the api anonymously to check that users and
+     * private resources are not readable without authentication. It is a
+     * separate http request, so it is not authenticated by the current session.
+     */
+    protected function securityProbeAnonymousApi($messenger, $connection): void
+    {
+        try {
+            $request = $this->getRequest();
+            $uri = $request->getUri();
+            $port = $uri->getPort();
+            $base = $uri->getScheme() . '://' . $uri->getHost()
+                . ($port && !in_array($port, [80, 443], true) ? ':' . $port : '');
+            $apiBase = $base . rtrim($request->getBasePath(), '/') . '/api';
+
+            $client = new \Laminas\Http\Client(null, ['timeout' => 5, 'sslverifypeer' => false]);
+
+            // Anonymous access to the list of users must not expose emails.
+            $response = $client->setUri($apiBase . '/users')->setMethod('GET')->send();
+            if ($response->isSuccess()) {
+                $users = json_decode($response->getBody(), true);
+                $leak = is_array($users) && array_filter($users, fn ($u) => !empty($u['o:email']));
+                if ($leak) {
+                    $messenger->addError('Privacy leak: the api exposes user emails to anonymous requests (/api/users).'); // @translate
+                } else {
+                    $messenger->addSuccess('Api probe: anonymous access to users does not expose emails.'); // @translate
+                }
+            } else {
+                $messenger->addSuccess('Api probe: anonymous access to users is forbidden.'); // @translate
+            }
+
+            // Anonymous access to a private item must be forbidden.
+            $privateItemId = $connection->executeQuery('SELECT i.id FROM item i JOIN resource r ON r.id = i.id WHERE r.is_public = 0 LIMIT 1')->fetchOne();
+            if ($privateItemId) {
+                $response = $client->setUri($apiBase . '/items/' . $privateItemId)->setMethod('GET')->send();
+                if ($response->isSuccess()) {
+                    $messenger->addError(new PsrMessage(
+                        'Privacy leak: the private item #{id} is readable by anonymous requests through the api.', // @translate
+                        ['id' => $privateItemId]
+                    ));
+                } else {
+                    $messenger->addSuccess('Api probe: anonymous access to a private item is forbidden.'); // @translate
+                }
+            }
+        } catch (\Throwable $e) {
+            $messenger->addNotice(new PsrMessage(
+                'The anonymous api probe could not be run ({message}); check the api access manually.', // @translate
+                ['message' => $e->getMessage()]
+            ));
+        }
+    }
+
+    protected function securityFilesBasePath($services): string
+    {
+        $config = $services->get('Config');
+        $basePath = $config['file_store']['local']['base_path'] ?? null;
+        return $basePath ?: (OMEKA_PATH . '/files');
+    }
+
+    /**
+     * Directories serving public media or derivatives, never to be protected.
+     */
+    protected function securityIsPublicDir(string $name): bool
+    {
+        $public = [
+            'original', 'large', 'medium', 'square', 'thumbnail', 'asset',
+        ];
+        return in_array($name, $public, true)
+            // Iiif and tiles are served publicly (directly or cached).
+            || (bool) preg_match('/(iiif|tile|cache)/i', $name);
+    }
+
+    /**
+     * Directories holding server side or sensitive data, to protect from a
+     * direct web access.
+     */
+    protected function securityIsSensitiveDir(string $name): bool
+    {
+        return (bool) preg_match(
+            '/(backup|bkp|dump|sql|import|export|log|temp|tmp|trash|contribution|contactus|userdata|private|preload|meminfo|triplestore|zip)/i',
+            $name
+        );
+    }
+
+    protected function securityHtaccessContent(): string
+    {
+        return "# Managed by Omeka S module EasyAdmin: protect sensitive files.\n"
+            . "<IfModule mod_authz_core.c>\n"
+            . "    Require all denied\n"
+            . "</IfModule>\n"
+            . "<IfModule !mod_authz_core.c>\n"
+            . "    Order deny,allow\n"
+            . "    Deny from all\n"
+            . "</IfModule>\n";
     }
 
     protected function checkMail(array $options): void

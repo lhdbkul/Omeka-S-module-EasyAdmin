@@ -324,6 +324,15 @@ class CheckAndFixForm extends Form
                     'settings_environment_fix' => 'Adapt for a test copy', // @translate
                 ],
             ],
+            // Security and privacy.
+            'security' => [
+                'name' => 'Security and privacy', // @translate
+                'description' => 'Audit file protection, user data leaks, private data leaks and dangerous settings.', // @translate
+                'actions' => [
+                    'security_check' => 'Audit', // @translate
+                    'security_htaccess_fix' => 'Protect directories', // @translate
+                ],
+            ],
             'mail' => [
                 'name' => 'Email', // @translate
                 'description' => 'Email configuration; sends a test email.', // @translate
@@ -344,6 +353,7 @@ class CheckAndFixForm extends Form
             ->appendFieldsetDatabase()
             ->appendFieldsetThemes()
             ->appendFieldsetSystem()
+            ->appendFieldsetSecurity()
             ->appendFieldsetTasks()
         ;
 
@@ -519,6 +529,18 @@ class CheckAndFixForm extends Form
             ])
             ->add([
                 'name' => 'generate_dkim',
+                'required' => false,
+            ]);
+        $inputFilter->get('system')
+            ->get('settings_environment')
+            ->add([
+                'name' => 'include_empty',
+                'required' => false,
+            ]);
+
+        $inputFilter->get('security')
+            ->add([
+                'name' => 'process',
                 'required' => false,
             ]);
 
@@ -1636,6 +1658,42 @@ class CheckAndFixForm extends Form
                 ],
             ])
         ;
+
+        return $this;
+    }
+
+    protected function appendFieldsetSecurity(): self
+    {
+        $this
+            ->add([
+                'name' => 'security',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Security and privacy', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'security',
+                    'class' => 'field-container',
+                ],
+            ]);
+
+        $this->get('security')
+            ->add([
+                'name' => 'process',
+                'type' => Element\Radio::class,
+                'options' => [
+                    'label' => '',
+                    'value_options' => [
+                        'security_check' => 'Audit the security and privacy of the system (file protection, user data leaks, private data leaks, dangerous settings)', // @translate
+                        'security_htaccess_fix' => 'Protect the sensitive directories of "files/" with a ".htaccess" (backups, imports, exports, logs, contributions, user data…)', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'security-process',
+                    'required' => false,
+                    'class' => 'fieldset-process',
+                ],
+            ]);
 
         return $this;
     }
