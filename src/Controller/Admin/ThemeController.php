@@ -82,6 +82,23 @@ class ThemeController extends AbstractActionController
         $omekaThemes = $catalogueAddons['omekatheme'] ?? [];
         $webThemes = $catalogueAddons['theme'] ?? [];
 
+        // Flag the compatibility with the current Omeka S, so the catalogue
+        // install list can disable the incompatible addons.
+        $flagCompatibility = function (array &$list) use ($addons): void {
+            foreach ($list as &$addon) {
+                $hasVersions = is_array($addon['versions'] ?? null) && $addon['versions'];
+                $compatible = $hasVersions ? $addons->pickCompatibleVersion($addon) : null;
+                // Without version metadata, the compatibility is unknown, so do
+                // not block the install.
+                $addon['is_compatible'] = !$hasVersions || $compatible !== null;
+                $addon['compatible_version'] = $compatible['version'] ?? null;
+                $latest = $hasVersions ? reset($addon['versions']) : [];
+                $addon['required_constraint'] = $latest['omeka_version_constraint'] ?? '';
+            }
+        };
+        $flagCompatibility($omekaThemes);
+        $flagCompatibility($webThemes);
+
         // Url of the background request that fetches and renders the catalogue.
         $catalogueUrl = $this->url()->fromRoute(
             'admin/easy-admin/default',

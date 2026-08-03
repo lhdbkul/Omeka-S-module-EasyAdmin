@@ -130,15 +130,22 @@ echo $this->form()->openTag($manageForm);
         $isComposer = $isComposerManaged($themeId);
 
         $catalogueVersion = null;
+        $catalogueVersionCompatible = null;
         foreach ($catalogueThemes as $ct) {
             if (strcasecmp($ct['dir'] ?? '', $themeId) === 0) {
                 $catalogueVersion = $ct['version'] ?? null;
+                $catalogueVersionCompatible = $ct['compatible_version'] ?? null;
                 break;
             }
         }
         $hasUpdate = $catalogueVersion
             && $theme['version']
             && version_compare($theme['version'], $catalogueVersion, '<');
+        // A newer version compatible with the current Omeka S: updateAddon()
+        // would refuse an incompatible one anyway.
+        $hasCompatibleUpdate = $catalogueVersionCompatible
+            && $theme['version']
+            && version_compare($theme['version'], $catalogueVersionCompatible, '<');
 
         $constraint = $theme['omeka_version_constraint'] ?? '';
         $invalidOmeka = $constraint
@@ -185,7 +192,7 @@ echo $this->form()->openTag($manageForm);
 
                 <ul class="actions">
                     <?php if (!$isComposer): ?>
-                        <?php if ($hasUpdate): ?>
+                        <?php if ($hasCompatibleUpdate): ?>
                         <li><?= $hyperlink('', '#', [
                             'data-sidebar-selector' => '#sidebar',
                             'data-sidebar-content-url' => $url('admin/easy-admin/default', ['controller' => 'theme', 'action' => 'update-confirm'], ['query' => ['id' => $themeId]]),
@@ -219,8 +226,10 @@ echo $this->form()->openTag($manageForm);
             </td>
             <td class="col-version<?= $hasUpdate ? ' has-update' : '' ?><?= $invalidOmeka ? ' invalid-omeka' : '' ?>">
                 <span class="version-current"><?= $escape($theme['version']) ?></span>
-                <?php if ($hasUpdate): ?>
-                <span class="version-available"><?= sprintf($translate('→ %s'), $escape($catalogueVersion)) ?></span>
+                <?php if ($hasCompatibleUpdate): ?>
+                <span class="version-available"><?= sprintf($translate('→ %s'), $escape($catalogueVersionCompatible)) ?></span>
+                <?php elseif ($hasUpdate): ?>
+                <span class="incompatible" title="<?= $escape($translate('No compatible version available')) ?>"> → <?= $escape($catalogueVersion) ?> <?= $escape($translate('(incompatible)')) ?></span>
                 <?php endif ?>
                 <?php if ($invalidOmeka): ?>
                 <span class="error"><?= sprintf($translate('Requires Omeka S %s'), $escape($constraint)) ?></span>
@@ -269,9 +278,10 @@ uasort($catalogueList, function ($a, $b) {
 });
 ?>
 
-<?php // Confirmation of the batch removal. The submit belongs to the batch
+<?php
+// Confirmation of the batch removal. The submit belongs to the batch
 // form, that is closed above, so it is bound to it with the attribute "form".
-// ?>
+?>
 <div id="sidebar-remove-selected" class="sidebar">
     <?= $hyperlink('', '#', [
         'class' => 'sidebar-close o-icon-close',
@@ -315,10 +325,15 @@ uasort($catalogueList, function ($a, $b) {
                     continue;
                 }
                 $sourceUrl = $catTheme['url'] ?? '';
+                $compatible = $catTheme['is_compatible'] ?? true;
+                $requiredConstraint = $catTheme['required_constraint'] ?? '';
             ?>
-            <label class="addon-check-item">
-                <input type="checkbox" name="theme_urls[]" value="<?= $escape($catUrl) ?>">
+            <label class="addon-check-item<?= $compatible ? '' : ' incompatible' ?>">
+                <input type="checkbox" name="theme_urls[]" value="<?= $escape($catUrl) ?>"<?= $compatible ? '' : ' disabled="disabled"' ?>>
                 <span class="addon-check-name"><?= $escape($catTheme['name']) ?></span>
+                <?php if (!$compatible): ?>
+                <span class="addon-check-incompatible"><?= $escape(sprintf($translate('Requires Omeka S %s'), $requiredConstraint)) ?></span>
+                <?php endif ?>
                 <span class="addon-check-source">
                 <?php if (!empty($catTheme['is_omeka'])): ?>
                     <a href="<?= $escape('https://omeka.org/s/themes/' . ($catTheme['dir'] ?? '')) ?>" target="_blank" rel="noopener noreferrer" class="o-icon-omeka" title="Omeka.org" aria-label="Omeka.org" onclick="event.stopPropagation();"></a>

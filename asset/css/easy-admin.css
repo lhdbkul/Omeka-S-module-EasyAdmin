@@ -419,6 +419,18 @@
     #sidebar-install .addon-check-item:hover {
         background-color: #eee;
     }
+    .addon-check-item.incompatible {
+        cursor: not-allowed;
+        opacity: .6;
+    }
+    .addon-check-item.incompatible .addon-check-name {
+        text-decoration: line-through;
+    }
+    .addon-check-incompatible {
+        color: #c62828;
+        font-size: .85em;
+        font-style: italic;
+    }
     .addon-check-source {
         margin-left: auto;
         flex-shrink: 0;

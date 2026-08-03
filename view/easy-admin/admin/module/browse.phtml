@@ -23,8 +23,7 @@ use Omeka\Module\Manager;
 
 $omekaVersion = \Omeka\Module::VERSION;
 
-// Fallback for non-semver constraints used by some modules (e.g. "1.0-2.0",
-// ">= 4.0", "4.0,<5", "4.0||5.0"). Returns null on parse failure.
+// Fallback for non-semver constraints used by some modules ("1.0-2.0", ">= 4.0", "4.0,<5", "4.0||5.0").
 $checkConstraintFallback = function (string $version, string $constraint): ?bool {
     $constraint = trim($constraint);
     if ($constraint === '' || $constraint === '*') {
@@ -368,9 +367,11 @@ echo $this->form()->openTag($manageForm);
                         </li>
                         <?php endif ?>
 
-                        <?php // Uninstall removes the data from the database. The
-                        // core allows it on an active module too, not only on a
-                        // deactivated one. ?>
+                        <?php
+                        // Uninstall removes the data from the database.
+                        // The core allows it on an active module too, not only
+                        // on a deactivated one.
+                        ?>
                         <?php if (in_array($state, [Manager::STATE_ACTIVE, Manager::STATE_NOT_ACTIVE], true)): ?>
                         <li>
                             <button type="submit" name="state_action_id" value="uninstall:<?= $escape($moduleId) ?>"
@@ -393,7 +394,7 @@ echo $this->form()->openTag($manageForm);
                         </li>
                         <?php endif ?>
 
-                        <?php if ($hasUpdate): ?>
+                        <?php if ($hasCompatibleUpdate): ?>
                         <li><?= $hyperlink('', '#', [
                             'data-sidebar-selector' => '#sidebar',
                             'data-sidebar-content-url' => $url('admin/easy-admin/default', ['controller' => 'module', 'action' => 'update-confirm'], ['query' => ['id' => $moduleId]]),
@@ -513,9 +514,10 @@ uasort($catalogueList, function ($a, $b) {
 });
 ?>
 
-<?php // Confirmation of the batch removal. The submit belongs to the batch
+<?php
+// Confirmation of the batch removal. The submit belongs to the batch
 // form, that is closed above, so it is bound to it with the attribute "form".
-// ?>
+?>
 <div id="sidebar-remove-selected" class="sidebar">
     <?= $hyperlink('', '#', [
         'class' => 'sidebar-close o-icon-close',
@@ -572,10 +574,15 @@ uasort($catalogueList, function ($a, $b) {
                 }
                 $dir = $catModule['dir'] ?? '';
                 $sourceUrl = $catModule['url'] ?? '';
+                $compatible = $catModule['is_compatible'] ?? true;
+                $requiredConstraint = $catModule['required_constraint'] ?? '';
             ?>
-            <label class="addon-check-item">
-                <input type="checkbox" name="module_urls[]" value="<?= $escape($catUrl) ?>" data-addon-dir="<?= $escape($dir) ?>">
+            <label class="addon-check-item<?= $compatible ? '' : ' incompatible' ?>">
+                <input type="checkbox" name="module_urls[]" value="<?= $escape($catUrl) ?>" data-addon-dir="<?= $escape($dir) ?>"<?= $compatible ? '' : ' disabled="disabled"' ?>>
                 <span class="addon-check-name"><?= $escape($catModule['name']) ?></span>
+                <?php if (!$compatible): ?>
+                <span class="addon-check-incompatible"><?= $escape(sprintf($translate('Requires Omeka S %s'), $requiredConstraint)) ?></span>
+                <?php endif ?>
                 <span class="addon-check-source">
                 <?php if (!empty($catModule['is_omeka'])): ?>
                     <a href="<?= $escape('https://omeka.org/s/modules/' . $dir) ?>" target="_blank" rel="noopener noreferrer" class="o-icon-omeka" title="Omeka.org" aria-label="Omeka.org" onclick="event.stopPropagation();"></a>

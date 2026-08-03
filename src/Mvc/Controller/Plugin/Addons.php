@@ -1238,7 +1238,7 @@ class Addons extends AbstractPlugin
      * current Omeka S. Returns null if no compatible version, or if the addon
      * has no versions metadata.
      */
-    protected function pickCompatibleVersion(array $addon): ?array
+    public function pickCompatibleVersion(array $addon): ?array
     {
         if (empty($addon['versions']) || !is_array($addon['versions'])) {
             return null;
