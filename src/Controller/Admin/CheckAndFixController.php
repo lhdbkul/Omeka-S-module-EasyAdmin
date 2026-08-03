@@ -916,7 +916,7 @@ class CheckAndFixController extends AbstractActionController
         $basePath = $config['file_store']['local']['base_path'] ?? null;
         $basePath = $basePath ?: (OMEKA_PATH . '/files');
         $owners = \EasyAdmin\Stdlib\FileDirectoryProtector::buildOwnerMap($services->get('Omeka\Connection'));
-        return new \EasyAdmin\Stdlib\FileDirectoryProtector($basePath, $owners);
+        return new \EasyAdmin\Stdlib\FileDirectoryProtector($basePath, $owners, $services->get('Common\DirectoryManager'));
     }
 
     /**

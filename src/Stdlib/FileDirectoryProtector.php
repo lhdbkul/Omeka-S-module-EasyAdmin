@@ -26,12 +26,21 @@ class FileDirectoryProtector
     protected array $owners;
 
     /**
-     * @param array<string, string> $owners Directory (lower case) => module.
+     * @var \Common\Stdlib\DirectoryManager
      */
-    public function __construct(string $basePath, array $owners = [])
+    protected $directoryManager;
+
+    /**
+     * @param array<string, string> $owners Directory (lower case) => module.
+     * @param \Common\Stdlib\DirectoryManager $directoryManager Provides the
+     * shared decisions (sensitive/public directory, .htaccess content), so this
+     * class only adds the owner mapping and the report on top of Common.
+     */
+    public function __construct(string $basePath, array $owners = [], $directoryManager = null)
     {
         $this->basePath = rtrim($basePath, '/');
         $this->owners = $owners;
+        $this->directoryManager = $directoryManager;
     }
 
     public function basePath(): string
@@ -44,14 +53,7 @@ class FileDirectoryProtector
      */
     public function htaccessContent(): string
     {
-        return '# ' . self::HTACCESS_MARKER . ": protect sensitive files.\n"
-            . "<IfModule mod_authz_core.c>\n"
-            . "    Require all denied\n"
-            . "</IfModule>\n"
-            . "<IfModule !mod_authz_core.c>\n"
-            . "    Order deny,allow\n"
-            . "    Deny from all\n"
-            . "</IfModule>\n";
+        return $this->directoryManager->denyHtaccessContent();
     }
 
     /**
@@ -59,25 +61,16 @@ class FileDirectoryProtector
      */
     public function isPublicDir(string $name): bool
     {
-        $public = [
-            'original', 'large', 'medium', 'square', 'thumbnail', 'asset',
-        ];
-        return in_array($name, $public, true)
-            // Iiif and tiles are served publicly (directly or cached).
-            || (bool) preg_match('/(iiif|tile|cache)/i', $name);
+        return $this->directoryManager->isPublicDir($name);
     }
 
     /**
      * Directories holding server side or sensitive data, to protect from a
-     * direct web access. "zip" is excluded: it is a public derivative directory
-     * of the modules DerivativeMedia and Zip.
+     * direct web access.
      */
     public function isSensitiveDir(string $name): bool
     {
-        return (bool) preg_match(
-            '/(backup|bkp|dump|sql|import|export|log|temp|tmp|trash|contribution|contactus|userdata|private|preload|meminfo|triplestore)/i',
-            $name
-        );
+        return $this->directoryManager->isSensitiveDir($name);
     }
 
     /**
