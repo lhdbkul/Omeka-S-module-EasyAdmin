@@ -772,7 +772,7 @@
     border-bottom: 1px solid #dfdfdf;
 }
 .setting-filter-input {
-    flex: 1 1 100%;
+    flex: 1 1 260px;
     margin: 0;
 }
 .setting-filter-controls {
@@ -785,7 +785,27 @@
 .setting-filter-toggles {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    align-items: center;
+    gap: 8px 16px;
+}
+.setting-filter-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+.setting-filter-group-label {
+    color: #6f7476;
+    font-size: .82em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+.setting-filter-sep {
+    align-self: stretch;
+    width: 1px;
+    min-height: 1.4em;
+    background: #cdd2d4;
 }
 .setting-filter-toggle {
     display: inline-flex;
@@ -816,6 +836,47 @@ mark.setting-filter-hit {
     border-radius: 2px;
     background: #ffe9a8;
     color: inherit;
+}
+/* Setting status marker: default, modified or unknown. */
+.setting-status-default {
+    --setting-status-color: #3f9d58;
+}
+.setting-status-modified {
+    --setting-status-color: #e8a33d;
+}
+.setting-status-unknown {
+    --setting-status-color: #bbb;
+}
+.setting-status-dot {
+    display: inline-block;
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 50%;
+    vertical-align: top;
+    margin-top: 14px;
+    background: var(--setting-status-color, #bbb);
+}
+.setting-filter-label.setting-status::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
+    border-radius: 50%;
+    background: var(--setting-status-color, #bbb);
+}
+/* A distinct shape per status, so it does not rely on colour alone: default is
+   a filled disc, modified a square, unknown a hollow disc. */
+.setting-status-dot.setting-status-modified,
+.setting-filter-label.setting-status-modified::before {
+    border-radius: 1px;
+}
+.setting-status-dot.setting-status-unknown,
+.setting-filter-label.setting-status-unknown::before {
+    background: transparent;
+    border: 1px solid var(--setting-status-color, #bbb);
 }
 .setting-nav {
     flex: 1 1 100%;

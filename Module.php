@@ -1311,6 +1311,10 @@ class Module extends AbstractModule
         $translate = $view->plugin('translate');
         $view->headLink()
             ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
+        $services = $this->getServiceLocator();
+        $form = $services->get('FormElementManager')->get($formClass);
+        $kinds = (new \EasyAdmin\Stdlib\SettingKindClassifier())->classify($form);
+        $status = $this->settingFieldStatus(array_keys($kinds), $formClass, $view);
         $strings = json_encode([
             'placeholder' => $translate('Filter settings…'), // @translate
             'count' => $translate('%s settings'), // @translate
@@ -1318,7 +1322,13 @@ class Module extends AbstractModule
             'textFields' => $translate('Text fields'), // @translate
             'nonTextFields' => $translate('Non-text fields'), // @translate
             'includeValues' => $translate('Include values'), // @translate
-            'kinds' => $this->settingFieldKinds($formClass),
+            'modified' => $translate('Modified'), // @translate
+            'default' => $translate('Default'), // @translate
+            'unknown' => $translate('Unknown'), // @translate
+            'groupValue' => $translate('Value'), // @translate
+            'groupType' => $translate('Type'), // @translate
+            'kinds' => $kinds,
+            'status' => $status,
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $view->headScript()
             ->appendScript(sprintf('window.EasyAdmin=window.EasyAdmin||{};window.EasyAdmin.settingsFilter=%s;', $strings))
@@ -1327,14 +1337,55 @@ class Module extends AbstractModule
     }
 
     /**
-     * Classify the settings of a form as text or configuration fields, with the
-     * same mechanism as the SiteHub module.
+     * Status of each setting: default, modified or unknown.
+     *
+     * Modules based on the Common module declare their default settings in
+     * module.config.php under the module namespace ("settings" or
+     * "site_settings"), so the current value can be compared to the default.
+     * Core settings and settings of other modules have no known default and are
+     * reported as unknown.
      */
-    protected function settingFieldKinds(string $formClass): array
+    protected function settingFieldStatus(array $names, string $formClass, PhpRenderer $view): array
     {
         $services = $this->getServiceLocator();
-        $form = $services->get('FormElementManager')->get($formClass);
-        return (new \EasyAdmin\Stdlib\SettingKindClassifier())->classify($form);
+        $isSite = $formClass === \Omeka\Form\SiteSettingsForm::class;
+        $key = $isSite ? 'site_settings' : 'settings';
+
+        $defaults = [];
+        foreach ($services->get('Config') as $space) {
+            if (is_array($space) && !empty($space[$key]) && is_array($space[$key])) {
+                $defaults += $space[$key];
+            }
+        }
+
+        if ($isSite) {
+            $settings = $services->get('Omeka\Settings\Site');
+            $site = $view->site ?? null;
+            $siteId = $site ? $site->id() : null;
+        } else {
+            $settings = $services->get('Omeka\Settings');
+            $siteId = null;
+        }
+
+        $normalize = fn ($value) => is_array($value)
+            ? json_encode($value)
+            : (is_bool($value) ? ($value ? '1' : '0') : (string) $value);
+
+        $status = [];
+        foreach ($names as $name) {
+            if (!array_key_exists($name, $defaults)) {
+                $status[$name] = 'unknown';
+                continue;
+            }
+            $default = $defaults[$name];
+            $current = $isSite
+                ? ($siteId ? $settings->get($name, is_array($default) ? [] : null, $siteId) : null)
+                : $settings->get($name, is_array($default) ? [] : null);
+            $status[$name] = $normalize($current) === $normalize($default)
+                ? 'default'
+                : 'modified';
+        }
+        return $status;
     }
 
     public function handleMainSettings(Event $event): void
