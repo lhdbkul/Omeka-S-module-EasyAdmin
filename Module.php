@@ -1290,7 +1290,7 @@ class Module extends AbstractModule
     {
         $view = $event->getTarget();
         $assetUrl = $view->plugin('assetUrl');
-        $this->appendSettingsFilterAssets($view);
+        $this->appendSettingsFilterAssets($view, \Omeka\Form\SettingForm::class);
         $view->headScript()
             ->appendFile($assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'))
             ->appendFile($assetUrl('js/chosen-sortable.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
@@ -1302,10 +1302,10 @@ class Module extends AbstractModule
      */
     public function addHeadersSiteSettings(Event $event): void
     {
-        $this->appendSettingsFilterAssets($event->getTarget());
+        $this->appendSettingsFilterAssets($event->getTarget(), \Omeka\Form\SiteSettingsForm::class);
     }
 
-    protected function appendSettingsFilterAssets(PhpRenderer $view): void
+    protected function appendSettingsFilterAssets(PhpRenderer $view, string $formClass): void
     {
         $assetUrl = $view->plugin('assetUrl');
         $translate = $view->plugin('translate');
@@ -1315,11 +1315,25 @@ class Module extends AbstractModule
             'placeholder' => $translate('Filter settings…'), // @translate
             'count' => $translate('%s settings'), // @translate
             'nav' => $translate('Sections'), // @translate
+            'textFields' => $translate('Text fields'), // @translate
+            'nonTextFields' => $translate('Non-text fields'), // @translate
+            'kinds' => $this->settingFieldKinds($formClass),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $view->headScript()
             ->appendScript(sprintf('window.EasyAdmin=window.EasyAdmin||{};window.EasyAdmin.settingsFilter=%s;', $strings))
             ->appendFile($assetUrl('js/settings-filter.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer'])
             ->appendFile($assetUrl('js/settings-nav.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+    }
+
+    /**
+     * Classify the settings of a form as text or configuration fields, with the
+     * same mechanism as the SiteHub module.
+     */
+    protected function settingFieldKinds(string $formClass): array
+    {
+        $services = $this->getServiceLocator();
+        $form = $services->get('FormElementManager')->get($formClass);
+        return (new \EasyAdmin\Stdlib\SettingKindClassifier())->classify($form);
     }
 
     public function handleMainSettings(Event $event): void

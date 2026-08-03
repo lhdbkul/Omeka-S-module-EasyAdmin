@@ -85,27 +85,54 @@
         });
     };
 
-    // Strings are injected by the module (see appendSettingsFilterAssets), with
-    // an English fallback when they are not available.
+    // Strings and the field classification are injected by the module (see
+    // appendSettingsFilterAssets), with an English fallback for the strings.
     var i18n = (window.EasyAdmin && window.EasyAdmin.settingsFilter) || {};
     var placeholder = i18n.placeholder || 'Filter settings…';
     var countTemplate = i18n.count || '%s settings';
+    var kinds = i18n.kinds || {};
+
+    // The kind of a field (structural | literal | manual) comes from the type
+    // of its form element, classified server-side like the SiteHub module. A
+    // field is a text field when its kind is "literal".
+    var kindCache = new WeakMap();
+    var isTextField = function (field) {
+        if (kindCache.has(field)) {
+            return kindCache.get(field);
+        }
+        var el = field.querySelector('input[name], select[name], textarea[name]');
+        var base = el && el.name ? el.name.replace(/\[.*$/, '') : '';
+        // Ambiguous fields default to text, as in the classifier.
+        var kind = base && base.charAt(0) !== '_' && kinds[base]
+            ? kinds[base]
+            : 'literal';
+        var text = kind === 'literal';
+        kindCache.set(field, text);
+        return text;
+    };
 
     var apply = function () {
         var query = input.value.trim().toLowerCase();
+        var wantText = textToggle.checked;
+        var wantNonText = nonTextToggle.checked;
+        // Both or neither checked means no restriction on the field type.
+        var typeFilter = wantText !== wantNonText;
+        var filtering = !!query || typeFilter;
         var visible = 0;
         fields.forEach(function (field) {
             var meta = field.querySelector('.field-meta');
             // Structural markers (e.g. per-module anchors) carry no meta: hide
-            // them whenever a query is active, and never count them.
+            // them whenever a filter is active, and never count them.
             if (!meta) {
-                field.classList.toggle('setting-hidden', !!query);
+                field.classList.toggle('setting-hidden', filtering);
                 return;
             }
+            var typePass = !typeFilter
+                || (wantText ? isTextField(field) : !isTextField(field));
             var hay = (originals.get(meta) || meta.textContent).toLowerCase();
-            var match = !query || hay.indexOf(query) !== -1;
+            var match = typePass && (!query || hay.indexOf(query) !== -1);
             field.classList.toggle('setting-hidden', !match);
-            highlight(meta, match ? query : '');
+            highlight(meta, query && match ? query : '');
             if (match) {
                 visible++;
             }
@@ -115,7 +142,7 @@
                 group.querySelector('.field:not(.setting-hidden) .field-meta');
             group.classList.toggle('setting-hidden', !hasVisible);
         });
-        count.textContent = query
+        count.textContent = filtering
             ? countTemplate.replace('%s', visible)
             : '';
     };
@@ -127,11 +154,39 @@
     input.className = 'setting-filter-input';
     input.setAttribute('placeholder', placeholder);
     input.setAttribute('aria-label', placeholder);
+
+    var makeToggle = function (className, label) {
+        var wrap = document.createElement('label');
+        wrap.className = 'setting-filter-toggle';
+        var box = document.createElement('input');
+        box.type = 'checkbox';
+        box.className = className;
+        wrap.appendChild(box);
+        wrap.appendChild(document.createTextNode(' ' + label));
+        return { label: wrap, box: box };
+    };
+
+    var controls = document.createElement('div');
+    controls.className = 'setting-filter-controls';
+    var textCtl = makeToggle('setting-filter-text', i18n.textFields || 'Text fields');
+    var nonTextCtl = makeToggle(
+        'setting-filter-nontext',
+        i18n.nonTextFields || 'Non-text fields'
+    );
+    var textToggle = textCtl.box;
+    var nonTextToggle = nonTextCtl.box;
     var count = document.createElement('span');
     count.className = 'setting-filter-count';
     count.setAttribute('aria-live', 'polite');
+    var toggles = document.createElement('div');
+    toggles.className = 'setting-filter-toggles';
+    toggles.appendChild(textCtl.label);
+    toggles.appendChild(nonTextCtl.label);
+    controls.appendChild(toggles);
+    controls.appendChild(count);
+
     wrapper.appendChild(input);
-    wrapper.appendChild(count);
+    wrapper.appendChild(controls);
     root.insertBefore(wrapper, root.firstChild);
 
     var timer = null;
@@ -141,6 +196,8 @@
         }
         timer = window.setTimeout(apply, 120);
     });
+    textToggle.addEventListener('change', apply);
+    nonTextToggle.addEventListener('change', apply);
 
     input.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {

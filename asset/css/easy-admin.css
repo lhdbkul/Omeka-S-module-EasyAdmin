@@ -772,8 +772,29 @@
     border-bottom: 1px solid #dfdfdf;
 }
 .setting-filter-input {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
     margin: 0;
+}
+.setting-filter-controls {
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.setting-filter-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.setting-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #33454c;
+    font-size: .9em;
+    white-space: nowrap;
+    cursor: pointer;
 }
 .setting-filter-count {
     color: #6f7476;
