@@ -207,6 +207,23 @@
         display: inline-block;
     }
 
+    /* Install action: a distinct icon, since the core "o-icon-install" uses icon download. */
+    .modules.browse .o-icon-install::before,
+    .themes.browse .o-icon-install::before,
+    .modules.browse .o-icon-uninstall::before,
+    .themes.browse .o-icon-uninstall::before {
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+    }
+    .modules.browse .o-icon-install::before,
+    .themes.browse .o-icon-install::before {
+        content: "\f055"; /* fa-plus-circle */
+    }
+    .modules.browse .o-icon-uninstall::before,
+    .themes.browse .o-icon-uninstall::before {
+        content: "\f056"; /* fa-minus-circle */
+    }
+
     /* Addon browse: version column */
     .themes.browse td.col-version,
     .modules.browse td.col-version {
