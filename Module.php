@@ -291,10 +291,10 @@ class Module extends AbstractModule
         if (!$result && !$this->checkDestinationDir($basePath . '/check')) {
             $disabled[] = $basePath . '/check';
         }
-        if (!$this->checkDestinationDir($basePath . '/backup')) {
+        if (!$this->checkDestinationDir($basePath . '/backup', true)) {
             $disabled[] = $basePath . '/backup';
         }
-        if (!$this->checkDestinationDir($basePath . '/import')) {
+        if (!$this->checkDestinationDir($basePath . '/import', true)) {
             $disabled[] = $basePath . '/import';
         }
         if ($disabled) {
