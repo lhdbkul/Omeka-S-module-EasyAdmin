@@ -825,7 +825,8 @@ class CheckAndFixController extends AbstractActionController
      * Add a ".htaccess" that denies web access to the sensitive directories of
      * the files directory (backups, imports, exports, logs, contributions, user
      * data…). Public media directories are never touched, and an existing
-     * ".htaccess" is never overwritten.
+     * ".htaccess" is never overwritten. The owning module of each directory is
+     * indicated when known.
      */
     protected function fixSecurityHtaccess(): void
     {
@@ -833,126 +834,104 @@ class CheckAndFixController extends AbstractActionController
         $messenger = $this->messenger();
         $services = $this->getEvent()->getApplication()->getServiceManager();
 
-        $basePath = $this->securityFilesBasePath($services);
-        if (!is_dir($basePath)) {
+        $protector = $this->securityDirectoryProtector($services);
+        if (!is_dir($protector->basePath())) {
             $messenger->addError(new PsrMessage(
                 'The files directory was not found: {path}', // @translate
-                ['path' => $basePath]
+                ['path' => $protector->basePath()]
             ));
             return;
         }
 
-        $created = [];
-        $existing = [];
-        $failed = [];
-        $content = $this->securityHtaccessContent();
+        $result = $protector->protectSensitiveDirectories();
 
-        foreach (new \DirectoryIterator($basePath) as $dir) {
-            if (!$dir->isDir() || $dir->isDot()) {
-                continue;
-            }
-            $name = $dir->getFilename();
-            if ($this->securityIsPublicDir($name) || !$this->securityIsSensitiveDir($name)) {
-                continue;
-            }
-            $htaccess = $dir->getPathname() . '/.htaccess';
-            if (file_exists($htaccess)) {
-                $existing[] = $name;
-                continue;
-            }
-            if (@file_put_contents($htaccess, $content) === false) {
-                $failed[] = $name;
-            } else {
-                $created[] = $name;
-            }
-        }
-
-        if ($created) {
-            sort($created);
+        if ($result['created']) {
             $messenger->addSuccess(new PsrMessage(
                 'A ".htaccess" was added to {count} directory(ies): {list}', // @translate
-                ['count' => count($created), 'list' => implode(', ', $created)]
+                ['count' => count($result['created']), 'list' => $this->securityFormatOwners($result['created'])]
             ));
         }
-        if ($existing) {
-            sort($existing);
+        if ($result['existing']) {
             $messenger->addNotice(new PsrMessage(
                 '{count} directory(ies) already have a ".htaccess" (not modified): {list}', // @translate
-                ['count' => count($existing), 'list' => implode(', ', $existing)]
+                ['count' => count($result['existing']), 'list' => $this->securityFormatOwners($result['existing'])]
             ));
         }
-        if ($failed) {
-            sort($failed);
+        if ($result['failed']) {
             $messenger->addError(new PsrMessage(
                 'A ".htaccess" could not be written in {count} directory(ies) (check permissions): {list}', // @translate
-                ['count' => count($failed), 'list' => implode(', ', $failed)]
+                ['count' => count($result['failed']), 'list' => $this->securityFormatOwners($result['failed'])]
             ));
         }
-        if (!$created && !$existing && !$failed) {
+        if (!$result['created'] && !$result['existing'] && !$result['failed']) {
             $messenger->addNotice('No sensitive directory to protect was found.'); // @translate
         }
     }
 
     protected function securityCheckFileProtection($messenger, $services): void
     {
-        $basePath = $this->securityFilesBasePath($services);
-        if (!is_dir($basePath)) {
+        $protector = $this->securityDirectoryProtector($services);
+        if (!is_dir($protector->basePath())) {
             $messenger->addWarning(new PsrMessage(
                 'The files directory was not found: {path}', // @translate
-                ['path' => $basePath]
+                ['path' => $protector->basePath()]
             ));
             return;
         }
 
-        $unprotected = [];
-        $review = [];
-        $phpFiles = [];
-        foreach (new \DirectoryIterator($basePath) as $entry) {
-            if ($entry->isDot()) {
-                continue;
-            }
-            $name = $entry->getFilename();
-            if ($entry->isFile() && strtolower($entry->getExtension()) === 'php') {
-                $phpFiles[] = $name;
-                continue;
-            }
-            if (!$entry->isDir() || $this->securityIsPublicDir($name)) {
-                continue;
-            }
-            if (file_exists($entry->getPathname() . '/.htaccess')) {
-                continue;
-            }
-            if ($this->securityIsSensitiveDir($name)) {
-                $unprotected[] = $name;
-            } else {
-                $review[] = $name;
-            }
-        }
+        $audit = $protector->audit();
 
-        if ($phpFiles) {
-            sort($phpFiles);
+        if ($audit['php']) {
+            sort($audit['php']);
             $messenger->addError(new PsrMessage(
                 'The files directory contains executable php file(s), which is a code execution risk: {list}. Remove them and forbid php execution under "files/".', // @translate
-                ['list' => implode(', ', $phpFiles)]
+                ['list' => implode(', ', $audit['php'])]
             ));
         }
-        if ($unprotected) {
-            sort($unprotected);
+        if ($audit['sensitive']) {
             $messenger->addWarning(new PsrMessage(
                 'Sensitive directories without a ".htaccess" are publicly accessible (backups, imports, exports, logs…): {list}. Use the fix to protect them.', // @translate
-                ['list' => implode(', ', $unprotected)]
+                ['list' => $this->securityFormatOwners($audit['sensitive'])]
             ));
         }
-        if ($review) {
-            sort($review);
+        if ($audit['unknown']) {
+            sort($audit['unknown']);
             $messenger->addNotice(new PsrMessage(
-                'Other directories of "files/" have no ".htaccess"; review whether they should be public: {list}', // @translate
-                ['list' => implode(', ', $review)]
+                'Other directories of "files/" have no ".htaccess"; review whether they should be public (no ".htaccess" is added automatically, as they may serve public files): {list}', // @translate
+                ['list' => implode(', ', $audit['unknown'])]
             ));
         }
-        if (!$phpFiles && !$unprotected) {
+        if (!$audit['php'] && !$audit['sensitive']) {
             $messenger->addSuccess('File protection: no sensitive directory left publicly accessible.'); // @translate
         }
+    }
+
+    /**
+     * The directory protector for the files directory, with the map of the
+     * directories owned by a module (from the settings storing a path).
+     */
+    protected function securityDirectoryProtector($services): \EasyAdmin\Stdlib\FileDirectoryProtector
+    {
+        $config = $services->get('Config');
+        $basePath = $config['file_store']['local']['base_path'] ?? null;
+        $basePath = $basePath ?: (OMEKA_PATH . '/files');
+        $owners = \EasyAdmin\Stdlib\FileDirectoryProtector::buildOwnerMap($services->get('Omeka\Connection'));
+        return new \EasyAdmin\Stdlib\FileDirectoryProtector($basePath, $owners);
+    }
+
+    /**
+     * Format a map of directory name => owner module as "name (module X)".
+     */
+    protected function securityFormatOwners(array $ownersMap): string
+    {
+        $lines = [];
+        foreach ($ownersMap as $name => $owner) {
+            $lines[] = $owner === null
+                ? $name
+                : sprintf('%s (module %s)', $name, $owner);
+        }
+        sort($lines);
+        return implode(', ', $lines);
     }
 
     protected function securityCheckPrivateData($messenger, $connection, $services): void
@@ -1130,52 +1109,6 @@ class CheckAndFixController extends AbstractActionController
                 ['message' => $e->getMessage()]
             ));
         }
-    }
-
-    protected function securityFilesBasePath($services): string
-    {
-        $config = $services->get('Config');
-        $basePath = $config['file_store']['local']['base_path'] ?? null;
-        return $basePath ?: (OMEKA_PATH . '/files');
-    }
-
-    /**
-     * Directories serving public media or derivatives, never to be protected.
-     */
-    protected function securityIsPublicDir(string $name): bool
-    {
-        $public = [
-            'original', 'large', 'medium', 'square', 'thumbnail', 'asset',
-        ];
-        return in_array($name, $public, true)
-            // Iiif and tiles are served publicly (directly or cached).
-            || (bool) preg_match('/(iiif|tile|cache)/i', $name);
-    }
-
-    /**
-     * Directories holding server side or sensitive data, to protect from a
-     * direct web access.
-     */
-    protected function securityIsSensitiveDir(string $name): bool
-    {
-        // "zip" is not listed: it is a public derivative directory of the
-        // modules DerivativeMedia and Zip, protecting it would break downloads.
-        return (bool) preg_match(
-            '/(backup|bkp|dump|sql|import|export|log|temp|tmp|trash|contribution|contactus|userdata|private|preload|meminfo|triplestore)/i',
-            $name
-        );
-    }
-
-    protected function securityHtaccessContent(): string
-    {
-        return "# Managed by Omeka S module EasyAdmin: protect sensitive files.\n"
-            . "<IfModule mod_authz_core.c>\n"
-            . "    Require all denied\n"
-            . "</IfModule>\n"
-            . "<IfModule !mod_authz_core.c>\n"
-            . "    Order deny,allow\n"
-            . "    Deny from all\n"
-            . "</IfModule>\n";
     }
 
     protected function checkMail(array $options): void
