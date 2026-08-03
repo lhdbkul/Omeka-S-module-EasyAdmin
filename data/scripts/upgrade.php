@@ -251,7 +251,7 @@ if (version_compare($oldVersion, '3.4.14', '<')) {
 }
 
 if (version_compare($oldVersion, '3.4.15', '<')) {
-    if (!$this->checkDestinationDir($basePath . '/backup')) {
+    if (!$this->checkDestinationDir($basePath . '/backup', true)) {
         $messenger->addWarning(new PsrMessage(
             'The directory "{dir}" is not writeable. The backup feature is disabled until permissions are fixed.', // @translate
             ['dir' => $basePath . '/backup']
@@ -604,4 +604,45 @@ if (version_compare($oldVersion, '3.4.46', '<')) {
             ['version' => '3.4.3']
         ));
     }
+}
+
+if (version_compare($oldVersion, '3.4.48', '<')) {
+    // Protect the sensitive sub-directories of "files/" with a ".htaccess", as
+    // a safety net for the directories that the owning module does not protect
+    // itself. Idempotent: an existing ".htaccess" is never overwritten, public
+    // and unknown directories are never touched.
+    $owners = \EasyAdmin\Stdlib\FileDirectoryProtector::buildOwnerMap($connection);
+    $protector = new \EasyAdmin\Stdlib\FileDirectoryProtector($basePath, $owners, $services->get('Common\DirectoryManager'));
+    $result = $protector->protectSensitiveDirectories();
+
+    $format = function (array $ownersMap): string {
+        $lines = [];
+        foreach ($ownersMap as $name => $owner) {
+            $lines[] = $owner === null ? $name : sprintf('%s (module %s)', $name, $owner);
+        }
+        sort($lines);
+        return implode(', ', $lines);
+    };
+
+    if ($result['created']) {
+        $message = new PsrMessage(
+            'A ".htaccess" was added to protect {count} sensitive directory(ies) of "files/": {list}', // @translate
+            ['count' => count($result['created']), 'list' => $format($result['created'])]
+        );
+        $messenger->addSuccess($message);
+        $logger->info((string) $message->setTranslator($translator));
+    }
+    if ($result['failed']) {
+        $messenger->addWarning(new PsrMessage(
+            'A ".htaccess" could not be written in {count} sensitive directory(ies) of "files/" (check permissions): {list}', // @translate
+            ['count' => count($result['failed']), 'list' => $format($result['failed'])]
+        ));
+    }
+
+    // Do not enable the enhancements automatically, to keep the core default
+    // behaviour.
+    $message = new PsrMessage(
+        'A live filter and a section navigation simplify management of settings and site settings.' // @translate
+    );
+    $messenger->addSuccess($message);
 }
