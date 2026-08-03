@@ -32,9 +32,8 @@
                     return;
                 }
                 content.innerHTML = html;
-                // innerHTML does not execute scripts: re-inject them so any
-                // behaviour bound inline (state filter, selection filter) is
-                // rebound.
+                // innerHTML does not execute scripts: re-inject them to rebind
+                // any behaviour bound inline (state filter, selection filter).
                 content.querySelectorAll('script').forEach(function (old) {
                     var script = document.createElement('script');
                     if (old.src) {
@@ -44,6 +43,15 @@
                     }
                     old.parentNode.replaceChild(script, old);
                 });
+                // Trigger core enhancement, like "admin.js" does on load.
+                if (window.jQuery) {
+                    window.jQuery(document).trigger('enhance.tablesaw');
+                }
+                // The delegated behaviours survive the swap, but need a hook to
+                // re-apply the filters on new rows.
+                document.dispatchEvent(
+                    new CustomEvent('easy-admin:catalogue-loaded')
+                );
             })
             .catch(function () {
                 trigger.className = 'messages warning';
