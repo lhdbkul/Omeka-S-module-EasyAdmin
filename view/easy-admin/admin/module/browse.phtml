@@ -610,17 +610,20 @@ uasort($catalogueList, function ($a, $b) {
 var selections = <?= json_encode($selections, JSON_UNESCAPED_UNICODE) ?>;
 $('#selection-filter').on('change', function() {
     var name = $(this).val();
-    var $checks = $('.addon-checklist input[type="checkbox"]');
-    $checks.prop('checked', false);
-    if (name && selections[name]) {
-        var dirs = selections[name].map(function(d) { return d.replace(/\s/g, ''); });
-        $checks.each(function() {
-            var dir = ($(this).data('addon-dir') || '').replace(/\s/g, '');
-            if (dirs.indexOf(dir) !== -1) {
-                $(this).prop('checked', true);
-            }
-        });
-    }
+    var dirs = (name && selections[name])
+        ? selections[name].map(function(d) { return d.replace(/\s/g, ''); })
+        : [];
+    // Catalogue checkboxes of the sidebar (modules to install).
+    $('.addon-checklist input[type="checkbox"]').each(function() {
+        var dir = ($(this).data('addon-dir') || '').replace(/\s/g, '');
+        $(this).prop('checked', dirs.indexOf(dir) !== -1);
+    });
+    // Checkboxes of the main list (modules of the selection already present),
+    // so they can be acted on in batch.
+    $('input[name="modules[]"]').each(function() {
+        var id = ($(this).val() || '').replace(/\s/g, '');
+        $(this).prop('checked', dirs.indexOf(id) !== -1);
+    });
 });
 <?php endif ?>
 </script>
