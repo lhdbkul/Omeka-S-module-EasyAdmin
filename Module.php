@@ -1290,7 +1290,11 @@ class Module extends AbstractModule
     {
         $view = $event->getTarget();
         $assetUrl = $view->plugin('assetUrl');
-        $this->appendSettingsFilterAssets($view, \Omeka\Form\SettingForm::class);
+        if ($this->settingsEnhancementsEnabled()) {
+            $this->appendSettingsFilterAssets($view, \Omeka\Form\SettingForm::class);
+        } else {
+            $this->appendSettingsEnhancementsButton($view);
+        }
         $view->headScript()
             ->appendFile($assetUrl('vendor/sortablejs/Sortable.min.js', 'Omeka'))
             ->appendFile($assetUrl('js/chosen-sortable.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
@@ -1302,16 +1306,53 @@ class Module extends AbstractModule
      */
     public function addHeadersSiteSettings(Event $event): void
     {
-        $this->appendSettingsFilterAssets($event->getTarget(), \Omeka\Form\SiteSettingsForm::class);
+        $view = $event->getTarget();
+        if ($this->settingsEnhancementsEnabled()) {
+            $this->appendSettingsFilterAssets($view, \Omeka\Form\SiteSettingsForm::class);
+        } else {
+            $this->appendSettingsEnhancementsButton($view);
+        }
+    }
+
+    protected function settingsEnhancementsEnabled(): bool
+    {
+        return (bool) $this->getServiceLocator()->get('Omeka\Settings')
+            ->get('easyadmin_settings_enhancements', false);
+    }
+
+    /**
+     * Add a button on the settings pages to enable the settings enhancements,
+     * only when they are disabled.
+     */
+    protected function appendSettingsEnhancementsButton(PhpRenderer $view): void
+    {
+        $translate = $view->plugin('translate');
+        $url = $view->plugin('url')('admin/easy-admin/default', [
+            'controller' => 'check-and-fix',
+            'action' => 'enable-settings-enhancements',
+        ]);
+        $validator = new \Laminas\Validator\Csrf(['name' => 'easyadmin_enable_enhancements']);
+        $token = $validator->getHash();
+        $label = $translate('Enable filters'); // @translate
+        $title = $translate('Add a live filter and a section navigation to this page.'); // @translate
+        $data = json_encode([
+            'url' => $url,
+            'csrf' => $token,
+            'label' => $label,
+            'title' => $title,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $view->headScript()
+            ->appendScript(sprintf('window.EasyAdmin=window.EasyAdmin||{};window.EasyAdmin.enableEnhancements=%s;', $data))
+            ->appendFile($view->plugin('assetUrl')('js/settings-enhancements-enable.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
     }
 
     protected function appendSettingsFilterAssets(PhpRenderer $view, string $formClass): void
     {
+        $services = $this->getServiceLocator();
         $assetUrl = $view->plugin('assetUrl');
         $translate = $view->plugin('translate');
         $view->headLink()
             ->appendStylesheet($assetUrl('css/easy-admin.css', 'EasyAdmin'));
-        $services = $this->getServiceLocator();
         $form = $services->get('FormElementManager')->get($formClass);
         $kinds = (new \EasyAdmin\Stdlib\SettingKindClassifier())->classify($form);
         $status = $this->settingFieldStatus(array_keys($kinds), $formClass, $view);
@@ -1351,8 +1392,10 @@ class Module extends AbstractModule
         $isSite = $formClass === \Omeka\Form\SiteSettingsForm::class;
         $key = $isSite ? 'site_settings' : 'settings';
 
-        $defaults = [];
-        foreach ($services->get('Config') as $space) {
+        $config = $services->get('Config');
+        // Seed with the known core defaults, then let modules declare theirs.
+        $defaults = $config['easyadmin']['core_settings_defaults'][$key] ?? [];
+        foreach ($config as $space) {
             if (is_array($space) && !empty($space[$key]) && is_array($space[$key])) {
                 $defaults += $space[$key];
             }
@@ -1367,23 +1410,35 @@ class Module extends AbstractModule
             $siteId = null;
         }
 
-        $normalize = fn ($value) => is_array($value)
-            ? json_encode($value)
-            : (is_bool($value) ? ($value ? '1' : '0') : (string) $value);
+        // Compare the current value to the default according to the type of the
+        // default: booleans use a falsey/truthy match (so false, "", null and
+        // "0" are equal), arrays use their json, other scalars a string match
+        // (so a number and its stored string, 100 and "100", are equal).
+        $isSame = function ($current, $default): bool {
+            if (is_bool($default)) {
+                return filter_var($current, FILTER_VALIDATE_BOOLEAN) === $default;
+            }
+            if (is_array($default)) {
+                return json_encode($current) === json_encode($default);
+            }
+            return (string) $current === (string) $default;
+        };
 
         $status = [];
         foreach ($names as $name) {
+            // Settings without a declared default (mostly modules that do not
+            // declare theirs) stay unknown.
             if (!array_key_exists($name, $defaults)) {
                 $status[$name] = 'unknown';
                 continue;
             }
             $default = $defaults[$name];
+            // Fall back to the default itself, so an unset value (in particular
+            // a boolean false) is reported as default, not modified.
             $current = $isSite
-                ? ($siteId ? $settings->get($name, is_array($default) ? [] : null, $siteId) : null)
-                : $settings->get($name, is_array($default) ? [] : null);
-            $status[$name] = $normalize($current) === $normalize($default)
-                ? 'default'
-                : 'modified';
+                ? ($siteId ? $settings->get($name, $default, $siteId) : $default)
+                : $settings->get($name, $default);
+            $status[$name] = $isSame($current, $default) ? 'default' : 'modified';
         }
         return $status;
     }

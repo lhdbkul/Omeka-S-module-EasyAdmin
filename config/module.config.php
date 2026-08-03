@@ -322,6 +322,7 @@ return [
                 'resource_public_view',
                 // 'resource_previous_next',
             ],
+            'easyadmin_settings_enhancements' => false,
             // Editing.
             'easyadmin_rights_reviewer_delete_all' => false,
             'easyadmin_quick_template' => [],
@@ -349,6 +350,74 @@ return [
             // Maintenance
             'easyadmin_maintenance_mode' => '',
             'easyadmin_maintenance_text' => 'This site is down for maintenance. Please contact the site administrator for more information.', // @translate
+        ],
+        // Known core defaults, so the settings filter flags each core field as
+        // default or modified instead of unknown. Values are the ones stored at
+        // installation or used as fallback by the core when a setting is unset
+        // (second argument of the "get()" calls in the core forms). Settings of
+        // modules that do not declare their defaults are absent here and stay
+        // unknown.
+        // @see \Omeka\Installation\Task\AddDefaultSettingsTask
+        // @see \Omeka\Form\SettingForm
+        // @see \Omeka\Form\SiteSettingsForm
+        'core_settings_defaults' => [
+            'settings' => [
+                'pagination_per_page' => \Omeka\Stdlib\Paginator::PER_PAGE,
+                'version_notifications' => '1',
+                'use_htmlpurifier' => '1',
+                'media_type_whitelist' => \Omeka\Form\SettingForm::MEDIA_TYPE_WHITELIST,
+                'extension_whitelist' => \Omeka\Form\SettingForm::EXTENSION_WHITELIST,
+                // Not clear: install uses date.timezone, else "UTC".
+                'time_zone' => 'UTC',
+                'property_label_information' => 'none',
+                'batch_chunk_size' => 100,
+                'default_to_private_items' => false,
+                'default_to_private_item_sets' => false,
+                'default_to_private_sites' => false,
+                'default_to_private_site_pages' => false,
+                'value_languages' => [],
+                'disable_jsonld_reverse' => '',
+                'disable_jsonld_embed' => '',
+                'favicon' => '',
+                'default_site' => '',
+                'media_alt_text_property' => '',
+                'disable_file_validation' => '',
+                // Not clear: empty follows the browser locale.
+                'locale' => '',
+                'recaptcha_site_key' => '',
+                'recaptcha_secret_key' => '',
+                // Not clear: set by the user at installation, probably empty.
+                'administrator_email' => '',
+                'installation_title' => '',
+            ],
+            'site_settings' => [
+                'o:assign_new_items' => true,
+                'show_page_pagination' => true,
+                'show_user_bar' => '0',
+                'show_locale_label' => true,
+                'show_attached_pages' => true,
+                'filter_locale_values' => false,
+                'browse_attached_items' => false,
+                'exclude_resources_not_in_site' => false,
+                'item_media_embed' => false,
+                'property_label_information' => 'none',
+                'search_type' => 'sitewide',
+                'search_resource_names' => ['site_pages', 'items'],
+                'search_apply_templates' => [],
+                'disable_jsonld_embed' => '',
+                'favicon' => '',
+                'locale' => '',
+                // Not clear, probably empty: no fallback in the core form.
+                'show_value_annotations' => '',
+                'vocabulary_scope' => '',
+                // Not clear, probably empty: inherited, theme dependent or computed.
+                'pagination_per_page' => '',
+                'attachment_link_type' => '',
+                'subnav_display' => '',
+                'browse_heading_property_term' => '',
+                'browse_body_property_term' => '',
+                'browse_defaults_public_items' => '',
+            ],
         ],
     ],
     // Cron tasks registered with the Cron module.

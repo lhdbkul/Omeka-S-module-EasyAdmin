@@ -8,6 +8,28 @@ use Laminas\View\Model\ViewModel;
 
 class CheckAndFixController extends AbstractActionController
 {
+    /**
+     * Enable the settings enhancements (filter and section navigation), from
+     * the button added on the settings pages when they are disabled.
+     */
+    public function enableSettingsEnhancementsAction()
+    {
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            $validator = new \Laminas\Validator\Csrf(['name' => 'easyadmin_enable_enhancements']);
+            if ($validator->isValid((string) $request->getPost('csrf'))) {
+                $this->settings()->set('easyadmin_settings_enhancements', true);
+                $this->messenger()->addSuccess('The settings filter is now enabled.'); // @translate
+            } else {
+                $this->messenger()->addError('Invalid or expired CSRF token.'); // @translate
+            }
+        }
+        $referer = $request->getHeader('Referer');
+        return $this->redirect()->toUrl($referer
+            ? $referer->getFieldValue()
+            : $this->url()->fromRoute('admin'));
+    }
+
     public function indexAction()
     {
         /** @var \EasyAdmin\Form\CheckAndFixForm $form */

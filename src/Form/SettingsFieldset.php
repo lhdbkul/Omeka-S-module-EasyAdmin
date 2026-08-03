@@ -77,6 +77,18 @@ class SettingsFieldset extends Fieldset
             ])
 
             ->add([
+                'name' => 'easyadmin_settings_enhancements',
+                'type' => Element\Checkbox::class,
+                'options' => [
+                    'element_group' => 'display',
+                    'label' => 'Enhance settings pages with a filter and a section navigation', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'easyadmin_settings_enhancements',
+                ],
+            ])
+
+            ->add([
                 'name' => 'easyadmin_rights_reviewer_delete_all',
                 'type' => Element\Checkbox::class,
                 'options' => [
