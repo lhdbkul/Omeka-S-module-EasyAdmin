@@ -1292,10 +1292,12 @@ class Module extends AbstractModule
         $strings = json_encode([
             'placeholder' => $translate('Filter settings…'), // @translate
             'count' => $translate('%s settings'), // @translate
+            'nav' => $translate('Settings sections'), // @translate
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $view->headScript()
             ->appendScript(sprintf('window.EasyAdmin=window.EasyAdmin||{};window.EasyAdmin.settingsFilter=%s;', $strings))
-            ->appendFile($assetUrl('js/settings-filter.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
+            ->appendFile($assetUrl('js/settings-filter.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer'])
+            ->appendFile($assetUrl('js/settings-nav.js', 'EasyAdmin'), 'text/javascript', ['defer' => 'defer']);
     }
 
     public function handleMainSettings(Event $event): void

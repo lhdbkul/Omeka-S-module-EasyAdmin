@@ -760,7 +760,7 @@
     }
 }
 
-/* Settings page live filter. */
+/* Settings page live filter and group navigation. */
 .setting-filter {
     display: flex;
     align-items: center;
@@ -789,4 +789,45 @@ body.settings mark.setting-filter-hit {
     border-radius: 2px;
     background: #ffe9a8;
     color: inherit;
+}
+
+/* Settings page group navigation (table of contents). */
+body.settings .setting-filter {
+    flex-wrap: wrap;
+}
+body.settings .setting-nav {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+body.settings .setting-filter-navonly {
+    display: block;
+}
+body.settings .setting-nav-chip {
+    padding: 2px 10px;
+    border: 1px solid #cdd2d4;
+    border-radius: 12px;
+    background: #f4f6f6;
+    color: #33454c;
+    font-size: .88em;
+    line-height: 1.6;
+    text-decoration: none;
+    white-space: nowrap;
+}
+body.settings .setting-nav-chip:hover {
+    border-color: #4a90d9;
+    color: #14689e;
+}
+body.settings .setting-nav-chip.setting-nav-active {
+    border-color: #4a90d9;
+    background: #e3f0fb;
+    color: #14689e;
+    font-weight: 600;
+}
+body.settings .setting-nav-chip.setting-nav-hidden {
+    display: none;
+}
+body.settings fieldset[id] {
+    scroll-margin-top: 96px;
 }
