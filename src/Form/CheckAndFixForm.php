@@ -316,6 +316,14 @@ class CheckAndFixForm extends Form
                     'install_check' => 'Check', // @translate
                 ],
             ],
+            'settings_environment' => [
+                'name' => 'Environment settings', // @translate
+                'description' => 'Settings depending on the server to review after a copy of the database (title, urls, paths, hosts, emails, api keys…).', // @translate
+                'actions' => [
+                    'settings_environment_check' => 'List', // @translate
+                    'settings_environment_fix' => 'Adapt for a test copy', // @translate
+                ],
+            ],
             'mail' => [
                 'name' => 'Email', // @translate
                 'description' => 'Email configuration; sends a test email.', // @translate
@@ -1471,6 +1479,8 @@ class CheckAndFixForm extends Form
                     'label' => '',
                     'value_options' => [
                         'install_check' => 'Run installation checks (after a copy of the database on a new server)', // @translate
+                        'settings_environment_check' => 'List environment-specific settings to review after a copy of the database (title, urls, paths, hosts, emails, api keys…)', // @translate
+                        'settings_environment_fix' => 'Adapt settings for a test/dev copy (prefix the title with « TEST », then list the other settings to review)', // @translate
                         'cache_check' => 'Check caches', // @translate
                         'cache_fix' => 'Clear caches (after update or modifications of code)', // @translate
                         'mail_check' => 'Check email configuration and send test email', // @translate
@@ -1598,6 +1608,31 @@ class CheckAndFixForm extends Form
                 ],
                 'attributes' => [
                     'id' => 'mail-generate-dkim',
+                ],
+            ])
+        ;
+
+        $fieldset
+            ->add([
+                'type' => Fieldset::class,
+                'name' => 'settings_environment',
+                'options' => [
+                    'label' => 'Options for environment settings', // @translate
+                ],
+                'attributes' => [
+                    'class' => 'settings_environment_check settings_environment_fix',
+                ],
+            ])
+            ->get('settings_environment')
+            ->add([
+                'name' => 'include_empty',
+                'type' => \Common\Form\Element\OptionalCheckbox::class,
+                'options' => [
+                    'label' => 'Include empty settings', // @translate
+                    'info' => 'List settings whose value is currently empty (they may need a server-specific value).', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'settings-environment-include-empty',
                 ],
             ])
         ;

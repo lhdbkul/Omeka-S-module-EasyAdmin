@@ -195,6 +195,13 @@ class CheckAndFixController extends AbstractActionController
                 // TODO Make theses tasks available separately, in particular for a whole check.
                 $this->checkInstall();
                 break;
+            case 'settings_environment_check':
+            case 'settings_environment_fix':
+                $this->checkSettingsEnvironment(
+                    $process === 'settings_environment_fix',
+                    !empty($params['system']['settings_environment']['include_empty'])
+                );
+                break;
             case 'cache_check':
             case 'cache_fix':
                 $this->checkCache($params['system']['cache'], $process === 'cache_fix');
@@ -367,6 +374,193 @@ class CheckAndFixController extends AbstractActionController
             $messenger->addWarning(
                 'The php extension "intl" is not available. It is recommended to install it to translate dates.' // @translate
             );
+        }
+    }
+
+    /**
+     * List (and optionally adapt) the settings that depend on the server, so
+     * they can be reviewed after a copy of the database (prod to test/dev).
+     *
+     * Only settings whose values are environment-specific are reported: the
+     * installation title, urls, hosts, paths, emails, api keys and tokens. The
+     * detection is based on the name of the setting, so it covers modules
+     * without any dependency on them. Secret values (keys, tokens, passwords)
+     * are redacted. The optional fix only prefixes the installation title with
+     * « TEST »; all other values require a new server-specific value and are
+     * listed for a manual review.
+     *
+     * Empty settings are listed only when $includeEmpty is set, and some known
+     * settings that match a pattern but never depend on the server (standard
+     * rights uris, durations, static route paths…) are always excluded.
+     */
+    protected function checkSettingsEnvironment(bool $fix, bool $includeEmpty): void
+    {
+        /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
+        $messenger = $this->messenger();
+
+        $services = $this->getEvent()->getApplication()->getServiceManager();
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = $services->get('Omeka\Connection');
+
+        // Settings matching a pattern but never depending on the server: they
+        // are standard rights uris, durations wrongly matched as "token", or
+        // static route paths. They are always excluded from the report.
+        $excluded = [
+            'iiifserver_manifest_rights_uri',
+            'iiifserver_manifest_rights_url',
+            'imageserver_info_rights_uri',
+            'imageserver_info_rights_url',
+            'botchallenge_exception_paths',
+            'oaipmhrepository_token_expiration_time',
+            'aigenerator_max_tokens',
+            'contribute_token_duration',
+            'guest_forgot_password_html_after',
+            'guest_forgot_password_html_before',
+            'guest_forgot_password_use_link_in_dialog_login',
+        ];
+
+        // Category of a setting, or null when it is not environment-specific.
+        // Order matters: secrets are checked before emails/urls/paths so a key
+        // like "credential_key_path" is redacted instead of shown as a path.
+        $categorize = function (string $key) use ($excluded): ?string {
+            if (in_array($key, $excluded, true)) {
+                return null;
+            }
+            if ($key === 'installation_title') {
+                return 'title';
+            }
+            if (preg_match('/(api_?key|_token|_secret|password|_credential)/', $key)) {
+                return 'secret';
+            }
+            if (preg_match('/(_email|_recipient|_sender|reply_to)/', $key)) {
+                return 'email';
+            }
+            if (preg_match('/(base_uri|_uri|_url|_host|_hostname|_endpoint)/', $key)) {
+                return 'url';
+            }
+            if (preg_match('/(_path|_dir|_directory)/', $key)) {
+                return 'path';
+            }
+            return null;
+        };
+
+        $labels = [
+            'title' => 'Installation title', // @translate
+            'url' => 'Urls, hosts and endpoints', // @translate
+            'path' => 'Paths and directories', // @translate
+            'email' => 'Emails', // @translate
+            'secret' => 'Api keys, tokens and secrets (redacted)', // @translate
+        ];
+
+        $isEmpty = fn ($value): bool => $value === null || $value === '' || $value === [];
+
+        // The category is guessed from the name, so filter out false positives
+        // (option tokens, flags, email templates…) by the shape of the value.
+        // The installation title is always shown; empty values only when the
+        // option is set, as they may need a server-specific value.
+        $relevant = function (string $category, $value) use ($isEmpty, $includeEmpty): bool {
+            if ($category === 'title') {
+                return true;
+            }
+            if ($isEmpty($value)) {
+                return $includeEmpty;
+            }
+            if ($category === 'secret') {
+                return true;
+            }
+            $flat = is_array($value)
+                ? implode(' ', array_map(fn ($v) => is_scalar($v) ? (string) $v : '', $value))
+                : (is_scalar($value) ? (string) $value : '');
+            switch ($category) {
+                case 'url': return str_contains($flat, '://') || str_starts_with($flat, '//');
+                case 'path': return str_contains($flat, '/');
+                case 'email': return str_contains($flat, '@');
+                default: return true;
+            }
+        };
+
+        // Format a decoded value for display, redacting secrets.
+        $format = function ($value, bool $secret) use ($isEmpty): string {
+            if ($isEmpty($value)) {
+                return '(empty)';
+            }
+            if ($secret) {
+                return '••• (defined)';
+            }
+            if (is_scalar($value)) {
+                return (string) $value;
+            }
+            return (string) json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        };
+
+        $grouped = array_fill_keys(array_keys($labels), []);
+
+        $collect = function (string $key, $rawValue, string $prefix) use ($categorize, $relevant, $format, &$grouped): void {
+            $category = $categorize($key);
+            if (!$category) {
+                return;
+            }
+            $value = is_string($rawValue) ? json_decode($rawValue, true) : $rawValue;
+            if (!$relevant($category, $value)) {
+                return;
+            }
+            $grouped[$category][] = sprintf('%s%s = %s', $prefix, $key, $format($value, $category === 'secret'));
+        };
+
+        $settings = $connection->executeQuery('SELECT id, value FROM setting ORDER BY id')->fetchAllAssociative();
+        foreach ($settings as $row) {
+            $collect($row['id'], $row['value'], '');
+        }
+
+        $siteSettings = $connection->executeQuery('SELECT id, site_id, value FROM site_setting ORDER BY site_id, id')->fetchAllAssociative();
+        foreach ($siteSettings as $row) {
+            $collect($row['id'], $row['value'], sprintf('[site #%s] ', $row['site_id']));
+        }
+
+        $blocks = [];
+        foreach ($labels as $category => $label) {
+            if (!$grouped[$category]) {
+                continue;
+            }
+            $blocks[] = '<strong>' . $this->translator()->translate($label) . '</strong><br/>'
+                . implode('<br/>', array_map('htmlspecialchars', $grouped[$category]));
+        }
+
+        if (!$blocks) {
+            $messenger->addNotice('No environment-specific setting found.'); // @translate
+        } else {
+            $message = new PsrMessage(
+                "Settings to review after a copy of the database:\n{list}", // @translate
+                ['list' => '<br/><br/>' . implode('<br/><br/>', $blocks)]
+            );
+            $message->setEscapeHtml(false);
+            $messenger->addSuccess($message);
+        }
+
+        // Configuration outside the settings tables, not detectable here.
+        $messenger->addNotice(new PsrMessage(
+            'Also review configurations stored outside the settings: search engines (SearchSolr cores/nodes, url and host), file paths and mailer in "config/local.config.php", and any external service of the modules.' // @translate
+        ));
+
+        if (!$fix) {
+            return;
+        }
+
+        /** @var \Omeka\Settings\Settings $mainSettings */
+        $mainSettings = $services->get('Omeka\Settings');
+        $title = (string) $mainSettings->get('installation_title', '');
+        if (mb_strpos($title, 'TEST') === 0) {
+            $messenger->addNotice(new PsrMessage(
+                'The installation title already starts with « TEST »: {title}', // @translate
+                ['title' => $title]
+            ));
+        } else {
+            $newTitle = trim('TEST ' . $title);
+            $mainSettings->set('installation_title', $newTitle);
+            $messenger->addSuccess(new PsrMessage(
+                'The installation title is now: {title}', // @translate
+                ['title' => $newTitle]
+            ));
         }
     }
 
