@@ -82,7 +82,9 @@ class BackupControllerTest extends AbstractHttpControllerTestCase
         $this->dispatch('/admin/easy-admin/backup');
 
         $this->assertResponseStatusCode(200);
-        $this->assertQueryContentContains('h2', 'Files backup');
+        // Each backup is a collapsible task, not a heading.
+        $this->assertQueryContentContains('.backup-task-name', 'Files backup');
+        $this->assertQueryContentContains('.backup-task-name', 'Database backup');
     }
 
     /**
@@ -153,16 +155,17 @@ class BackupControllerTest extends AbstractHttpControllerTestCase
         $this->reset();
         $this->loginAdmin();
 
-        // Track buffer level to properly clean up after dispatch.
-        // Note: PHPUnit may report this as "risky" because Laminas Response
-        // opens/closes output buffers during sendContent() for file streaming
-        // that PHPUnit cannot track. This is expected behavior for downloads.
+        // Sending a file opens and closes output buffers, so the level is
+        // restored in both directions: phpunit reports the test as risky when
+        // it does not end with the level it started with.
         $bufferLevel = ob_get_level();
         ob_start();
         $this->dispatch('/admin/easy-admin/backup/download?file=test-download.sql');
-        // Clean up any extra buffers opened during dispatch.
         while (ob_get_level() > $bufferLevel) {
             ob_end_clean();
+        }
+        while (ob_get_level() < $bufferLevel) {
+            ob_start();
         }
 
         // Should return 200 for successful download.

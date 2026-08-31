@@ -80,10 +80,16 @@ class ModuleTest extends AbstractHttpControllerTestCase
         $controllerManager = $this->getService('ControllerManager');
 
         $this->assertTrue(
-            $controllerManager->has('EasyAdmin\Controller\Admin\Addons')
+            $controllerManager->has('EasyAdmin\Controller\Admin\CheckAndFix')
         );
         $this->assertTrue(
-            $controllerManager->has('EasyAdmin\Controller\Admin\CheckAndFix')
+            $controllerManager->has('EasyAdmin\Controller\Admin\Cron')
+        );
+        $this->assertTrue(
+            $controllerManager->has('EasyAdmin\Controller\Admin\Module')
+        );
+        $this->assertTrue(
+            $controllerManager->has('EasyAdmin\Controller\Admin\Theme')
         );
         $this->assertTrue(
             $controllerManager->has('EasyAdmin\Controller\Admin\FileManager')

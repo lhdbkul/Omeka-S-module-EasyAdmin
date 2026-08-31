@@ -212,11 +212,17 @@ class FileManagerUserDataTest extends AbstractHttpControllerTestCase
         $this->reset();
         $this->loginAdmin();
 
+        // Sending a file opens and closes output buffers, so the level is
+        // restored in both directions: phpunit reports the test as risky when
+        // it does not end with the level it started with.
         $bufferLevel = ob_get_level();
         ob_start();
         $this->dispatch('/admin/easy-admin/file-manager/download?dir_path=' . urlencode($userDir) . '&filename=test-download.txt');
         while (ob_get_level() > $bufferLevel) {
             ob_end_clean();
+        }
+        while (ob_get_level() < $bufferLevel) {
+            ob_start();
         }
 
         $statusCode = $this->getResponse()->getStatusCode();
