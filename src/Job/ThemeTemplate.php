@@ -236,19 +236,19 @@ class ThemeTemplate extends AbstractCheck
                 $row['message_3'] = $messages[2] ?? '';
                 ++$this->totalFailed;
                 $this->logger->warn(
-                    'This process failed for template {template}: {message}', // @ŧranslate
+                    'This process failed for template {template}: {message}', // @translate
                     ['template' => $row['filepath'], 'message' => implode(' ', $messages)]
                 );
             } else {
                 ++$this->totalSucceed;
                 if (!$isFix) {
                     $this->logger->info(
-                        'This template can be moved into directory block-template: {template}.', // @ŧranslate
+                        'This template can be moved into directory block-template: {template}.', // @translate
                         ['template' => $row['filepath']]
                     );
                 } else {
                     $this->logger->info(
-                        'This template was moved into directory block-template: {template}.', // @ŧranslate
+                        'This template was moved into directory block-template: {template}.', // @translate
                         ['template' => $row['filepath']]
                     );
                 }
