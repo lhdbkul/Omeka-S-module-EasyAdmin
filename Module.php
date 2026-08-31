@@ -1487,7 +1487,15 @@ class Module extends AbstractModule
             if (is_bool($default)) {
                 return filter_var($current, FILTER_VALIDATE_BOOLEAN) === $default;
             }
-            if (is_array($default)) {
+            // The json is used as soon as one side is an array, because some
+            // settings store an array (browse defaults, cached navigation)
+            // while their declared default is an empty scalar, and casting an
+            // array to string is a warning. An empty array is then the same as
+            // an empty default.
+            if (is_array($current) || is_array($default)) {
+                if (!$current && ($default === null || $default === '' || $default === [])) {
+                    return true;
+                }
                 return json_encode($current) === json_encode($default);
             }
             return (string) $current === (string) $default;
