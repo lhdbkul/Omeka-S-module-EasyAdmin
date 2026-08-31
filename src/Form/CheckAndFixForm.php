@@ -559,6 +559,13 @@ class CheckAndFixForm extends Form
                 'required' => false,
             ]);
 
+        $inputFilter->get('security')
+            ->get('audit')
+            ->add([
+                'name' => 'probe_api',
+                'required' => false,
+            ]);
+
         $inputFilter->get('module_tasks')
             ->add([
                 'name' => 'process',
@@ -1714,7 +1721,31 @@ class CheckAndFixForm extends Form
                     'required' => false,
                     'class' => 'fieldset-process',
                 ],
-            ]);
+            ])
+            ->add([
+                'name' => 'audit',
+                'type' => Fieldset::class,
+                'options' => [
+                    'label' => 'Options for the audit', // @translate
+                ],
+                'attributes' => [
+                    'class' => 'security_check',
+                ],
+            ])
+            ->get('audit')
+            ->add([
+                'name' => 'probe_api',
+                'type' => \Common\Form\Element\OptionalCheckbox::class,
+                'options' => [
+                    'label' => 'Probe the api anonymously', // @translate
+                    'info' => 'Send two http requests to this install to check that the api does not expose user emails or private resources to anonymous visitors. Uncheck it when the server does not answer to itself: each request waits up to five seconds.', // @translate
+                ],
+                'attributes' => [
+                    'id' => 'security-probe-api',
+                    'value' => true,
+                ],
+            ])
+        ;
 
         return $this;
     }

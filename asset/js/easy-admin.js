@@ -9,6 +9,9 @@ $(document).ready(function () {
     var $form = $('#check-and-fix-form');
     var subjects = $form.data('subjects') || {};
     var entityTypesTasks = ($form.data('entity-types-tasks') || '').split(',');
+    // Tasks running in the web process, with an immediate result.
+    var quickProcesses = ($form.data('quick-processes') || '').split(',');
+    var quickLabel = $form.data('quick-label') || '';
 
     // value -> {subject, verb} index from the subjects metadata (core tasks).
     var valueIndex = {};
@@ -157,6 +160,14 @@ $(document).ready(function () {
         members.forEach(function (e) {
             var $label = $(e.label);
             relabel($label, (meta.actions && meta.actions[e.value]) || e.value);
+            if (quickProcesses.indexOf(e.value) !== -1) {
+                $label.addClass('task-action-quick');
+                if (quickLabel) {
+                    $label.append(
+                        $('<span class="task-action-quick-tag"></span>').text(quickLabel)
+                    );
+                }
+            }
             $actions.append($label);
         });
     };

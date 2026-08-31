@@ -9,6 +9,27 @@ use Laminas\View\Model\ViewModel;
 class CheckAndFixController extends AbstractActionController
 {
     /**
+     * Processes quick enough to run in the web process, with instant feedback.
+     *
+     * They are dispatched as jobs anyway, so the job log and history are kept,
+     * but with the synchronous strategy, so they do not need the php-cli and
+     * the result is displayed immediately. Only processes doing bounded sql or
+     * looping on a fixed list (tables, stalled jobs) belong here: anything
+     * looping on resources or files must stay a background job.
+     */
+    const QUICK_PROCESSES = [
+        'db_job_check',
+        'db_job_fix',
+        'db_job_fix_all',
+        'db_session_check',
+        'db_log_check',
+        'db_customvocab_missing_itemsets_check',
+        'db_customvocab_missing_itemsets_clean',
+        'db_resource_orphans_check',
+        'db_resource_orphans_fix',
+    ];
+
+    /**
      * Enable the settings enhancements (filter and section navigation), from
      * the button added on the settings pages when they are disabled.
      */
@@ -72,6 +93,13 @@ class CheckAndFixController extends AbstractActionController
         /** @var \Omeka\Mvc\Controller\Plugin\JobDispatcher $dispatcher */
         $job = null;
         $dispatcher = $this->jobDispatcher();
+        // A quick process runs in the web process for an instant feedback; the
+        // other ones are dispatched in background with the default strategy.
+        $isQuick = in_array($process, self::QUICK_PROCESSES, true);
+        $strategy = $isQuick
+            ? $this->getEvent()->getApplication()->getServiceManager()
+                ->get('Omeka\Job\DispatchStrategy\Synchronous')
+            : null;
         $defaultParams = [
             'process' => $process,
             'entity_types' => $params['files_checkfix']['entity_types'] ?? ['media'],
@@ -143,7 +171,7 @@ class CheckAndFixController extends AbstractActionController
                 break;
             case 'db_resource_orphans_check':
             case 'db_resource_orphans_fix':
-                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbResourceOrphans::class, $defaultParams);
+                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbResourceOrphans::class, $defaultParams, $strategy);
                 break;
             case 'db_item_no_value':
             case 'db_item_no_value_fix':
@@ -171,27 +199,26 @@ class CheckAndFixController extends AbstractActionController
             case 'db_job_check':
             case 'db_job_fix':
             case 'db_job_fix_all':
-                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbJob::class, $defaultParams);
+                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbJob::class, $defaultParams, $strategy);
                 break;
             case 'db_session_check':
             case 'db_session_clean':
             case 'db_session_recreate':
-                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbSession::class, $defaultParams + $params['database']['db_session']);
+                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbSession::class, $defaultParams + $params['database']['db_session'], $strategy);
                 break;
             case 'db_log_check':
             case 'db_log_clean':
-                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbLog::class, $defaultParams + $params['database']['db_log']);
+                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbLog::class, $defaultParams + $params['database']['db_log'], $strategy);
                 break;
             case 'db_customvocab_missing_itemsets_check':
             case 'db_customvocab_missing_itemsets_clean':
-                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbCustomVocabMissingItemSets::class, $defaultParams + $params['database']['db_customvocab_missing_itemsets']);
+                $job = $dispatcher->dispatch(\EasyAdmin\Job\DbCustomVocabMissingItemSets::class, $defaultParams + $params['database']['db_customvocab_missing_itemsets'], $strategy);
                 break;
             case 'theme_templates_check':
             case 'theme_templates_fix':
                 $job = $dispatcher->dispatch(\EasyAdmin\Job\ThemeTemplate::class, $defaultParams + $params['themes']['theme_templates'] + $params['themes']['theme_templates_warn']);
                 break;
             case 'install_check':
-                // TODO Improve the form to identify instant process, that are executed directly, not as jobs (quick, instant feedback).
                 // TODO Make theses tasks available separately, in particular for a whole check.
                 $this->checkInstall();
                 break;
@@ -203,7 +230,9 @@ class CheckAndFixController extends AbstractActionController
                 );
                 break;
             case 'security_check':
-                $this->checkSecurity();
+                // The anonymous api probe is the only slow part of the audit
+                // (two http requests to this install), so it is optional.
+                $this->checkSecurity(!empty($params['security']['audit']['probe_api']));
                 break;
             case 'security_htaccess_fix':
                 $this->fixSecurityHtaccess();
@@ -251,7 +280,11 @@ class CheckAndFixController extends AbstractActionController
         if ($job) {
             $urlPlugin = $this->url();
             $message = new PsrMessage(
-                'Processing checks in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
+                $isQuick
+                    // A quick process is already finished when the page is
+                    // rendered, so its messages are displayed above.
+                    ? 'Process done (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).' // @translate
+                    : 'Processing checks in background (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end}).', // @translate
                 [
                     'link_job' => sprintf('<a href="%s">', htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))),
                     'job_id' => $job->getId(),
@@ -812,7 +845,7 @@ class CheckAndFixController extends AbstractActionController
      * data leaks, private data leaks and dangerous settings. Read only: the
      * report is displayed as messages, nothing is modified.
      */
-    protected function checkSecurity(): void
+    protected function checkSecurity(bool $probeApi = true): void
     {
         /** @var \Omeka\Mvc\Controller\Plugin\Messenger $messenger */
         $messenger = $this->messenger();
@@ -824,7 +857,9 @@ class CheckAndFixController extends AbstractActionController
         $this->securityCheckPrivateData($messenger, $connection, $services);
         $this->securityCheckUserData($messenger, $connection);
         $this->securityCheckDangerousSettings($messenger, $services);
-        $this->securityProbeAnonymousApi($messenger, $connection);
+        if ($probeApi) {
+            $this->securityProbeAnonymousApi($messenger, $connection);
+        }
     }
 
     /**

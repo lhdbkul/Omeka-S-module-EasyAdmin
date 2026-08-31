@@ -6915,6 +6915,26 @@ msgstr "Configuration uniquement"
 #~ "open_basedir est actif côté web ({dirs}) ; le binaire PHP doit être dans "
 #~ "ce périmètre."
 
+#: src/Controller/Admin/CheckAndFixController.php
+msgid "Process done (job {link_job}#{job_id}{link_end}, {link_log}logs{link_end})."
+msgstr "Traitement terminé (tâche {link_job}#{job_id}{link_end}, {link_log}journaux{link_end})."
+
+#: src/Form/CheckAndFixForm.php
+msgid "Options for the audit"
+msgstr "Options pour l’audit"
+
+#: src/Form/CheckAndFixForm.php
+msgid "Probe the api anonymously"
+msgstr "Sonder l’api en anonyme"
+
+#: src/Form/CheckAndFixForm.php
+msgid "Send two http requests to this install to check that the api does not expose user emails or private resources to anonymous visitors. Uncheck it when the server does not answer to itself: each request waits up to five seconds."
+msgstr "Envoie deux requêtes http vers cette installation pour vérifier que l’api n’expose ni les courriels des utilisateurs ni les ressources privées aux visiteurs anonymes. Décochez si le serveur ne se répond pas à lui-même : chaque requête attend jusqu’à cinq secondes."
+
+#: view/easy-admin/admin/check-and-fix/index.phtml
+msgid "instant"
+msgstr "instantané"
+
 #~ msgid "Download and replace files of selected"
 #~ msgstr "Télécharger et remplacer les fichiers de la sélection"
 

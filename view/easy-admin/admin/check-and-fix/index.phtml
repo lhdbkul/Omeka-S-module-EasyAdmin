@@ -29,6 +29,11 @@ foreach ($form->getTaskSubjects() as $subjectKey => $subject) {
 }
 $form->setAttribute('data-subjects', json_encode($subjectsData, JSON_UNESCAPED_UNICODE));
 
+// Quick tasks run in the web process and return their result immediately, so
+// they are flagged in the list of actions.
+$form->setAttribute('data-quick-processes', implode(',', \EasyAdmin\Controller\Admin\CheckAndFixController::QUICK_PROCESSES));
+$form->setAttribute('data-quick-label', $translate('instant')); // @translate
+
 $form->prepare();
 
 $this->htmlElement('body')->appendAttribute('class', 'easy-admin check-and-fix browse');

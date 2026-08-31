@@ -958,3 +958,14 @@ mark.setting-filter-hit {
 .setting-nav-target {
     scroll-margin-top: 96px;
 }
+
+/* Tasks running in the web process, with an immediate result. */
+.task-action-quick-tag {
+    margin-left: .4em;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: #e3f0fb;
+    color: #14689e;
+    font-size: .8em;
+    vertical-align: middle;
+}
