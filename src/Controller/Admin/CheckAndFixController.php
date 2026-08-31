@@ -96,9 +96,10 @@ class CheckAndFixController extends AbstractActionController
         // A quick process runs in the web process for an instant feedback; the
         // other ones are dispatched in background with the default strategy.
         $isQuick = in_array($process, self::QUICK_PROCESSES, true);
+        // The messenger strategy displays the log of the job on the page.
         $strategy = $isQuick
             ? $this->getEvent()->getApplication()->getServiceManager()
-                ->get('Omeka\Job\DispatchStrategy\Synchronous')
+                ->get('Common\Job\DispatchStrategy\SynchronousMessenger')
             : null;
         $defaultParams = [
             'process' => $process,
