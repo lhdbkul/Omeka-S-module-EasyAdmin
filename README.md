@@ -277,6 +277,13 @@ table without a matching row in a sub-table (`item`, `item_set`, `media`,
 `annotation`, `value_annotation`, `digital_object`), and the reverse, which can
 happen after a crash or an incomplete deletion.
 
+Some tasks are quick enough to run directly, without the php-cli: they are
+flagged "instant" in the list, and their result is displayed on the page
+instead of the log only. They are still dispatched as jobs, so the log and the
+history are kept. Only the tasks doing bounded sql or looping on a fixed list
+(the stalled jobs, the sub-tables of `resource`) are in that case: anything
+looping on the resources or the files stays a background job.
+
 ### Background jobs (php-cli)
 
 Background jobs are run by a separate php-cli process whose path and version may
@@ -540,6 +547,8 @@ of the [Université des Antilles et de la Guyane].
 [Generic]: https://gitlab.com/Daniel-KM/Omeka-S-module-Generic
 [Content Lock]: https://www.drupal.org/project/content_lock
 [Image Server]: https://gitlab.com/Daniel-KM/Omeka-S-module-ImageServer
+[Bulk Import]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkImport
+[Search SolR]: https://gitlab.com/Daniel-KM/Omeka-S-module-SearchSolr
 [modules]: https://daniel-km.github.io/UpgradeToOmekaS/omeka_s_modules.html
 [themes]: https://daniel-km.github.io/UpgradeToOmekaS/omeka_s_themes.html
 [CeCILL v2.1]: https://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html

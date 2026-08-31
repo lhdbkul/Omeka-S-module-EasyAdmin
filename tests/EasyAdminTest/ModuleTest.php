@@ -141,4 +141,47 @@ class ModuleTest extends AbstractHttpControllerTestCase
             $viewHelperManager->has('lastBrowsePage')
         );
     }
+
+    /**
+     * The enhancements of the settings pages are optional.
+     */
+    public function testSettingsEnhancementsAreDisabledByDefault(): void
+    {
+        $settings = $this->getService('Omeka\Settings');
+        $settings->set('easyadmin_settings_enhancements', false);
+
+        $this->dispatch('/admin/setting');
+
+        $this->assertResponseStatusCode(200);
+        $this->assertStringNotContainsString('settingsFilter', $this->getResponse()->getBody());
+    }
+
+    /**
+     * Once enabled, the settings are classified and flagged, and a setting
+     * holding an array must not break the comparison with its default.
+     */
+    public function testSettingsEnhancementsClassifyTheSettings(): void
+    {
+        $settings = $this->getService('Omeka\Settings');
+        $settings->set('easyadmin_settings_enhancements', true);
+        // A setting whose value is an array while its default is a scalar.
+        $settings->set('browse_defaults_public_items', ['sort_by' => 'created']);
+
+        // The settings are shared by the whole suite, so they are restored
+        // even when an assertion fails.
+        try {
+            $this->dispatch('/admin/setting');
+            $body = $this->getResponse()->getBody();
+
+            $this->assertResponseStatusCode(200);
+            $this->assertStringContainsString('settingsFilter', $body);
+            $this->assertStringContainsString('"kinds"', $body);
+            $this->assertStringContainsString('"status"', $body);
+            // Casting an array to string would emit a warning in the output.
+            $this->assertStringNotContainsString('Array to string conversion', $body);
+        } finally {
+            $settings->set('easyadmin_settings_enhancements', false);
+            $settings->delete('browse_defaults_public_items');
+        }
+    }
 }
